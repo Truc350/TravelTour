@@ -34,6 +34,7 @@ public class LoginActivity extends AppCompatActivity {
     private ImageView btnBack;
     private MaterialButton btnFacebook, btnGoogle, btnLoginSms;
     private TextView tvSignup, tvForgotPassword;
+    private DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +51,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Initialize Views
         initViews();
+        dbHelper = new DatabaseHelper(this);
 
         // Setup Interactive Features
         setupListeners();
@@ -116,11 +118,16 @@ public class LoginActivity extends AppCompatActivity {
 
         // Action when validation succeeds
         if (isValid) {
-            Toast.makeText(this, R.string.msg_login_success, Toast.LENGTH_LONG).show();
-            // Navigate to MainActivity
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish(); // Close LoginActivity
+            // Xác thực thông tin tài khoản qua SQLite
+            if (dbHelper.checkUserCredentials(contact, password)) {
+                Toast.makeText(this, R.string.msg_login_success, Toast.LENGTH_LONG).show();
+                // Navigate to MainActivity
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish(); // Close LoginActivity
+            } else {
+                layoutPassword.setError(getString(R.string.error_login_failed));
+            }
         }
     }
 

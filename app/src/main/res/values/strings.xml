@@ -47,4 +47,6 @@
     <string name="msg_login_success">Đăng nhập thành công!</string>
     <string name="msg_forgot_password_click">Chức năng Quên mật khẩu đang được phát triển</string>
     <string name="msg_login_sms_click">Chức năng Đăng nhập bằng SMS đang được phát triển</string>
+    <string name="error_contact_exists">Số điện thoại hoặc Email này đã được đăng ký!</string>
+    <string name="error_login_failed">Tài khoản hoặc mật khẩu không chính xác!</string>
 </resources>

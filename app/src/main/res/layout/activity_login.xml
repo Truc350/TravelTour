@@ -71,9 +71,7 @@
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:src="@drawable/ic_trip"
-                        android:padding="18dp"
-                        app:tint="@color/primary_blue"
+                        android:src="@drawable/logo"
                         android:contentDescription="TravelTour Logo" />
                 </androidx.cardview.widget.CardView>
 

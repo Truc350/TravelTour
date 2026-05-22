@@ -34,6 +34,7 @@ public class RegisterActivity extends AppCompatActivity {
     private ImageView btnBack;
     private MaterialButton btnFacebook, btnGoogle;
     private TextView tvTerms, tvLogin;
+    private DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +51,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         // Initialize Views
         initViews();
+        dbHelper = new DatabaseHelper(this);
 
         // Setup Interactive Features
         setupListeners();
@@ -122,11 +124,23 @@ public class RegisterActivity extends AppCompatActivity {
 
         // Action when validation succeeds
         if (isValid) {
-            Toast.makeText(this, R.string.msg_register_success, Toast.LENGTH_LONG).show();
-            // Navigate to MainActivity
-            android.content.Intent intent = new android.content.Intent(RegisterActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish(); // Close RegisterActivity so user can't press back to return here
+            // Kiểm tra xem số điện thoại hoặc email đã tồn tại hay chưa
+            if (dbHelper.checkUserExists(contact)) {
+                layoutContact.setError(getString(R.string.error_contact_exists));
+                return;
+            }
+
+            // Lưu tài khoản vào cơ sở dữ liệu SQLite
+            boolean isAdded = dbHelper.addUser(name, contact, password);
+            if (isAdded) {
+                Toast.makeText(this, R.string.msg_register_success, Toast.LENGTH_LONG).show();
+                // Navigate to MainActivity
+                Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish(); // Close RegisterActivity so user can't press back to return here
+            } else {
+                Toast.makeText(this, "Đã xảy ra lỗi khi tạo tài khoản. Vui lòng thử lại!", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
