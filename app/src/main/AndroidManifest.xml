@@ -22,8 +22,24 @@
             android:name=".RegisterActivity"
             android:exported="false" />
 
+        <!-- Màn hình Lịch khởi hành và giá -->
+        <activity
+            android:name=".DepartureActivity"
+            android:exported="false" />
 
-        <!-- Màn hình chính MainActivity - khởi động thẳng vào trang Tài khoản -->
+        <!-- Màn hình Hồ sơ của tôi -->
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="false" />
+
+        <!-- Màn hình Hoá đơn điện tử -->
+        <activity
+            android:name=".InvoiceActivity"
+            android:exported="false" />
+
+
+
+        <!-- Màn hình chính MainActivity -->
         <activity
             android:name=".MainActivity"
             android:exported="true">

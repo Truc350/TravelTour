@@ -25,7 +25,7 @@ public class Account extends Fragment {
 
         // Thiết lập sự kiện click cho các nút chức năng (bạn có thể mở rộng xử lý sau này)
         view.findViewById(R.id.btnMyProfile).setOnClickListener(v -> {
-            // Xử lý khi nhấn "Hồ sơ của tôi"
+            startActivity(new Intent(requireContext(), ProfileActivity.class));
         });
 
         view.findViewById(R.id.btnPassengerInfo).setOnClickListener(v -> {

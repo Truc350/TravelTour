@@ -125,6 +125,15 @@ public class DetailTour extends Fragment {
             });
         }
 
+        // Sự kiện mở Lịch khởi hành (DepartureActivity)
+        View btnBookTour = view.findViewById(R.id.btnBookTour);
+        if (btnBookTour != null) {
+            btnBookTour.setOnClickListener(v -> {
+                android.content.Intent intent = new android.content.Intent(requireContext(), DepartureActivity.class);
+                startActivity(intent);
+            });
+        }
+
         return view;
     }
 
