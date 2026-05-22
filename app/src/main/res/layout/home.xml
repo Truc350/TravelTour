@@ -624,6 +624,1306 @@
                 </HorizontalScrollView>
             </LinearLayout>
 
+            <!-- Tour Miền Bắc Section -->
+            <LinearLayout
+                android:id="@+id/layoutNorthernTourSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#F2F8FC"
+                android:orientation="vertical"
+                android:layout_marginTop="24dp"
+                android:paddingTop="24dp"
+                android:paddingBottom="32dp">
+
+                <!-- Header Row -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="20dp"
+                    android:layout_marginBottom="16dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@id/btnMoreNorthernTours"
+                        android:layout_marginEnd="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tour Du Lịch Miền Bắc"
+                            android:textColor="#333333"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Khám Phá Vẻ Đẹp Kỳ Vĩ Của Núi Rừng &amp; Kỳ Quan"
+                            android:textColor="#777777"
+                            android:textSize="14sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:id="@+id/btnMoreNorthernTours"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="@drawable/bg_circle_cyan"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="#FFFFFF" />
+                    </FrameLayout>
+                </RelativeLayout>
+
+                <!-- Horizontal Scroll View for Tour Cards -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:clipToPadding="false"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- Card 1: Sapa Tour -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardSapaTour"
+                            android:layout_width="280dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="16dp"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="16dp"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="4dp"
+                            app:cardBackgroundColor="#FFFFFF"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <!-- Image & Badge -->
+                                <FrameLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="160dp">
+
+                                    <ImageView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:scaleType="centerCrop"
+                                        android:src="@drawable/img_sapa_tour" />
+
+                                    <!-- Price Badge/Label -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Bán Chạy Nhất"
+                                        android:textColor="#FFFFFF"
+                                        android:background="@drawable/bg_badge_red"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold"
+                                        android:paddingHorizontal="10dp"
+                                        android:paddingVertical="5dp"
+                                        android:layout_gravity="top|start" />
+                                </FrameLayout>
+
+                                <!-- Details Container -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="12dp">
+
+                                    <!-- Title -->
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:text="Tour Sapa 3N2Đ: Hà Nội - Bản Cát Cát - Chinh Phục Đỉnh Fansipan"
+                                        android:textColor="#0F3C7A"
+                                        android:textSize="15sp"
+                                        android:textStyle="bold"
+                                        android:maxLines="2"
+                                        android:ellipsize="end"
+                                        android:layout_marginBottom="8dp" />
+
+                                    <!-- Duration & Transport -->
+                                    <RelativeLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginBottom="8dp">
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:gravity="center_vertical"
+                                            android:layout_alignParentStart="true"
+                                            android:layout_centerVertical="true">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_clock"
+                                                app:tint="#777777" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="3 ngày 2 đêm"
+                                                android:textColor="#777777"
+                                                android:textSize="13sp"
+                                                android:layout_marginStart="6dp" />
+                                        </LinearLayout>
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:layout_alignParentEnd="true"
+                                            android:layout_centerVertical="true">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_flight"
+                                                app:tint="#888888"
+                                                android:layout_marginEnd="6dp" />
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_bus"
+                                                app:tint="#888888" />
+                                        </LinearLayout>
+                                    </RelativeLayout>
+
+                                    <!-- Rating Row -->
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical"
+                                        android:layout_marginBottom="8dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="9,2"
+                                            android:textColor="#FFFFFF"
+                                            android:background="@drawable/bg_score_green"
+                                            android:textSize="12sp"
+                                            android:textStyle="bold"
+                                            android:paddingHorizontal="6dp"
+                                            android:paddingVertical="3dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text=" Tuyệt vời | "
+                                            android:textColor="#388E3C"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold"
+                                            android:layout_marginStart="6dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="15 đánh giá"
+                                            android:textColor="#00B8D4"
+                                            android:textSize="13sp" />
+                                    </LinearLayout>
+
+                                    <!-- Stats Badge -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="6 khách đặt trong 24 giờ qua"
+                                        android:textColor="#C62828"
+                                        android:background="@drawable/bg_badge_pink"
+                                        android:textSize="11sp"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:layout_gravity="center_horizontal"
+                                        android:layout_marginBottom="10dp" />
+
+                                    <!-- Price -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="3.290.000đ"
+                                        android:textColor="#FF9100"
+                                        android:textSize="18sp"
+                                        android:textStyle="bold"
+                                        android:layout_gravity="end" />
+
+                                </LinearLayout>
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
+
+                        <!-- Card 2: Halong Tour -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardHalongTour"
+                            android:layout_width="280dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="16dp"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="16dp"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="4dp"
+                            app:cardBackgroundColor="#FFFFFF"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <!-- Image & Badge -->
+                                <FrameLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="160dp">
+
+                                    <ImageView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:scaleType="centerCrop"
+                                        android:src="@drawable/img_halong_tour" />
+
+                                    <!-- Price Badge/Label -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Du Thuyền 5*"
+                                        android:textColor="#FFFFFF"
+                                        android:background="@drawable/bg_badge_red"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold"
+                                        android:paddingHorizontal="10dp"
+                                        android:paddingVertical="5dp"
+                                        android:layout_gravity="top|start" />
+                                </FrameLayout>
+
+                                <!-- Details Container -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="12dp">
+
+                                    <!-- Title -->
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:text="Tour Vịnh Hạ Long 2N1Đ: Nghỉ Dưỡng Trên Du Thuyền Sang Trọng"
+                                        android:textColor="#0F3C7A"
+                                        android:textSize="15sp"
+                                        android:textStyle="bold"
+                                        android:maxLines="2"
+                                        android:ellipsize="end"
+                                        android:layout_marginBottom="8dp" />
+
+                                    <!-- Duration & Transport -->
+                                    <RelativeLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginBottom="8dp">
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:gravity="center_vertical"
+                                            android:layout_alignParentStart="true"
+                                            android:layout_centerVertical="true">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_clock"
+                                                app:tint="#777777" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="2 ngày 1 đêm"
+                                                android:textColor="#777777"
+                                                android:textSize="13sp"
+                                                android:layout_marginStart="6dp" />
+                                        </LinearLayout>
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:layout_alignParentEnd="true"
+                                            android:layout_centerVertical="true">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_bus"
+                                                app:tint="#888888" />
+                                        </LinearLayout>
+                                    </RelativeLayout>
+
+                                    <!-- Rating Row -->
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical"
+                                        android:layout_marginBottom="8dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="9,4"
+                                            android:textColor="#FFFFFF"
+                                            android:background="@drawable/bg_score_green"
+                                            android:textSize="12sp"
+                                            android:textStyle="bold"
+                                            android:paddingHorizontal="6dp"
+                                            android:paddingVertical="3dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text=" Xuất sắc | "
+                                            android:textColor="#388E3C"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold"
+                                            android:layout_marginStart="6dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="25 đánh giá"
+                                            android:textColor="#00B8D4"
+                                            android:textSize="13sp" />
+                                    </LinearLayout>
+
+                                    <!-- Stats Badge -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="8 khách đặt trong 24 giờ qua"
+                                        android:textColor="#C62828"
+                                        android:background="@drawable/bg_badge_pink"
+                                        android:textSize="11sp"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:layout_gravity="center_horizontal"
+                                        android:layout_marginBottom="10dp" />
+
+                                    <!-- Price -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="2.590.000đ"
+                                        android:textColor="#FF9100"
+                                        android:textSize="18sp"
+                                        android:textStyle="bold"
+                                        android:layout_gravity="end" />
+
+                                </LinearLayout>
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
+
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+
+            <!-- Tour Miền Trung Section -->
+            <LinearLayout
+                android:id="@+id/layoutCentralTourSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFBF4"
+                android:orientation="vertical"
+                android:layout_marginTop="24dp"
+                android:paddingTop="24dp"
+                android:paddingBottom="32dp">
+
+                <!-- Header Row -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="20dp"
+                    android:layout_marginBottom="16dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@id/btnMoreCentralTours"
+                        android:layout_marginEnd="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tour Du Lịch Miền Trung"
+                            android:textColor="#333333"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Di Sản Văn Hóa, Biển Xanh &amp; Cát Trắng Nắng Vàng"
+                            android:textColor="#777777"
+                            android:textSize="14sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:id="@+id/btnMoreCentralTours"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="@drawable/bg_circle_cyan"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="#FFFFFF" />
+                    </FrameLayout>
+                </RelativeLayout>
+
+                <!-- Horizontal Scroll View for Tour Cards -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:clipToPadding="false"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- Card 1: Danang Tour -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardDanangTour"
+                            android:layout_width="280dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="16dp"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="16dp"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="4dp"
+                            app:cardBackgroundColor="#FFFFFF"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <!-- Image & Badge -->
+                                <FrameLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="160dp">
+
+                                    <ImageView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:scaleType="centerCrop"
+                                        android:src="@drawable/img_danang_tour" />
+
+                                    <!-- Price Badge/Label -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Hot Nhất"
+                                        android:textColor="#FFFFFF"
+                                        android:background="@drawable/bg_badge_red"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold"
+                                        android:paddingHorizontal="10dp"
+                                        android:paddingVertical="5dp"
+                                        android:layout_gravity="top|start" />
+                                </FrameLayout>
+
+                                <!-- Details Container -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="12dp">
+
+                                    <!-- Title -->
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:text="Tour Đà Nẵng - Hội An - Bà Nà Hills 4N3Đ Trọn Gói Giá Tốt"
+                                        android:textColor="#0F3C7A"
+                                        android:textSize="15sp"
+                                        android:textStyle="bold"
+                                        android:maxLines="2"
+                                        android:ellipsize="end"
+                                        android:layout_marginBottom="8dp" />
+
+                                    <!-- Duration & Transport -->
+                                    <RelativeLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginBottom="8dp">
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:gravity="center_vertical"
+                                            android:layout_alignParentStart="true"
+                                            android:layout_centerVertical="true">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_clock"
+                                                app:tint="#777777" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="4 ngày 3 đêm"
+                                                android:textColor="#777777"
+                                                android:textSize="13sp"
+                                                android:layout_marginStart="6dp" />
+                                        </LinearLayout>
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:layout_alignParentEnd="true"
+                                            android:layout_centerVertical="true">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_flight"
+                                                app:tint="#888888"
+                                                android:layout_marginEnd="6dp" />
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_bus"
+                                                app:tint="#888888" />
+                                        </LinearLayout>
+                                    </RelativeLayout>
+
+                                    <!-- Rating Row -->
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical"
+                                        android:layout_marginBottom="8dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="9,3"
+                                            android:textColor="#FFFFFF"
+                                            android:background="@drawable/bg_score_green"
+                                            android:textSize="12sp"
+                                            android:textStyle="bold"
+                                            android:paddingHorizontal="6dp"
+                                            android:paddingVertical="3dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text=" Xuất sắc | "
+                                            android:textColor="#388E3C"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold"
+                                            android:layout_marginStart="6dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="30 đánh giá"
+                                            android:textColor="#00B8D4"
+                                            android:textSize="13sp" />
+                                    </LinearLayout>
+
+                                    <!-- Stats Badge -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="12 khách đặt trong 24 giờ qua"
+                                        android:textColor="#C62828"
+                                        android:background="@drawable/bg_badge_pink"
+                                        android:textSize="11sp"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:layout_gravity="center_horizontal"
+                                        android:layout_marginBottom="10dp" />
+
+                                    <!-- Price -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="4.890.000đ"
+                                        android:textColor="#FF9100"
+                                        android:textSize="18sp"
+                                        android:textStyle="bold"
+                                        android:layout_gravity="end" />
+
+                                </LinearLayout>
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
+
+                        <!-- Card 2: Nhatrang Tour -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardNhatrangTour"
+                            android:layout_width="280dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="16dp"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="16dp"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="4dp"
+                            app:cardBackgroundColor="#FFFFFF"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <!-- Image & Badge -->
+                                <FrameLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="160dp">
+
+                                    <ImageView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:scaleType="centerCrop"
+                                        android:src="@drawable/img_nhatrang_tour" />
+
+                                    <!-- Price Badge/Label -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Biển Xanh Vẫy Gọi"
+                                        android:textColor="#FFFFFF"
+                                        android:background="@drawable/bg_badge_red"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold"
+                                        android:paddingHorizontal="10dp"
+                                        android:paddingVertical="5dp"
+                                        android:layout_gravity="top|start" />
+                                </FrameLayout>
+
+                                <!-- Details Container -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="12dp">
+
+                                    <!-- Title -->
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:text="Tour Nha Trang 3N2Đ: Khám Phá Vịnh San Hô - VinWonders Trọn Gói"
+                                        android:textColor="#0F3C7A"
+                                        android:textSize="15sp"
+                                        android:textStyle="bold"
+                                        android:maxLines="2"
+                                        android:ellipsize="end"
+                                        android:layout_marginBottom="8dp" />
+
+                                    <!-- Duration & Transport -->
+                                    <RelativeLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginBottom="8dp">
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:gravity="center_vertical"
+                                            android:layout_alignParentStart="true"
+                                            android:layout_centerVertical="true">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_clock"
+                                                app:tint="#777777" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="3 ngày 2 đêm"
+                                                android:textColor="#777777"
+                                                android:textSize="13sp"
+                                                android:layout_marginStart="6dp" />
+                                        </LinearLayout>
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:layout_alignParentEnd="true"
+                                            android:layout_centerVertical="true">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_flight"
+                                                app:tint="#888888"
+                                                android:layout_marginEnd="6dp" />
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_bus"
+                                                app:tint="#888888" />
+                                        </LinearLayout>
+                                    </RelativeLayout>
+
+                                    <!-- Rating Row -->
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical"
+                                        android:layout_marginBottom="8dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="9,0"
+                                            android:textColor="#FFFFFF"
+                                            android:background="@drawable/bg_score_green"
+                                            android:textSize="12sp"
+                                            android:textStyle="bold"
+                                            android:paddingHorizontal="6dp"
+                                            android:paddingVertical="3dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text=" Rất tốt | "
+                                            android:textColor="#388E3C"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold"
+                                            android:layout_marginStart="6dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="12 đánh giá"
+                                            android:textColor="#00B8D4"
+                                            android:textSize="13sp" />
+                                    </LinearLayout>
+
+                                    <!-- Stats Badge -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="4 khách đặt trong 24 giờ qua"
+                                        android:textColor="#C62828"
+                                        android:background="@drawable/bg_badge_pink"
+                                        android:textSize="11sp"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:layout_gravity="center_horizontal"
+                                        android:layout_marginBottom="10dp" />
+
+                                    <!-- Price -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="3.190.000đ"
+                                        android:textColor="#FF9100"
+                                        android:textSize="18sp"
+                                        android:textStyle="bold"
+                                        android:layout_gravity="end" />
+
+                                </LinearLayout>
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
+
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+
+            <!-- Tour Miền Nam Section -->
+            <LinearLayout
+                android:id="@+id/layoutSouthernTourSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FAF8F5"
+                android:orientation="vertical"
+                android:layout_marginTop="24dp"
+                android:paddingTop="24dp"
+                android:paddingBottom="32dp">
+
+                <!-- Header Row -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="20dp"
+                    android:layout_marginBottom="16dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@id/btnMoreSouthernTours"
+                        android:layout_marginEnd="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tour Du Lịch Miền Nam"
+                            android:textColor="#333333"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Thiên Đường Sông Nước &amp; Biển Đảo Quyến Rũ"
+                            android:textColor="#777777"
+                            android:textSize="14sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:id="@+id/btnMoreSouthernTours"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="@drawable/bg_circle_cyan"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="#FFFFFF" />
+                    </FrameLayout>
+                </RelativeLayout>
+
+                <!-- Horizontal Scroll View for Tour Cards -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:clipToPadding="false"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- Card 1: Phuquoc Tour -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardPhuquocTour"
+                            android:layout_width="280dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="16dp"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="16dp"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="4dp"
+                            app:cardBackgroundColor="#FFFFFF"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <!-- Image & Badge -->
+                                <FrameLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="160dp">
+
+                                    <ImageView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:scaleType="centerCrop"
+                                        android:src="@drawable/img_phuquoc_tour" />
+
+                                    <!-- Price Badge/Label -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Nghỉ Dưỡng VIP"
+                                        android:textColor="#FFFFFF"
+                                        android:background="@drawable/bg_badge_red"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold"
+                                        android:paddingHorizontal="10dp"
+                                        android:paddingVertical="5dp"
+                                        android:layout_gravity="top|start" />
+                                </FrameLayout>
+
+                                <!-- Details Container -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="12dp">
+
+                                    <!-- Title -->
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:text="Tour Phú Quốc 3N2Đ: Khám Phá Địa Trung Hải - Grand World Trọn Gói"
+                                        android:textColor="#0F3C7A"
+                                        android:textSize="15sp"
+                                        android:textStyle="bold"
+                                        android:maxLines="2"
+                                        android:ellipsize="end"
+                                        android:layout_marginBottom="8dp" />
+
+                                    <!-- Duration & Transport -->
+                                    <RelativeLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginBottom="8dp">
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:gravity="center_vertical"
+                                            android:layout_alignParentStart="true"
+                                            android:layout_centerVertical="true">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_clock"
+                                                app:tint="#777777" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="3 ngày 2 đêm"
+                                                android:textColor="#777777"
+                                                android:textSize="13sp"
+                                                android:layout_marginStart="6dp" />
+                                        </LinearLayout>
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:layout_alignParentEnd="true"
+                                            android:layout_centerVertical="true">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_flight"
+                                                app:tint="#888888"
+                                                android:layout_marginEnd="6dp" />
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_bus"
+                                                app:tint="#888888" />
+                                        </LinearLayout>
+                                    </RelativeLayout>
+
+                                    <!-- Rating Row -->
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical"
+                                        android:layout_marginBottom="8dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="9,5"
+                                            android:textColor="#FFFFFF"
+                                            android:background="@drawable/bg_score_green"
+                                            android:textSize="12sp"
+                                            android:textStyle="bold"
+                                            android:paddingHorizontal="6dp"
+                                            android:paddingVertical="3dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text=" Xuất sắc | "
+                                            android:textColor="#388E3C"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold"
+                                            android:layout_marginStart="6dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="40 đánh giá"
+                                            android:textColor="#00B8D4"
+                                            android:textSize="13sp" />
+                                    </LinearLayout>
+
+                                    <!-- Stats Badge -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="15 khách đặt trong 24 giờ qua"
+                                        android:textColor="#C62828"
+                                        android:background="@drawable/bg_badge_pink"
+                                        android:textSize="11sp"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:layout_gravity="center_horizontal"
+                                        android:layout_marginBottom="10dp" />
+
+                                    <!-- Price -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="4.590.000đ"
+                                        android:textColor="#FF9100"
+                                        android:textSize="18sp"
+                                        android:textStyle="bold"
+                                        android:layout_gravity="end" />
+
+                                </LinearLayout>
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
+
+                        <!-- Card 2: Mientay Tour -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardMientayTour"
+                            android:layout_width="280dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="16dp"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="16dp"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="4dp"
+                            app:cardBackgroundColor="#FFFFFF"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <!-- Image & Badge -->
+                                <FrameLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="160dp">
+
+                                    <ImageView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:scaleType="centerCrop"
+                                        android:src="@drawable/img_mientay_tour" />
+
+                                    <!-- Price Badge/Label -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Giá Siêu Rẻ"
+                                        android:textColor="#FFFFFF"
+                                        android:background="@drawable/bg_badge_red"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold"
+                                        android:paddingHorizontal="10dp"
+                                        android:paddingVertical="5dp"
+                                        android:layout_gravity="top|start" />
+                                </FrameLayout>
+
+                                <!-- Details Container -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="12dp">
+
+                                    <!-- Title -->
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:text="Tour Miền Tây Sông Nước 2N1Đ: Mỹ Tho - Cần Thơ - Chợ Nổi Cái Răng"
+                                        android:textColor="#0F3C7A"
+                                        android:textSize="15sp"
+                                        android:textStyle="bold"
+                                        android:maxLines="2"
+                                        android:ellipsize="end"
+                                        android:layout_marginBottom="8dp" />
+
+                                    <!-- Duration & Transport -->
+                                    <RelativeLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginBottom="8dp">
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:gravity="center_vertical"
+                                            android:layout_alignParentStart="true"
+                                            android:layout_centerVertical="true">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_clock"
+                                                app:tint="#777777" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="2 ngày 1 đêm"
+                                                android:textColor="#777777"
+                                                android:textSize="13sp"
+                                                android:layout_marginStart="6dp" />
+                                        </LinearLayout>
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:layout_alignParentEnd="true"
+                                            android:layout_centerVertical="true">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_bus"
+                                                app:tint="#888888" />
+                                        </LinearLayout>
+                                    </RelativeLayout>
+
+                                    <!-- Rating Row -->
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical"
+                                        android:layout_marginBottom="8dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="8,8"
+                                            android:textColor="#FFFFFF"
+                                            android:background="@drawable/bg_score_green"
+                                            android:textSize="12sp"
+                                            android:textStyle="bold"
+                                            android:paddingHorizontal="6dp"
+                                            android:paddingVertical="3dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text=" Rất tốt | "
+                                            android:textColor="#388E3C"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold"
+                                            android:layout_marginStart="6dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="18 đánh giá"
+                                            android:textColor="#00B8D4"
+                                            android:textSize="13sp" />
+                                    </LinearLayout>
+
+                                    <!-- Stats Badge -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="7 khách đặt trong 24 giờ qua"
+                                        android:textColor="#C62828"
+                                        android:background="@drawable/bg_badge_pink"
+                                        android:textSize="11sp"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:layout_gravity="center_horizontal"
+                                        android:layout_marginBottom="10dp" />
+
+                                    <!-- Price -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="1.890.000đ"
+                                        android:textColor="#FF9100"
+                                        android:textSize="18sp"
+                                        android:textStyle="bold"
+                                        android:layout_gravity="end" />
+
+                                </LinearLayout>
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
+
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+
         </LinearLayout>
 
     </ScrollView>
