@@ -3,4 +3,28 @@
 <resources>
     <!-- Tên ứng dụng hiển thị trên thiết bị -->
     <string name="app_name">TravelTour</string>
+
+    <!-- Trang Đăng Ký -->
+    <string name="title_register">Đăng ký tài khoản</string>
+    <string name="subtitle_register">Hãy tạo tài khoản để trải nghiệm các tính năng tuyệt vời của TravelTour.</string>
+    <string name="hint_name">Họ và tên</string>
+    <string name="hint_contact">Số điện thoại hoặc Email</string>
+    <string name="hint_password">Mật khẩu</string>
+    <string name="btn_register">Đăng ký</string>
+    <string name="terms_disclaimer">Bằng việc bấm Đăng ký, bạn đồng ý với Điều khoản &amp; Chính sách của chúng tôi.</string>
+    <string name="terms_clickable_part">Điều khoản &amp; Chính sách</string>
+    <string name="divider_or">Hoặc</string>
+    <string name="btn_facebook">Đăng nhập với Facebook</string>
+    <string name="btn_google">Đăng nhập với Google</string>
+
+    <!-- Thông báo lỗi & Trạng thái trong RegisterActivity -->
+    <string name="msg_facebook_click">Đăng nhập với Facebook đang được phát triển</string>
+    <string name="msg_google_click">Đăng nhập với Google đang được phát triển</string>
+    <string name="error_empty_name">Vui lòng nhập họ và tên</string>
+    <string name="error_empty_contact">Vui lòng nhập số điện thoại hoặc email</string>
+    <string name="error_invalid_contact">Số điện thoại hoặc email không hợp lệ</string>
+    <string name="error_empty_password">Vui lòng nhập mật khẩu</string>
+    <string name="error_invalid_password">Mật khẩu phải chứa ít nhất 6 ký tự</string>
+    <string name="msg_register_success">Đăng ký tài khoản thành công!</string>
+    <string name="msg_click_terms">Mở Điều khoản dịch vụ và Chính sách bảo mật</string>
 </resources>
