@@ -219,5 +219,50 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return list;
     }
+
+    /**
+     * Cập nhật mật khẩu cho người dùng
+     */
+    public boolean updatePassword(String contact, String newPassword) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_PASSWORD, newPassword);
+        int result = db.update(TABLE_USERS, values, COLUMN_CONTACT + "=?", new String[]{contact});
+        db.close();
+        return result > 0;
+    }
+
+    /**
+     * Lấy mật khẩu hiện tại của người dùng
+     */
+    public String getPassword(String contact) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_PASSWORD},
+                COLUMN_CONTACT + "=?", new String[]{contact},
+                null, null, null);
+        String password = "";
+        if (cursor != null && cursor.moveToFirst()) {
+            password = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PASSWORD));
+        }
+        if (cursor != null) cursor.close();
+        db.close();
+        return password;
+    }
+
+    /**
+     * Lấy contact của người dùng cuối cùng đăng ký (dùng làm fallback khi chưa đăng nhập)
+     */
+    public String getLastUserContact() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_CONTACT},
+                null, null, null, null, COLUMN_ID + " DESC", "1");
+        String contact = "";
+        if (cursor != null && cursor.moveToFirst()) {
+            contact = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTACT));
+        }
+        if (cursor != null) cursor.close();
+        db.close();
+        return contact;
+    }
 }
 

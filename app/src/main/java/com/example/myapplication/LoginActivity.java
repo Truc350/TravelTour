@@ -121,6 +121,10 @@ public class LoginActivity extends AppCompatActivity {
             // Xác thực thông tin tài khoản qua SQLite
             if (dbHelper.checkUserCredentials(contact, password)) {
                 Toast.makeText(this, R.string.msg_login_success, Toast.LENGTH_LONG).show();
+                // Store session in SharedPreferences
+                getSharedPreferences("UserSession", MODE_PRIVATE).edit()
+                        .putString("current_user_contact", contact)
+                        .apply();
                 // Navigate to MainActivity
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);

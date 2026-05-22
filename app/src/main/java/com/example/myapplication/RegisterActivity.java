@@ -134,6 +134,10 @@ public class RegisterActivity extends AppCompatActivity {
             boolean isAdded = dbHelper.addUser(name, contact, password);
             if (isAdded) {
                 Toast.makeText(this, R.string.msg_register_success, Toast.LENGTH_LONG).show();
+                // Store session in SharedPreferences
+                getSharedPreferences("UserSession", MODE_PRIVATE).edit()
+                        .putString("current_user_contact", contact)
+                        .apply();
                 // Navigate to MainActivity
                 Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
                 startActivity(intent);
