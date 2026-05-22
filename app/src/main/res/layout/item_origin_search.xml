@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <TextView
+        android:id="@+id/tvOriginName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#2D3748"
+        android:textSize="16sp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="14dp"
+        android:text="Hồ Chí Minh" />
+
+    <!-- Thin Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EDF2F7"
+        android:layout_marginStart="16dp" />
+</LinearLayout>

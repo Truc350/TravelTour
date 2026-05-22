@@ -59,13 +59,16 @@
 
                 <!-- Field 1: Destination -->
                 <LinearLayout
+                    android:id="@+id/layoutDestination"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_input_field"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:padding="14dp"
-                    android:layout_marginBottom="12dp">
+                    android:layout_marginBottom="12dp"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <ImageView
                         android:layout_width="20dp"
@@ -73,6 +76,7 @@
                         android:src="@drawable/ic_location_pin" />
 
                     <EditText
+                        android:id="@+id/etDestination"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
@@ -81,11 +85,14 @@
                         android:textColorHint="#888888"
                         android:textColor="#333333"
                         android:textSize="15sp"
-                        android:singleLine="true" />
+                        android:singleLine="true"
+                        android:focusable="false"
+                        android:clickable="true" />
                 </LinearLayout>
 
                 <!-- Field 2: Departure Date -->
                 <LinearLayout
+                    android:id="@+id/layoutDepartureDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_input_field"
@@ -116,6 +123,7 @@
                             android:textSize="11sp" />
 
                         <TextView
+                            android:id="@+id/tvDepartureDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="23 tháng 05"
@@ -128,6 +136,7 @@
 
                 <!-- Field 3: Origin City -->
                 <LinearLayout
+                    android:id="@+id/layoutOriginCity"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_input_field"
@@ -159,6 +168,7 @@
                             android:textSize="11sp" />
 
                         <TextView
+                            android:id="@+id/tvOriginCity"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Hồ Chí Minh"
