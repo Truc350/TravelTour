@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Định nghĩa các mục hiển thị trên thanh điều hướng dưới cùng -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Tab 1: Trang Chủ -->
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/ic_home"
+        android:title="Trang chủ" />
+
+    <!-- Tab 2: Yêu Thích -->
+    <item
+        android:id="@+id/nav_favorite"
+        android:icon="@drawable/ic_favorite"
+        android:title="Yêu thích" />
+
+    <!-- Tab 3: Chuyến Đi -->
+    <item
+        android:id="@+id/nav_trip"
+        android:icon="@drawable/ic_trip"
+        android:title="Chuyến đi" />
+
+    <!-- Tab 4: Thông Báo -->
+    <item
+        android:id="@+id/nav_notification"
+        android:icon="@drawable/ic_notification"
+        android:title="Thông báo" />
+
+    <!-- Tab 5: Tài Khoản -->
+    <item
+        android:id="@+id/nav_account"
+        android:icon="@drawable/ic_account"
+        android:title="Tài khoản" />
+
+</menu>

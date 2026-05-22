@@ -1,9 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cấu hình Theme chính của ứng dụng TravelTour -->
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Theme nền tảng của ứng dụng (không sử dụng thanh ActionBar mặc định) -->
     <style name="Base.Theme.MyApplication" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Tùy chỉnh màu sắc chủ đạo của Theme sáng -->
+        <item name="colorPrimary">@color/colorActive</item>
     </style>
 
+    <!-- Theme chính thức được áp dụng cho ứng dụng -->
     <style name="Theme.MyApplication" parent="Base.Theme.MyApplication" />
 </resources>

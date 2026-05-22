@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Màu cơ bản -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Màu cho thanh điều hướng dưới cùng -->
+    <!-- Màu khi tab được chọn (Active) -->
+    <color name="colorActive">#185FA5</color>
+    <!-- Màu khi tab chưa được chọn (Inactive) -->
+    <color name="colorInactive">#757575</color>
+    <!-- Màu nền thanh điều hướng -->
+    <color name="navBackground">#FFFFFF</color>
 </resources>
