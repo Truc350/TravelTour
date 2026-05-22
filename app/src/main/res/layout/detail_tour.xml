@@ -1003,6 +1003,637 @@
                 </LinearLayout>
 
             </LinearLayout>
+
+            <!-- Spacer (Light Blue Color #E6F1FB) -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:background="#E6F1FB" />
+
+            <!-- Section 5: Thông tin cần lưu ý -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#FFFFFF"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Thông tin cần lưu ý"
+                    android:textColor="#212529"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Tabs Selection -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="16dp"
+                    android:weightSum="3.0">
+
+                    <!-- Tab 1: Giá bao gồm -->
+                    <LinearLayout
+                        android:id="@+id/layoutTabInclusions"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1.2"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:id="@+id/tvTabInclusions"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Giá bao gồm"
+                            android:textColor="@color/cyan_active"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:paddingBottom="6dp" />
+
+                        <View
+                            android:id="@+id/viewTabInclusionsIndicator"
+                            android:layout_width="match_parent"
+                            android:layout_height="2.5dp"
+                            android:background="@color/cyan_active" />
+                    </LinearLayout>
+
+                    <!-- Tab 2: Giá không bao gồm -->
+                    <LinearLayout
+                        android:id="@+id/layoutTabExclusions"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1.2"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:id="@+id/tvTabExclusions"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Giá không bao gồm"
+                            android:textColor="@color/grey_text"
+                            android:textSize="14sp"
+                            android:paddingBottom="6dp" />
+
+                        <View
+                            android:id="@+id/viewTabExclusionsIndicator"
+                            android:layout_width="match_parent"
+                            android:layout_height="2.5dp"
+                            android:background="@color/cyan_active"
+                            android:visibility="invisible" />
+                    </LinearLayout>
+
+                    <!-- Tab 3: Phụ thu -->
+                    <LinearLayout
+                        android:id="@+id/layoutTabTerms"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:id="@+id/tvTabTerms"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Phụ thu"
+                            android:textColor="@color/grey_text"
+                            android:textSize="14sp"
+                            android:paddingBottom="6dp" />
+
+                        <View
+                            android:id="@+id/viewTabTermsIndicator"
+                            android:layout_width="match_parent"
+                            android:layout_height="2.5dp"
+                            android:background="@color/cyan_active"
+                            android:visibility="invisible" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Tab Content -->
+                <TextView
+                    android:id="@+id/tvNotesContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Vận Chuyển:\n- Vé máy bay khứ hồi Bamboo Airways. Thuế và phí sân bay. bao gồm hành lý 07kg xách tay + 20kg ký gửi\n- Xe du lịch đưa đón tham quan theo chương trình.\n- Thuyền đi Động Phong Nha.\n\nLưu Trú:\n- Khách sạn 4 sao địa phương, tiêu chuẩn 2-3 khách/phòng.\n\nKhác:\n- Ăn các bữa theo chương trình.\n- Vé tại các điểm tham quan.\n- Hướng dẫn viên tiếng Việt theo đoàn suốt tuyến.\n- Phục vụ 01 chai 0.5l/khách /ngày\n- Bảo hiểm du lịch: 20.000.000đ/vụ"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:lineSpacingExtra="5dp" />
+            </LinearLayout>
+
+            <!-- Spacer (Light Blue Color #E6F1FB) -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:background="#E6F1FB" />
+
+            <!-- Section 6: Đánh giá gần đây -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#FFFFFF"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="18dp">
+
+                <!-- Header Đánh giá gần đây -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Đánh giá gần đây"
+                    android:textColor="@color/green_rating_score"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="12dp"
+                    android:background="#E9ECEF" />
+
+                <!-- Review 1: Vũ Thị Hạnh Như -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp">
+
+                    <!-- User Info Row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_person"
+                            app:tint="#495057"
+                            android:contentDescription="Người đánh giá" />
+
+                        <TextView
+                            android:id="@+id/tvReviewerName1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Vũ Thị Hạnh Như"
+                            android:textColor="#212529"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Rating Badges Row -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="6dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_score_green"
+                            android:textColor="#FFFFFF"
+                            android:text="10,0"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:paddingHorizontal="6dp"
+                            android:paddingVertical="2dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Xuất sắc"
+                            android:textColor="@color/cyan_active"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="31-07-2025"
+                            android:textColor="#9E9E9E"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <!-- Comment Text -->
+                    <TextView
+                        android:id="@+id/tvReviewComment1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Dịch vụ tour mình hài lòng, bạn Khang iVIVU hỗ trợ nhiệt tình, dễ thương"
+                        android:textColor="#495057"
+                        android:textSize="14sp"
+                        android:lineSpacingExtra="3dp" />
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="16dp"
+                    android:background="#E9ECEF" />
+
+                <!-- Review 2: Khanh -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp">
+
+                    <!-- User Info Row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_person"
+                            app:tint="#495057"
+                            android:contentDescription="Người đánh giá" />
+
+                        <TextView
+                            android:id="@+id/tvReviewerName2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Khanh"
+                            android:textColor="#212529"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Rating Badges Row -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="6dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_score_green"
+                            android:textColor="#FFFFFF"
+                            android:text="10,0"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:paddingHorizontal="6dp"
+                            android:paddingVertical="2dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Xuất sắc"
+                            android:textColor="@color/cyan_active"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="24-07-2025"
+                            android:textColor="#9E9E9E"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <!-- Review Image Attached -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        app:cardCornerRadius="8dp"
+                        app:cardElevation="0dp">
+
+                        <ImageView
+                            android:id="@+id/ivReviewPhoto"
+                            android:layout_width="100dp"
+                            android:layout_height="100dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/review_garden"
+                            android:contentDescription="Ảnh đính kèm" />
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Comment Text -->
+                    <TextView
+                        android:id="@+id/tvReviewComment2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Mới đi lần đầu với ivivu nhưng cảm giác là hài lòng."
+                        android:textColor="#495057"
+                        android:textSize="14sp"
+                        android:lineSpacingExtra="3dp" />
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="16dp"
+                    android:background="#E9ECEF" />
+
+                <!-- Button "12 nhận xét" -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btnAllReviews"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:cardCornerRadius="6dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_icon_outline_grey"
+                        android:text="12 nhận xét"
+                        android:textColor="#495057"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:gravity="center"
+                        android:paddingVertical="10dp" />
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+
+            <!-- Spacer (Light Blue Color #E6F1FB) -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:background="#E6F1FB" />
+
+            <!-- Section 7: Các tour liên quan -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#FFFFFF"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Các tour liên quan"
+                    android:textColor="#212529"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="16dp" />
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- Related Card 1: Tour Miền Trung -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardRelatedCentral"
+                            android:layout_width="220dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="12dp"
+                            android:layout_marginBottom="8dp"
+                            app:cardCornerRadius="8dp"
+                            app:cardElevation="2dp"
+                            app:cardBackgroundColor="#FFFFFF"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <ImageView
+                                    android:id="@+id/ivRelatedImage1"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="120dp"
+                                    android:scaleType="centerCrop"
+                                    android:src="@drawable/img"
+                                    android:contentDescription="Ảnh tour liên quan" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="8dp">
+
+                                    <TextView
+                                        android:id="@+id/tvRelatedTitle1"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:text="Tour Miền Trung 4N3Đ: HCM - Huế - Quảng Bình - Đà Nẵng -..."
+                                        android:textColor="#0F3C7A"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold"
+                                        android:maxLines="2"
+                                        android:ellipsize="end" />
+
+                                    <!-- Duration & Icons -->
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical"
+                                        android:layout_marginTop="6dp">
+
+                                        <ImageView
+                                            android:layout_width="14dp"
+                                            android:layout_height="14dp"
+                                            android:src="@drawable/ic_clock"
+                                            app:tint="#6C757D" />
+
+                                        <TextView
+                                            android:id="@+id/tvRelatedDuration1"
+                                            android:layout_width="0dp"
+                                            android:layout_height="wrap_content"
+                                            android:layout_weight="1"
+                                            android:layout_marginStart="4dp"
+                                            android:text="4 ngày 3 đêm"
+                                            android:textColor="#6C757D"
+                                            android:textSize="12sp" />
+
+                                        <ImageView
+                                            android:layout_width="14dp"
+                                            android:layout_height="14dp"
+                                            android:src="@drawable/ic_flight"
+                                            app:tint="#6C757D"
+                                            android:layout_marginEnd="4dp" />
+
+                                        <ImageView
+                                            android:layout_width="14dp"
+                                            android:layout_height="14dp"
+                                            android:src="@drawable/ic_bus"
+                                            app:tint="#6C757D" />
+                                    </LinearLayout>
+
+                                    <!-- Price -->
+                                    <TextView
+                                        android:id="@+id/tvRelatedPrice1"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="8dp"
+                                        android:layout_gravity="end"
+                                        android:text="6.990.000đ"
+                                        android:textColor="@color/cyan_active"
+                                        android:textSize="16sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
+
+                        <!-- Related Card 2: Taiwan or Singapore -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardRelatedDynamic"
+                            android:layout_width="220dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="12dp"
+                            android:layout_marginBottom="8dp"
+                            app:cardCornerRadius="8dp"
+                            app:cardElevation="2dp"
+                            app:cardBackgroundColor="#FFFFFF"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <ImageView
+                                    android:id="@+id/ivRelatedImage2"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="120dp"
+                                    android:scaleType="centerCrop"
+                                    android:src="@drawable/img_taiwan_tour"
+                                    android:contentDescription="Ảnh tour liên quan" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="8dp">
+
+                                    <TextView
+                                        android:id="@+id/tvRelatedTitle2"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:text="Tour Đài Loan 5N4Đ: HCM - Cao Hùng - Đài Trung - Đài Bắc - Đảo Hoà Bình"
+                                        android:textColor="#0F3C7A"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold"
+                                        android:maxLines="2"
+                                        android:ellipsize="end" />
+
+                                    <!-- Duration & Icons -->
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical"
+                                        android:layout_marginTop="6dp">
+
+                                        <ImageView
+                                            android:layout_width="14dp"
+                                            android:layout_height="14dp"
+                                            android:src="@drawable/ic_clock"
+                                            app:tint="#6C757D" />
+
+                                        <TextView
+                                            android:id="@+id/tvRelatedDuration2"
+                                            android:layout_width="0dp"
+                                            android:layout_height="wrap_content"
+                                            android:layout_weight="1"
+                                            android:layout_marginStart="4dp"
+                                            android:text="5 ngày 4 đêm"
+                                            android:textColor="#6C757D"
+                                            android:textSize="12sp" />
+
+                                        <ImageView
+                                            android:layout_width="14dp"
+                                            android:layout_height="14dp"
+                                            android:src="@drawable/ic_flight"
+                                            app:tint="#6C757D"
+                                            android:layout_marginEnd="4dp" />
+
+                                        <ImageView
+                                            android:layout_width="14dp"
+                                            android:layout_height="14dp"
+                                            android:src="@drawable/ic_bus"
+                                            app:tint="#6C757D" />
+                                    </LinearLayout>
+
+                                    <!-- Rating Badge & Price -->
+                                    <RelativeLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="8dp">
+
+                                        <TextView
+                                            android:id="@+id/tvRelatedRating2"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_alignParentStart="true"
+                                            android:layout_centerVertical="true"
+                                            android:background="@drawable/bg_score_green"
+                                            android:textColor="#FFFFFF"
+                                            android:text="9,0"
+                                            android:textSize="11sp"
+                                            android:textStyle="bold"
+                                            android:paddingHorizontal="4dp"
+                                            android:paddingVertical="2dp" />
+
+                                        <TextView
+                                            android:id="@+id/tvRelatedPrice2"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_alignParentEnd="true"
+                                            android:layout_centerVertical="true"
+                                            android:text="14.390.000đ"
+                                            android:textColor="@color/cyan_active"
+                                            android:textSize="16sp"
+                                            android:textStyle="bold" />
+                                    </RelativeLayout>
+                                </LinearLayout>
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
+
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

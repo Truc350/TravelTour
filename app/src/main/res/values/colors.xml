@@ -19,4 +19,9 @@
     <color name="text_primary">#212121</color>
     <color name="text_secondary">#757575</color>
     <color name="border_color">#E0E0E0</color>
+    
+    <!-- Custom colors for tour details -->
+    <color name="cyan_active">#00B4D8</color>
+    <color name="green_rating_score">#388E3C</color>
+    <color name="grey_text">#6C757D</color>
 </resources>
