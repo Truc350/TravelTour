@@ -6,7 +6,7 @@
 
     <!-- Trang Đăng Ký -->
     <string name="title_register">Đăng ký tài khoản</string>
-    <string name="subtitle_register">Hãy tạo tài khoản để trải nghiệm các tính năng tuyệt vời của TravelTour.</string>
+    <string name="subtitle_register">Hãy tạo tài khoản để trải nghiệm các tính năng tuyệt vời của ChillTour.</string>
     <string name="hint_name">Họ và tên</string>
     <string name="hint_contact">Số điện thoại hoặc Email</string>
     <string name="hint_password">Mật khẩu</string>
@@ -27,4 +27,24 @@
     <string name="error_invalid_password">Mật khẩu phải chứa ít nhất 6 ký tự</string>
     <string name="msg_register_success">Đăng ký tài khoản thành công!</string>
     <string name="msg_click_terms">Mở Điều khoản dịch vụ và Chính sách bảo mật</string>
+
+    <!-- Trang Đăng Nhập -->
+    <string name="title_login">Chào mừng quay lại</string>
+    <string name="subtitle_login">Đăng nhập để tiếp tục hành trình khám phá cùng TravelTour</string>
+    <string name="hint_contact_login">Số điện thoại hoặc Email</string>
+    <string name="hint_password_login">Mật khẩu</string>
+    <string name="btn_login">Đăng nhập</string>
+    <string name="btn_login_sms">Đăng nhập bằng SMS</string>
+    <string name="link_forgot_password">Quên mật khẩu?</string>
+    <string name="link_signup_prompt">Chưa có tài khoản? </string>
+    <string name="link_signup_clickable">Đăng ký ngay</string>
+    <string name="link_login_prompt">Đã có tài khoản? </string>
+    <string name="link_login_clickable">Đăng nhập ngay</string>
+    
+    <!-- Lỗi & Thông báo Đăng Nhập -->
+    <string name="error_empty_contact_login">Vui lòng nhập số điện thoại hoặc email</string>
+    <string name="error_empty_password_login">Vui lòng nhập mật khẩu</string>
+    <string name="msg_login_success">Đăng nhập thành công!</string>
+    <string name="msg_forgot_password_click">Chức năng Quên mật khẩu đang được phát triển</string>
+    <string name="msg_login_sms_click">Chức năng Đăng nhập bằng SMS đang được phát triển</string>
 </resources>
