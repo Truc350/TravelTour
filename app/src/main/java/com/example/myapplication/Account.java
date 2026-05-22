@@ -1,5 +1,7 @@
 package com.example.myapplication;
 
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -55,7 +57,18 @@ public class Account extends Fragment {
         });
 
         view.findViewById(R.id.btnLogout).setOnClickListener(v -> {
-            // Xử lý khi nhấn "Đăng xuất"
+            // Hiện hộp thoại xác nhận trước khi đăng xuất
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Đăng xuất")
+                    .setMessage("Bạn có chắc muốn đăng xuất không?")
+                    .setPositiveButton("Đăng xuất", (dialog, which) -> {
+                        // Chuyển sang LoginActivity và xóa toàn bộ back stack
+                        Intent intent = new Intent(requireActivity(), LoginActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                    })
+                    .setNegativeButton("Hủy", null)
+                    .show();
         });
 
         return view;
