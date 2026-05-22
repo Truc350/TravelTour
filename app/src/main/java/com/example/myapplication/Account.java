@@ -29,7 +29,11 @@ public class Account extends Fragment {
         });
 
         view.findViewById(R.id.btnPassengerInfo).setOnClickListener(v -> {
-            // Xử lý khi nhấn "Thông tin hành khách"
+            // Xử lý khi nhấn "Thông tin hành khách" -> Chuyển sang màn hình PassengerList
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.contentFrame, new PassengerList())
+                    .addToBackStack(null)
+                    .commit();
         });
 
         view.findViewById(R.id.btnTravelPreferences).setOnClickListener(v -> {
