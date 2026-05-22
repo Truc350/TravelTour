@@ -8,6 +8,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -35,32 +38,49 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Nạp trang Account làm mặc định khi ứng dụng khởi chạy
+        // Nạp trang Home làm mặc định khi ứng dụng khởi chạy
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.contentFrame, new Account())
+                    .replace(R.id.contentFrame, new Home())
                     .commit();
         }
 
         // Lấy tham chiếu đến thanh điều hướng dưới cùng
         BottomNavigationView bottomNavigation = findViewById(R.id.bottomNavigation);
 
-        // Đặt tab "Account" được chọn mặc định
-        bottomNavigation.setSelectedItemId(R.id.nav_account);
+        // Đặt tab "Home" được chọn mặc định
+        bottomNavigation.setSelectedItemId(R.id.nav_home);
 
         // Lắng nghe sự kiện khi người dùng bấm vào từng tab điều hướng
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
 
-            // Khi nhấn tab Account: nạp giao diện trang cá nhân
-            if (itemId == R.id.nav_account) {
+            // Xóa tất cả các Fragment khỏi back stack khi chuyển tab chính
+            getSupportFragmentManager().popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+            if (itemId == R.id.nav_home) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.contentFrame, new Home())
+                        .commit();
+            } else if (itemId == R.id.nav_favorite) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.contentFrame, new Wishlist())
+                        .commit();
+            } else if (itemId == R.id.nav_trip) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.contentFrame, PlaceholderFragment.newInstance("Chuyến đi"))
+                        .commit();
+            } else if (itemId == R.id.nav_notification) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.contentFrame, PlaceholderFragment.newInstance("Thông báo"))
+                        .commit();
+            } else if (itemId == R.id.nav_account) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.contentFrame, new Account())
                         .commit();
             }
 
-            // Trả về true để tab được sáng màu khi chọn
             return true;
         });
     }
-}
+}
