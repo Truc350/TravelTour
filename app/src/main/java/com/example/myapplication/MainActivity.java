@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
                         .commit();
             } else if (itemId == R.id.nav_notification) {
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.contentFrame, PlaceholderFragment.newInstance("Thông báo"))
+                        .replace(R.id.contentFrame, new Notification())
                         .commit();
             } else if (itemId == R.id.nav_account) {
                 getSupportFragmentManager().beginTransaction()
