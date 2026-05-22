@@ -9,13 +9,15 @@
     android:background="#E6F1FB"
     tools:context=".MainActivity">
 
-    <!-- Vùng chứa nội dung chính -->
+    <!-- Vùng chứa nội dung chính (Fragment của từng màn hình sẽ được nạp vào đây) -->
     <FrameLayout
         android:id="@+id/contentFrame"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigation" />
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Thanh điều hướng dưới cùng: Trang chủ | Yêu thích | Chuyến đi | Thông báo | Tài khoản -->
     <com.google.android.material.bottomnavigation.BottomNavigationView

@@ -2,9 +2,13 @@
 <!-- Cấu hình Theme chính của ứng dụng TravelTour -->
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Theme nền tảng của ứng dụng (không sử dụng thanh ActionBar mặc định) -->
-    <style name="Base.Theme.MyApplication" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Tùy chỉnh màu sắc chủ đạo của Theme sáng -->
+    <style name="Base.Theme.MyApplication" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Màu chủ đạo -->
         <item name="colorPrimary">@color/colorActive</item>
+        <!-- Màu nền cửa sổ khớp với màu nền app, tránh flash trắng khi khởi động -->
+        <item name="android:windowBackground">#E6F1FB</item>
+        <!-- Tắt animation chuyển màu nền để tránh chớp -->
+        <item name="android:windowDisablePreview">false</item>
     </style>
 
     <!-- Theme chính thức được áp dụng cho ứng dụng -->
