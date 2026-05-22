@@ -45,7 +45,11 @@ public class Account extends Fragment {
         });
 
         view.findViewById(R.id.btnChangePassword).setOnClickListener(v -> {
-            // Xử lý khi nhấn "Đổi mật khẩu"
+            // Xử lý khi nhấn "Đổi mật khẩu" -> Chuyển sang màn hình ChangePassword
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.contentFrame, new ChangePassword())
+                    .addToBackStack(null)
+                    .commit();
         });
 
         view.findViewById(R.id.btnZaloSupport).setOnClickListener(v -> {
