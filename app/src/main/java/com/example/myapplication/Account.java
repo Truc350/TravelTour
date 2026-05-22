@@ -53,7 +53,11 @@ public class Account extends Fragment {
         });
 
         view.findViewById(R.id.btnTerms).setOnClickListener(v -> {
-            // Xử lý khi nhấn "Điều khoản và điều kiện"
+            // Xử lý khi nhấn "Điều khoản và điều kiện" -> Chuyển sang màn hình TermsAndConditions
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.contentFrame, new TermsAndConditions())
+                    .addToBackStack(null)
+                    .commit();
         });
 
         view.findViewById(R.id.btnPrivacyPolicy).setOnClickListener(v -> {

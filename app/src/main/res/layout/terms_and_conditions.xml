@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F7FA">
+
+    <!-- Top Toolbar -->
+    <RelativeLayout
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#FFFFFF"
+        android:elevation="2dp">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="8dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back"
+            android:contentDescription="Back Button"
+            android:padding="12dp"
+            app:tint="#333333" />
+
+        <TextView
+            android:id="@+id/tvToolbarTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Điều khoản &amp; Điều kiện"
+            android:textColor="#333333"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_alignParentBottom="true" />
+    </RelativeLayout>
+
+    <!-- Content Area with ScrollView -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Card Container for Content -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFFFFF"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <!-- Title -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="ĐIỀU KIỆN &amp; ĐIỀU KHOẢN DÀNH CHO KHÁCH HÀNG"
+                        android:textColor="#0F3C7A"
+                        android:textSize="17sp"
+                        android:textStyle="bold"
+                        android:gravity="center"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Intro -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Khi thực hiện đặt dịch vụ Chill Tour (Vé máy bay, Khách sạn, Tour, ...), Quý Khách chấp thuận những điều kiện và điều khoản dưới đây:"
+                        android:textColor="#333333"
+                        android:textSize="14.5sp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Section 1 -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="1. Định nghĩa"
+                        android:textColor="#333333"
+                        android:textSize="15.5sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="• Dịch vụ Chill Tour/dịch vụ: là việc Chill Tour thay mặt khách hàng thực hiện đặt phòng khách sạn, đặt vé máy bay, tour, tư vấn, đặt dịch vụ, hỗ trợ sau đặt dịch vụ, ... với đối tác.\n\n• Nhà cung cấp bao gồm khách sạn, hãng hàng không, tour, nhà xe, ...\n\n• Phí dịch vụ là khoản phí mà người sử dụng cuối hoặc khách hàng phải trả khi họ đặt các dịch vụ như khách sạn, vé máy bay, tours... được cung cấp bởi Chill Tour. Khoản phí dịch vụ mà khách hàng đã thanh toán sẽ không được hoàn trả trong bất kỳ tình huống nào. Đây là một phí được áp dụng để bù đắp cho những nỗ lực của Chill Tour trong việc cung cấp nguồn nhân lực và kiến thức chuyên môn, nhằm đáp ứng và đồng hành với các nhu cầu và mong muốn của khách hàng.\n\n• Phí tiện ích là khoản phí mà Chill Tour thu khi khách hàng sử dụng dịch vụ tại website và ứng dụng điện thoại của Chill Tour. Mức phí tiện ích được tính theo từng dịch vụ và có thể thay đổi (mà không cần thông báo trước) tùy thuộc vào từng giai đoạn. Mục đích của việc áp dụng phí tiện ích là nâng cao chất lượng dịch vụ và cải thiện hệ thống cung cấp dịch vụ của Chill Tour, nhằm mang lại trải nghiệm tốt hơn cho khách hàng."
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Section 2 -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="2. Độ tuổi"
+                        android:textColor="#333333"
+                        android:textSize="15.5sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Quý Khách phải từ 18 tuổi trở lên mới được phép đặt dịch vụ Chill Tour."
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Section 3 -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="3. Thanh toán"
+                        android:textColor="#333333"
+                        android:textSize="15.5sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="chilltour.com có nhiều phương thức thanh toán để thuận tiện cho Khách hàng khi đặt dịch vụ, Khách hàng có thể tham khảo và lựa chọn phương thức phù hợp:\n\n• Chuyển khoản qua ngân hàng: Sau khi đặt hàng, Khách hàng chuyển khoản số tiền đơn hàng vào tài khoản của chilltour.com tại các hệ thống ngân hàng.\n\n• Thanh toán bằng thẻ ATM nội địa: Khách hàng sử dụng thẻ ATM nội địa để thanh toán.\n\n• Thanh toán bằng thẻ tín dụng quốc tế: Khách hàng sử dụng thẻ Visa/ Master Card/ JCB để thanh toán.\n\n• Thanh toán tại cửa hàng tiện lợi Payoo hoặc qua QR code Payoo.\n\n• Thanh toán tại các Văn phòng của chilltour.com: tại Hồ Chí Minh, Hà Nội, Cần Thơ."
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Section 4 -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="4. Xác nhận thông tin đặt dịch vụ"
+                        android:textColor="#333333"
+                        android:textSize="15.5sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Thông tin đặt dịch vụ được xác nhận thể hiện trong email xác nhận (đặt phòng, combo, vé máy bay, ...) được gửi từ Chill Tour đến email Quý Khách đã đăng ký tại thời điểm đặt phòng với Chill Tour và trên hệ thống Chill Tour (bao gồm website và ứng dụng Chill Tour). Đây là cơ sở xác định các dịch vụ cung cấp cho khách hàng.\n\nTrường hợp Quý Khách thực hiện thanh toán trễ hơn hạn thanh toán được thông báo từ chilltour.com qua email, website, ứng dụng, việc đặt dịch vụ của Quý khách sẽ không còn hiệu lực."
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:layout_marginBottom="8dp" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
