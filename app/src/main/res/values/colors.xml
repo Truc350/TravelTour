@@ -11,4 +11,12 @@
     <color name="colorInactive">#757575</color>
     <!-- Màu nền thanh điều hướng -->
     <color name="navBackground">#FFFFFF</color>
+
+    <!-- Màu bổ sung cho trang đăng ký -->
+    <color name="primary_blue">#185FA5</color>
+    <color name="gradient_start">#185FA5</color>
+    <color name="gradient_end">#3B82F6</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="border_color">#E0E0E0</color>
 </resources>
