@@ -41,16 +41,18 @@ public class MainActivity extends AppCompatActivity {
             int itemId = item.getItemId();
             contentFrame.removeAllViews();
 
-            if (itemId == R.id.nav_favorite) {
+            if (itemId == R.id.nav_home) {
+                // Nạp giao diện Trang chủ vào contentFrame
+                LayoutInflater.from(this).inflate(R.layout.home, contentFrame, true);
+                return true;
+            } else if (itemId == R.id.nav_favorite) {
                 // Nạp giao diện danh sách yêu thích vào contentFrame
                 LayoutInflater.from(this).inflate(R.layout.wishlist, contentFrame, true);
                 return true;
             } else {
                 // Hiển thị màn hình tạm thời cho các tab khác
                 String title = "";
-                if (itemId == R.id.nav_home) {
-                    title = "Trang chủ";
-                } else if (itemId == R.id.nav_trip) {
+                if (itemId == R.id.nav_trip) {
                     title = "Chuyến đi";
                 } else if (itemId == R.id.nav_notification) {
                     title = "Thông báo";
@@ -73,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Đặt tab "Yêu thích" làm mặc định khi ứng dụng khởi chạy
-        bottomNavigation.setSelectedItemId(R.id.nav_favorite);
+        // Đặt tab "Trang chủ" làm mặc định khi ứng dụng khởi chạy
+        bottomNavigation.setSelectedItemId(R.id.nav_home);
     }
 }
