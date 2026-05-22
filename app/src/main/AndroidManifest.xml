@@ -12,9 +12,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
         
-        <!-- Màn hình Đăng nhập là màn hình khởi chạy mặc định -->
+        <!-- Màn hình Đăng nhập -->
         <activity
             android:name=".LoginActivity"
+            android:exported="false" />
+
+        <!-- Màn hình Đăng ký -->
+        <activity
+            android:name=".RegisterActivity"
+            android:exported="false" />
+
+
+        <!-- Màn hình chính MainActivity - khởi động thẳng vào trang Tài khoản -->
+        <activity
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,16 +33,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- Màn hình Đăng ký -->
-        <activity
-            android:name=".RegisterActivity"
-            android:exported="false" />
-
-        <!-- Màn hình chính MainActivity đăng ký bình thường -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
             
     </application>
 
