@@ -103,6 +103,31 @@ public class Home extends Fragment {
             });
         }
 
+        // Thiết lập sự kiện click cho nút "Tìm tour" để mở màn hình kết quả tìm kiếm
+        View btnFindTour = view.findViewById(R.id.btnFindTour);
+        if (btnFindTour != null) {
+            btnFindTour.setOnClickListener(v -> {
+                String destination = etDestination != null ? etDestination.getText().toString().trim() : "";
+                String origin = tvOriginCity != null ? tvOriginCity.getText().toString().trim() : "";
+
+                SearchResult searchResultFragment = new SearchResult();
+                Bundle args = new Bundle();
+                args.putString("destination", destination);
+                args.putString("origin", origin);
+                args.putInt("day", selectedDay);
+                args.putInt("month", selectedMonth);
+                args.putInt("year", selectedYear);
+                searchResultFragment.setArguments(args);
+
+                if (getParentFragmentManager() != null) {
+                    getParentFragmentManager().beginTransaction()
+                            .replace(R.id.contentFrame, searchResultFragment)
+                            .addToBackStack(null)
+                            .commit();
+                }
+            });
+        }
+
         // Lấy các thẻ tour ưu đãi
         View cardTaiwan = view.findViewById(R.id.cardTaiwanTour);
         View cardSingapore = view.findViewById(R.id.cardSingaporeTour);

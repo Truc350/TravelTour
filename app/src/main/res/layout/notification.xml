@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+
+    <!-- Header Area -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:background="@color/cyan_active">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Thông báo"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Mark all read action button -->
+        <TextView
+            android:id="@+id/btnMarkAllRead"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:text="Đọc tất cả"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true" />
+    </RelativeLayout>
+
+    <!-- Pill Tabs for Category Filter -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp"
+        android:background="#FFFFFF"
+        android:elevation="2dp">
+
+        <!-- Tab 1: Tất cả -->
+        <TextView
+            android:id="@+id/btnTabAll"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Tất cả"
+            android:textColor="#00B8D4"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_chip_selected_cyan"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="6dp" />
+
+        <!-- Tab 2: Khuyến mãi -->
+        <TextView
+            android:id="@+id/btnTabPromos"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Khuyến mãi"
+            android:textColor="#4A5568"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_chip_unselected_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="6dp" />
+
+        <!-- Tab 3: Cập nhật -->
+        <TextView
+            android:id="@+id/btnTabUpdates"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Cập nhật"
+            android:textColor="#4A5568"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_chip_unselected_pill"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- Content Frame -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- Scrollable Notifications List -->
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:id="@+id/containerNotifications"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="32dp" />
+        </androidx.core.widget.NestedScrollView>
+
+        <!-- No Notifications Fallback View -->
+        <LinearLayout
+            android:id="@+id/layoutNoNotifications"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/ic_notification"
+                android:alpha="0.4"
+                app:tint="#A0AEC0"
+                android:contentDescription="No Notifications" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hộp thư trống"
+                android:textColor="#718096"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bạn không có thông báo nào trong mục này."
+                android:textColor="#A0AEC0"
+                android:textSize="13sp"
+                android:layout_marginTop="6dp"
+                android:gravity="center" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

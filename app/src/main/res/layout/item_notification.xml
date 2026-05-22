@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="14dp">
+
+    <!-- Left: Circular Category Icon -->
+    <FrameLayout
+        android:id="@+id/layoutNotifyIconContainer"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/bg_notify_circle">
+
+        <ImageView
+            android:id="@+id/ivNotifyIcon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_notification"
+            app:tint="#FFFFFF"
+            android:contentDescription="Notification Icon" />
+    </FrameLayout>
+
+    <!-- Middle: Title, Description & Timestamp -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/layoutNotifyIconContainer"
+        android:layout_toStartOf="@id/layoutUnreadContainer"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="8dp"
+        android:orientation="vertical">
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvNotifyTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Khuyến mãi tour Phú Quốc"
+            android:textColor="#2D3748"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <!-- Description -->
+        <TextView
+            android:id="@+id/tvNotifyDesc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Giảm giá sốc tới 15% khi đặt vé đi du lịch đảo ngọc hôm nay."
+            android:textColor="#718096"
+            android:textSize="13sp"
+            android:layout_marginTop="4dp"
+            android:maxLines="3"
+            android:ellipsize="end"
+            android:lineSpacingExtra="2sp" />
+
+        <!-- Time -->
+        <TextView
+            android:id="@+id/tvNotifyTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="15 phút trước"
+            android:textColor="#A0AEC0"
+            android:textSize="11sp"
+            android:layout_marginTop="6dp" />
+    </LinearLayout>
+
+    <!-- Right: Unread Indicator -->
+    <FrameLayout
+        android:id="@+id/layoutUnreadContainer"
+        android:layout_width="16dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true">
+
+        <View
+            android:id="@+id/viewUnreadDot"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_unread_dot" />
+    </FrameLayout>
+
+    <!-- Bottom thin divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EDF2F7"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="56dp" />
+</RelativeLayout>
