@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
                         .commit();
             } else if (itemId == R.id.nav_trip) {
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.contentFrame, PlaceholderFragment.newInstance("Chuyến đi"))
+                        .replace(R.id.contentFrame, new MyTripsFragment())
                         .commit();
             } else if (itemId == R.id.nav_notification) {
                 getSupportFragmentManager().beginTransaction()
