@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F7FA">
+
+    <!-- Top Toolbar -->
+    <RelativeLayout
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#FFFFFF"
+        android:elevation="2dp">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="8dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back"
+            android:contentDescription="Back Button"
+            android:padding="12dp"
+            app:tint="#333333" />
+
+        <TextView
+            android:id="@+id/tvToolbarTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Chính sách quyền riêng tư"
+            android:textColor="#333333"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_alignParentBottom="true" />
+    </RelativeLayout>
+
+    <!-- Content Area with ScrollView -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Card Container for Content -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFFFFF"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <!-- Title -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="CHÍNH SÁCH BẢO MẬT &amp; QUYỀN RIÊNG TƯ CHILL TOUR"
+                        android:textColor="#0F3C7A"
+                        android:textSize="17sp"
+                        android:textStyle="bold"
+                        android:gravity="center"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Intro -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Chào mừng Quý khách đến với ứng dụng đặt dịch vụ Chill Tour. Chúng tôi tôn trọng quyền riêng tư của bạn và cam kết bảo vệ các thông tin cá nhân của bạn một cách tối đa. Dưới đây là thông tin chi tiết về Chính sách bảo mật của chúng tôi:"
+                        android:textColor="#333333"
+                        android:textSize="14.5sp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Section 1 -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="1. Thông tin chúng tôi thu thập"
+                        android:textColor="#333333"
+                        android:textSize="15.5sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Để mang đến trải nghiệm đặt dịch vụ (vé máy bay, khách sạn, tour du lịch,...) tốt nhất, chúng tôi thu thập các thông tin sau:\n\n• Thông tin cá nhân cơ bản: Họ và tên, số điện thoại, địa chỉ email, ngày sinh, giới tính.\n\n• Thông tin chuyến đi: Điểm khởi hành, điểm đến, ngày đi/ngày về, số lượng hành khách, danh sách hành khách đi cùng.\n\n• Thông tin thanh toán: Chi tiết tài khoản ngân hàng, thông tin ví điện tử hoặc cổng thanh toán nhằm phục vụ cho giao dịch.\n\n• Thông tin kỹ thuật: Địa chỉ IP, loại thiết bị, hệ điều hành và thông tin sử dụng ứng dụng để giúp nâng cấp hệ thống."
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Section 2 -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="2. Mục đích sử dụng thông tin"
+                        android:textColor="#333333"
+                        android:textSize="15.5sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Chill Tour sử dụng thông tin thu thập được của bạn cho các mục đích hợp pháp sau:\n\n• Thực hiện và hoàn tất quy trình đặt dịch vụ du lịch với các nhà cung cấp bên thứ ba (hãng hàng không, khách sạn, nhà xe, đơn vị tổ chức tour).\n\n• Gửi thư xác nhận đặt chỗ, hóa đơn thanh toán và các cập nhật liên quan đến lịch trình chuyến đi của bạn.\n\n• Cung cấp dịch vụ chăm sóc và hỗ trợ khách hàng nhanh chóng qua các kênh như Zalo, hotline hoặc email.\n\n• Cải thiện tính năng ứng dụng, cá nhân hóa trải nghiệm người dùng và gửi thông tin khuyến mãi (nếu có sự đồng ý của bạn)."
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Section 3 -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="3. Chia sẻ thông tin với bên thứ ba"
+                        android:textColor="#333333"
+                        android:textSize="15.5sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Chúng tôi cam kết không bán, trao đổi hoặc cho thuê thông tin cá nhân của bạn. Thông tin của bạn chỉ được chia sẻ trong các trường hợp cực kỳ hạn chế:\n\n• Với các đối tác cung cấp dịch vụ trực tiếp (như Khách sạn, Hãng bay, Công ty lữ hành) để thực hiện giao dịch của bạn.\n\n• Theo yêu cầu từ các cơ quan pháp luật có thẩm quyền khi cần thiết và tuân theo quy định của pháp luật Việt Nam."
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Section 4 -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="4. Bảo mật dữ liệu cá nhân"
+                        android:textColor="#333333"
+                        android:textSize="15.5sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Chúng tôi áp dụng các tiêu chuẩn công nghệ bảo mật tiên tiến (mã hóa SSL, tường lửa bảo vệ, phân quyền dữ liệu chặt chẽ) nhằm ngăn chặn việc truy cập trái phép, rò rỉ, mất mát hoặc hủy hoại thông tin của bạn.\n\nTuy nhiên, vui lòng lưu ý không có phương thức truyền dữ liệu qua Internet nào an toàn 100%, bạn nên tự chủ động bảo vệ mật khẩu đăng nhập tài khoản của mình."
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Section 5 -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="5. Quyền lợi và Lựa chọn của bạn"
+                        android:textColor="#333333"
+                        android:textSize="15.5sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Bạn có đầy đủ các quyền theo quy định của pháp luật đối với thông tin cá nhân của mình:\n\n• Quyền kiểm tra, cập nhật hoặc điều chỉnh thông tin cá nhân thông qua trang Cá nhân (Hồ sơ của tôi).\n\n• Quyền yêu cầu tạm ngừng sử dụng hoặc hủy bỏ vĩnh viễn tài khoản và thông tin cá nhân bằng cách liên hệ với bộ phận hỗ trợ khách hàng của Chill Tour."
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:layout_marginBottom="8dp" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
