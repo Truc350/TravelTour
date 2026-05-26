@@ -65,7 +65,11 @@ public class Account extends Fragment {
         });
 
         view.findViewById(R.id.btnPrivacyPolicy).setOnClickListener(v -> {
-            // Xử lý khi nhấn "Chính sách quyền riêng tư"
+            // Xử lý khi nhấn "Chính sách quyền riêng tư" -> Chuyển sang màn hình PrivacyPolicy
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.contentFrame, new PrivacyPolicy())
+                    .addToBackStack(null)
+                    .commit();
         });
 
         view.findViewById(R.id.btnLogout).setOnClickListener(v -> {
