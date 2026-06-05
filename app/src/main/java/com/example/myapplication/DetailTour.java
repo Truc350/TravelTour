@@ -125,13 +125,32 @@ public class DetailTour extends Fragment {
             });
         }
 
-        // Sự kiện mở Lịch khởi hành (DepartureActivity)
+        // Sự kiện mở Lịch khởi hành khi nhấn vào các phần tử tương ứng
+        final String finalTourTitle = tvTourTitle != null ? tvTourTitle.getText().toString() : "";
+        View.OnClickListener openDepartureListener = v -> {
+            android.content.Intent intent = new android.content.Intent(requireContext(), DepartureActivity.class);
+            intent.putExtra("tour_title", finalTourTitle);
+            startActivity(intent);
+        };
+
+        View headerDeparture = view.findViewById(R.id.headerDeparture);
+        if (headerDeparture != null) {
+            headerDeparture.setOnClickListener(openDepartureListener);
+        }
+
+        View sectionDeparture = view.findViewById(R.id.sectionDeparture);
+        if (sectionDeparture != null) {
+            sectionDeparture.setOnClickListener(openDepartureListener);
+        }
+
+        View btnSelectDate = view.findViewById(R.id.btnSelectDate);
+        if (btnSelectDate != null) {
+            btnSelectDate.setOnClickListener(openDepartureListener);
+        }
+
         View btnBookTour = view.findViewById(R.id.btnBookTour);
         if (btnBookTour != null) {
-            btnBookTour.setOnClickListener(v -> {
-                android.content.Intent intent = new android.content.Intent(requireContext(), DepartureActivity.class);
-                startActivity(intent);
-            });
+            btnBookTour.setOnClickListener(openDepartureListener);
         }
 
         return view;

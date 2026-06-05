@@ -769,18 +769,25 @@
 
             <!-- Section 4: Lịch khởi hành & Giá (Mới bổ sung theo ảnh) -->
             <LinearLayout
+                android:id="@+id/sectionDeparture"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:background="#FFFFFF"
                 android:paddingHorizontal="16dp"
-                android:paddingVertical="18dp">
+                android:paddingVertical="18dp"
+                android:clickable="true"
+                android:focusable="true">
 
                 <!-- Header Lịch khởi hành & giá -->
                 <RelativeLayout
+                    android:id="@+id/headerDeparture"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="16dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground">
 
                     <TextView
                         android:layout_width="wrap_content"

@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -17,12 +18,16 @@ import androidx.core.view.WindowInsetsCompat;
 public class DepartureActivity extends AppCompatActivity {
 
     // ===== Số lượng mặc định =====
-    private int adultCount = 2;
+    private int adultCount = 1;
     private int childCount = 0;
-    private int infantCount = 0;
+    private int infantCount = 1;
 
-    // Giá mỗi người lớn (VND)
-    private static final long ADULT_PRICE = 6_150_000L;
+    // Giá mỗi người lớn và trẻ nhỏ (VND)
+    private static final long ADULT_PRICE  = 5_490_000L;
+    private static final long INFANT_PRICE = 5_490_000L;
+
+    // Tên tour nhận từ Intent
+    private String tourTitle = "";
 
     // ===== Views =====
     private TextView tvAdultCount, tvChildCount, tvInfantCount, tvTotalPrice;
@@ -33,13 +38,18 @@ public class DepartureActivity extends AppCompatActivity {
     // Chips chọn ngày
     private LinearLayout chipDate1, chipDate2, chipDate3, chipDateAll;
     private TextView tvChipDate1, tvChipDate2, tvChipDate3, tvChipDateAll;
-    private int selectedChipIndex = 0;
+    private int selectedChipIndex = 1; // Ngày 28-06 được chọn mặc định
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_departure);
+
+        // Nhận dữ liệu tour từ Intent
+        if (getIntent() != null) {
+            tourTitle = getIntent().getStringExtra("tour_title");
+        }
 
         // Xử lý khoảng cách với thanh hệ thống
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -51,7 +61,15 @@ public class DepartureActivity extends AppCompatActivity {
         initViews();
         setupListeners();
         updateCounterUI();
-        selectChip(0); // Chọn ngày đầu tiên mặc định
+        selectChip(1); // Mặc định chọn ngày 28-06
+
+        // Cập nhật tên tour nếu có nhận được từ Intent
+        if (tourTitle != null && !tourTitle.isEmpty()) {
+            TextView tvTourName = findViewById(R.id.tv_tour_name);
+            if (tvTourName != null) {
+                tvTourName.setText(tourTitle);
+            }
+        }
     }
 
     // ===== Khởi tạo các View =====
@@ -113,10 +131,17 @@ public class DepartureActivity extends AppCompatActivity {
                 Toast.makeText(this, "Đang kết nối tư vấn viên...", Toast.LENGTH_SHORT).show()
         );
 
-        // Nút Yêu cầu đặt tour
-        findViewById(R.id.btn_book).setOnClickListener(v ->
-                Toast.makeText(this, "Yêu cầu đặt tour đã được gửi!", Toast.LENGTH_SHORT).show()
-        );
+        // Nút Yêu cầu đặt tour (Mở màn hình thông tin đặt tour bước 2/3)
+        findViewById(R.id.btn_book).setOnClickListener(v -> {
+            long total = adultCount * ADULT_PRICE + infantCount * INFANT_PRICE;
+            Intent intent = new Intent(this, BookingInfoActivity.class);
+            intent.putExtra("tour_title", tourTitle);
+            intent.putExtra("adult_count", adultCount);
+            intent.putExtra("child_count", childCount);
+            intent.putExtra("infant_count", infantCount);
+            intent.putExtra("total_price", total);
+            startActivity(intent);
+        });
     }
 
     /**
@@ -158,8 +183,8 @@ public class DepartureActivity extends AppCompatActivity {
         setMinusActive(btnChildMinus, childCount > 0);
         setMinusActive(btnInfantMinus, infantCount > 0);
 
-        // Tính và hiển thị tổng tiền
-        long total = adultCount * ADULT_PRICE;
+        // Tính và hiển thị tổng tiền (người lớn + trẻ nhỏ)
+        long total = adultCount * ADULT_PRICE + infantCount * INFANT_PRICE;
         tvTotalPrice.setText(formatVnd(total));
     }
 
@@ -170,6 +195,7 @@ public class DepartureActivity extends AppCompatActivity {
         btn.setBackgroundResource(active
                 ? R.drawable.bg_count_btn
                 : R.drawable.bg_count_btn_disabled);
+        btn.setTextColor(0xFFFFFFFF);
         btn.setAlpha(active ? 1.0f : 0.45f);
     }
 
