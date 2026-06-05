@@ -1,115 +1,104 @@
 package com.example.myapplication;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-/**
- * Fragment đại diện cho Trang chủ.
- * Quản lý giao diện tìm kiếm và hiển thị danh sách các tour ưu đãi.
- */
+import com.example.myapplication.data.model.Tour;
+import com.example.myapplication.data.remote.ApiService;
+import com.example.myapplication.data.remote.RetrofitClient;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class Home extends Fragment {
 
     private int selectedDay = 23;
-    private int selectedMonth = java.util.Calendar.MAY; // Tháng 5 (0-indexed)
+    private int selectedMonth = java.util.Calendar.MAY;
     private int selectedYear = 2026;
+
+    private TourAdapter adapterUuDai, adapterMienBac, adapterMienTrung, adapterMienNam;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Nạp giao diện XML home vào Fragment
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.home, container, false);
 
-        // Lấy các view tìm kiếm địa điểm
+        // --- Setup search fields (giữ nguyên) ---
         View layoutDestination = view.findViewById(R.id.layoutDestination);
         EditText etDestination = view.findViewById(R.id.etDestination);
 
-        // Thiết lập sự kiện click để mở màn hình tìm kiếm địa điểm
         View.OnClickListener openSearchListener = v -> {
             if (getParentFragmentManager() != null) {
                 getParentFragmentManager().beginTransaction()
                         .replace(R.id.contentFrame, new SearchDestination())
-                        .addToBackStack(null)
-                        .commit();
+                        .addToBackStack(null).commit();
             }
         };
+        if (layoutDestination != null) layoutDestination.setOnClickListener(openSearchListener);
+        if (etDestination != null) etDestination.setOnClickListener(openSearchListener);
 
-        if (layoutDestination != null) {
-            layoutDestination.setOnClickListener(openSearchListener);
-        }
-        if (etDestination != null) {
-            etDestination.setOnClickListener(openSearchListener);
-        }
-
-        // Đăng ký nhận kết quả từ màn hình chọn địa điểm
-        getParentFragmentManager().setFragmentResultListener("destination_request", this, (requestKey, result) -> {
-            String selectedDest = result.getString("selected_destination");
-            if (selectedDest != null && etDestination != null) {
-                etDestination.setText(selectedDest);
-            }
+        getParentFragmentManager().setFragmentResultListener("destination_request", this, (key, result) -> {
+            String dest = result.getString("selected_destination");
+            if (dest != null && etDestination != null) etDestination.setText(dest);
         });
 
-        // Lấy các view chọn ngày khởi hành
         View layoutDepartureDate = view.findViewById(R.id.layoutDepartureDate);
         TextView tvDepartureDate = view.findViewById(R.id.tvDepartureDate);
 
-        // Đăng ký nhận kết quả chọn ngày từ Bottom Sheet
-        getParentFragmentManager().setFragmentResultListener("date_request", this, (requestKey, result) -> {
+        getParentFragmentManager().setFragmentResultListener("date_request", this, (key, result) -> {
             selectedDay = result.getInt("day");
             selectedMonth = result.getInt("month");
             selectedYear = result.getInt("year");
-
-            if (tvDepartureDate != null) {
-                String formattedDate = String.format("%02d tháng %02d", selectedDay, selectedMonth + 1);
-                tvDepartureDate.setText(formattedDate);
-            }
+            if (tvDepartureDate != null)
+                tvDepartureDate.setText(String.format("%02d tháng %02d", selectedDay, selectedMonth + 1));
         });
 
-        // Thiết lập sự kiện click mở Lịch chọn ngày khởi hành
         if (layoutDepartureDate != null) {
             layoutDepartureDate.setOnClickListener(v -> {
-                CalendarBottomSheet bottomSheet = CalendarBottomSheet.newInstance(selectedDay, selectedMonth, selectedYear);
-                bottomSheet.show(getParentFragmentManager(), "CalendarBottomSheet");
+                CalendarBottomSheet sheet = CalendarBottomSheet.newInstance(selectedDay, selectedMonth, selectedYear);
+                sheet.show(getParentFragmentManager(), "CalendarBottomSheet");
             });
         }
 
-        // Lấy các view chọn nơi khởi hành
         View layoutOriginCity = view.findViewById(R.id.layoutOriginCity);
         TextView tvOriginCity = view.findViewById(R.id.tvOriginCity);
 
-        // Đăng ký nhận kết quả chọn nơi khởi hành
-        getParentFragmentManager().setFragmentResultListener("origin_request", this, (requestKey, result) -> {
-            String selectedOrigin = result.getString("selected_origin");
-            if (selectedOrigin != null && tvOriginCity != null) {
-                tvOriginCity.setText(selectedOrigin);
-            }
+        getParentFragmentManager().setFragmentResultListener("origin_request", this, (key, result) -> {
+            String origin = result.getString("selected_origin");
+            if (origin != null && tvOriginCity != null) tvOriginCity.setText(origin);
         });
 
-        // Thiết lập sự kiện click mở bộ lọc chọn nơi khởi hành
         if (layoutOriginCity != null) {
             layoutOriginCity.setOnClickListener(v -> {
-                if (getParentFragmentManager() != null) {
+                if (getParentFragmentManager() != null)
                     getParentFragmentManager().beginTransaction()
                             .replace(R.id.contentFrame, new SearchOrigin())
-                            .addToBackStack(null)
-                            .commit();
-                }
+                            .addToBackStack(null).commit();
             });
         }
 
-        // Thiết lập sự kiện click cho nút "Tìm tour" để mở màn hình kết quả tìm kiếm
         View btnFindTour = view.findViewById(R.id.btnFindTour);
         if (btnFindTour != null) {
             btnFindTour.setOnClickListener(v -> {
                 String destination = etDestination != null ? etDestination.getText().toString().trim() : "";
                 String origin = tvOriginCity != null ? tvOriginCity.getText().toString().trim() : "";
-
                 SearchResult searchResultFragment = new SearchResult();
                 Bundle args = new Bundle();
                 args.putString("destination", destination);
@@ -118,78 +107,75 @@ public class Home extends Fragment {
                 args.putInt("month", selectedMonth);
                 args.putInt("year", selectedYear);
                 searchResultFragment.setArguments(args);
-
-                if (getParentFragmentManager() != null) {
+                if (getParentFragmentManager() != null)
                     getParentFragmentManager().beginTransaction()
                             .replace(R.id.contentFrame, searchResultFragment)
-                            .addToBackStack(null)
-                            .commit();
-                }
+                            .addToBackStack(null).commit();
             });
         }
 
-        // Lấy các thẻ tour ưu đãi
-        View cardTaiwan = view.findViewById(R.id.cardTaiwanTour);
-        View cardSingapore = view.findViewById(R.id.cardSingaporeTour);
+        // --- Setup RecyclerViews ---
+        RecyclerView rvUuDai = view.findViewById(R.id.rvTourUuDai);
+        RecyclerView rvMienBac = view.findViewById(R.id.rvTourMienBac);
+        RecyclerView rvMienTrung = view.findViewById(R.id.rvTourMienTrung);
+        RecyclerView rvMienNam = view.findViewById(R.id.rvTourMienNam);
 
-        // Lấy các thẻ tour miền Bắc
-        View cardSapa = view.findViewById(R.id.cardSapaTour);
-        View cardHalong = view.findViewById(R.id.cardHalongTour);
+        adapterUuDai = new TourAdapter(new ArrayList<>(), this::openDetail);
+        adapterMienBac = new TourAdapter(new ArrayList<>(), this::openDetail);
+        adapterMienTrung = new TourAdapter(new ArrayList<>(), this::openDetail);
+        adapterMienNam = new TourAdapter(new ArrayList<>(), this::openDetail);
 
-        // Lấy các thẻ tour miền Trung
-        View cardDanang = view.findViewById(R.id.cardDanangTour);
-        View cardNhatrang = view.findViewById(R.id.cardNhatrangTour);
+        setupRecyclerView(rvUuDai, adapterUuDai);
+        setupRecyclerView(rvMienBac, adapterMienBac);
+        setupRecyclerView(rvMienTrung, adapterMienTrung);
+        setupRecyclerView(rvMienNam, adapterMienNam);
 
-        // Lấy các thẻ tour miền Nam
-        View cardPhuquoc = view.findViewById(R.id.cardPhuquocTour);
-        View cardMientay = view.findViewById(R.id.cardMientayTour);
-
-        // Thiết lập sự kiện click chuyển sang màn hình chi tiết tour
-        if (cardTaiwan != null) {
-            cardTaiwan.setOnClickListener(v -> openDetail("taiwan"));
-        }
-        if (cardSingapore != null) {
-            cardSingapore.setOnClickListener(v -> openDetail("singapore"));
-        }
-
-        // Tour miền Bắc
-        if (cardSapa != null) {
-            cardSapa.setOnClickListener(v -> openDetail("sapa"));
-        }
-        if (cardHalong != null) {
-            cardHalong.setOnClickListener(v -> openDetail("halong"));
-        }
-
-        // Tour miền Trung
-        if (cardDanang != null) {
-            cardDanang.setOnClickListener(v -> openDetail("danang"));
-        }
-        if (cardNhatrang != null) {
-            cardNhatrang.setOnClickListener(v -> openDetail("nhatrang"));
-        }
-
-        // Tour miền Nam
-        if (cardPhuquoc != null) {
-            cardPhuquoc.setOnClickListener(v -> openDetail("phuquoc"));
-        }
-        if (cardMientay != null) {
-            cardMientay.setOnClickListener(v -> openDetail("mientay"));
-        }
+        // --- Gọi API ---
+        loadTours();
 
         return view;
     }
 
-    private void openDetail(String tourType) {
+    private void setupRecyclerView(RecyclerView rv, TourAdapter adapter) {
+        if (rv == null) return;
+        rv.setLayoutManager(new LinearLayoutManager(getContext(),
+                LinearLayoutManager.HORIZONTAL, false));
+        rv.setAdapter(adapter);
+    }
+
+    private void loadTours() {
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        apiService.getTours().enqueue(new Callback<List<Tour>>() {
+            @Override
+            public void onResponse(Call<List<Tour>> call, Response<List<Tour>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Tour> all = response.body();
+                    Log.d("DJANGO_API", "Tổng tour = " + all.size());
+
+                    // Hiện tại chưa có field phân loại → hiển thị tất cả ở mỗi section
+                    // Sau này thêm field "region" vào Django thì filter tại đây
+                    adapterUuDai.updateData(all);
+                    adapterMienBac.updateData(all);
+                    adapterMienTrung.updateData(all);
+                    adapterMienNam.updateData(all);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Tour>> call, Throwable t) {
+                Log.e("DJANGO_API", "Lỗi: " + t.getMessage());
+            }
+        });
+    }
+
+    private void openDetail(Tour tour) {
         DetailTour detailFragment = new DetailTour();
         Bundle args = new Bundle();
-        args.putString("tour_type", tourType);
+        args.putString("tour_type", tour.getCode()); // dùng code tour
         detailFragment.setArguments(args);
-
-        if (getParentFragmentManager() != null) {
+        if (getParentFragmentManager() != null)
             getParentFragmentManager().beginTransaction()
                     .replace(R.id.contentFrame, detailFragment)
-                    .addToBackStack(null) // Cho phép quay lại bằng phím Back
-                    .commit();
-        }
+                    .addToBackStack(null).commit();
     }
 }
