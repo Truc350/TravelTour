@@ -37,7 +37,11 @@ public class Account extends Fragment {
         });
 
         view.findViewById(R.id.btnTravelPreferences).setOnClickListener(v -> {
-            // Xử lý khi nhấn "Sở thích du lịch"
+            // Xử lý khi nhấn "Sở thích du lịch" -> Chuyển sang màn hình TravelPreferences
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.contentFrame, new TravelPreferences())
+                    .addToBackStack(null)
+                    .commit();
         });
 
         view.findViewById(R.id.btnMyVouchers).setOnClickListener(v -> {
