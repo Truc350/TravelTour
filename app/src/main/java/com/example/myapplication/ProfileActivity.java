@@ -18,11 +18,16 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import java.util.Map;
 import java.util.Calendar;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private EditText edtEmail, edtOtp;
+    private EditText edtFullname, edtEmail, edtOtp;
+    private DatabaseHelper dbHelper;
+    private String currentContact = "";
     private TextView btnSendOtp;
     private LinearLayout layoutOtpInput;
     private androidx.appcompat.widget.AppCompatButton btnVerifyOtp;
@@ -187,5 +192,104 @@ public class ProfileActivity extends AppCompatActivity {
             android.content.Intent intent = new android.content.Intent(this, InvoiceActivity.class);
             startActivity(intent);
         });
+
+        // Khởi tạo views bổ sung và DatabaseHelper
+        dbHelper = new DatabaseHelper(this);
+        edtFullname = findViewById(R.id.edt_fullname);
+
+        // Lấy phiên làm việc hiện tại
+        SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+        currentContact = prefs.getString("current_user_contact", "");
+
+        // Tải dữ liệu từ SQLite
+        if (!currentContact.isEmpty()) {
+            Map<String, String> userDetails = dbHelper.getUserDetails(currentContact);
+            if (userDetails != null) {
+                if (userDetails.get("name") != null) {
+                    edtFullname.setText(userDetails.get("name"));
+                }
+                
+                String contact = userDetails.get("contact");
+                if (contact != null) {
+                    if (contact.contains("@")) {
+                        edtEmail.setText(contact);
+                        edtPhone.setText("");
+                    } else {
+                        edtPhone.setText(contact);
+                        edtEmail.setText("");
+                    }
+                }
+                
+                String dob = userDetails.get("dob");
+                if (dob != null && !dob.isEmpty()) {
+                    tvDob.setText(dob);
+                    tvDob.setTextColor(0xFF333333);
+                }
+                
+                String gender = userDetails.get("gender");
+                if (gender != null && !gender.isEmpty()) {
+                    tvGender.setText(gender);
+                    tvGender.setTextColor(0xFF333333);
+                }
+            }
+        }
+
+        // Bấm nút Lưu trên Toolbar
+        TextView btnSave = findViewById(R.id.btn_save);
+        btnSave.setOnClickListener(v -> saveProfileChanges());
+    }
+
+    private void saveProfileChanges() {
+        String name = edtFullname.getText().toString().trim();
+        String email = edtEmail.getText().toString().trim();
+        String phone = edtPhone.getText().toString().trim();
+        String dob = tvDob.getText().toString().trim();
+        String gender = tvGender.getText().toString().trim();
+
+        if (name.isEmpty()) {
+            Toast.makeText(this, "Họ tên không được để trống", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Quyết định contact mới dựa trên việc nhập Email hay Sđt
+        String newContact = "";
+        if (!email.isEmpty()) {
+            newContact = email;
+        } else if (!phone.isEmpty()) {
+            newContact = phone;
+        } else {
+            Toast.makeText(this, "Vui lòng nhập Email hoặc Số điện thoại", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Nếu email / sđt đã thay đổi, kiểm tra xem nó có bị trùng với người dùng khác không
+        if (!newContact.equals(currentContact)) {
+            if (dbHelper.checkUserExists(newContact)) {
+                Toast.makeText(this, "Email hoặc số điện thoại mới đã được sử dụng bởi tài khoản khác!", Toast.LENGTH_LONG).show();
+                return;
+            }
+        }
+
+        // Chuẩn hóa giới tính và ngày sinh hiển thị mặc định
+        if (dob.equals("Nhập ngày sinh của bạn")) {
+            dob = "";
+        }
+        if (gender.equals("Chọn giới tính")) {
+            gender = "";
+        }
+
+        // Cập nhật SQLite
+        boolean success = dbHelper.updateUserProfile(currentContact, name, newContact, dob, gender);
+        if (success) {
+            // Cập nhật lại phiên đăng nhập SharedPreferences
+            getSharedPreferences("UserSession", MODE_PRIVATE).edit()
+                    .putString("current_user_contact", newContact)
+                    .apply();
+            
+            Toast.makeText(this, "Cập nhật thông tin hồ sơ thành công!", Toast.LENGTH_SHORT).show();
+            finish(); // Đóng ProfileActivity và quay lại Account Fragment
+        } else {
+            Toast.makeText(this, "Cập nhật thông tin thất bại. Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+        }
     }
 }

@@ -21,6 +21,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Kiểm tra trạng thái đăng nhập
+        android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+        String contact = prefs.getString("current_user_contact", null);
+        if (contact == null || contact.isEmpty()) {
+            android.content.Intent intent = new android.content.Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         // Bật chế độ hiển thị toàn màn hình
         EdgeToEdge.enable(this);
 

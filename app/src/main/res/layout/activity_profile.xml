@@ -38,10 +38,19 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <!-- Spacer để căn giữa tiêu đề -->
-        <View
+        <!-- Nút Lưu hồ sơ -->
+        <TextView
+            android:id="@+id/btn_save"
             android:layout_width="48dp"
-            android:layout_height="48dp" />
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:text="Lưu"
+            android:textColor="#185FA5"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless" />
     </LinearLayout>
 
     <ScrollView

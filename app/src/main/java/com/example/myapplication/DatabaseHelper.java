@@ -14,7 +14,7 @@ import java.util.Map;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "TravelTour.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     // Users table
     private static final String TABLE_USERS = "users";
@@ -22,6 +22,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_NAME = "name";
     private static final String COLUMN_CONTACT = "contact";
     private static final String COLUMN_PASSWORD = "password";
+    private static final String COLUMN_GENDER = "gender";
+    private static final String COLUMN_DOB = "dob";
 
     // Passengers table
     public static final String TABLE_PASSENGERS = "passengers";
@@ -45,7 +47,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + COLUMN_NAME + " TEXT,"
                 + COLUMN_CONTACT + " TEXT UNIQUE,"
-                + COLUMN_PASSWORD + " TEXT" + ")";
+                + COLUMN_PASSWORD + " TEXT,"
+                + COLUMN_GENDER + " TEXT,"
+                + COLUMN_DOB + " TEXT" + ")";
         db.execSQL(CREATE_USERS_TABLE);
 
         // Create Passengers Table
@@ -77,6 +81,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_NAME, name);
         values.put(COLUMN_CONTACT, contact);
         values.put(COLUMN_PASSWORD, password);
+        values.put(COLUMN_GENDER, "");
+        values.put(COLUMN_DOB, "");
 
         long result = db.insert(TABLE_USERS, null, values);
         db.close();
@@ -110,6 +116,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return count > 0;
+    }
+
+    /**
+     * Lấy thông tin chi tiết của người dùng theo contact (email hoặc sđt)
+     */
+    public Map<String, String> getUserDetails(String contact) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS, null,
+                COLUMN_CONTACT + "=?", new String[]{contact},
+                null, null, null);
+        
+        Map<String, String> user = null;
+        if (cursor != null && cursor.moveToFirst()) {
+            user = new HashMap<>();
+            user.put("name", cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME)));
+            user.put("contact", cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTACT)));
+            user.put("gender", cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_GENDER)));
+            user.put("dob", cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DOB)));
+        }
+        if (cursor != null) cursor.close();
+        db.close();
+        return user;
+    }
+
+    /**
+     * Cập nhật hồ sơ thông tin cá nhân của người dùng
+     */
+    public boolean updateUserProfile(String oldContact, String name, String newContact, String dob, String gender) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NAME, name);
+        values.put(COLUMN_CONTACT, newContact);
+        values.put(COLUMN_DOB, dob);
+        values.put(COLUMN_GENDER, gender);
+        
+        int result = db.update(TABLE_USERS, values, COLUMN_CONTACT + "=?", new String[]{oldContact});
+        db.close();
+        return result > 0;
     }
 
     // ==========================================
