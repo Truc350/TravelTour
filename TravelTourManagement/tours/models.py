@@ -26,3 +26,16 @@ class Tour(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class User(models.Model):
+    name = models.CharField(max_length=255)
+    contact = models.CharField(max_length=255)
+    password = models.CharField(max_length=255)
+    avatar_url = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        db_table = 'users'
+
+    def __str__(self):
+        return self.name
