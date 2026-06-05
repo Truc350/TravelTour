@@ -8,6 +8,18 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import android.util.Log;
+
+import com.example.myapplication.data.model.Tour;
+import com.example.myapplication.data.remote.ApiService;
+import com.example.myapplication.data.remote.RetrofitClient;
+
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -20,16 +32,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Kiểm tra trạng thái đăng nhập
-        android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
-        String contact = prefs.getString("current_user_contact", null);
-        if (contact == null || contact.isEmpty()) {
-            android.content.Intent intent = new android.content.Intent(MainActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish();
-            return;
-        }
 
         // Bật chế độ hiển thị toàn màn hình
         EdgeToEdge.enable(this);
@@ -88,6 +90,34 @@ public class MainActivity extends AppCompatActivity {
             }
 
             return true;
+        });
+
+        ApiService apiService =
+                RetrofitClient.getClient()
+                        .create(ApiService.class);
+
+        apiService.getTours().enqueue(new Callback<List<Tour>>() {
+
+            @Override
+            public void onResponse(Call<List<Tour>> call,
+                                   Response<List<Tour>> response) {
+
+                if (response.isSuccessful()) {
+
+                    List<Tour> tours = response.body();
+
+                    Log.d("DJANGO_API",
+                            "So tour = " + tours.size());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Tour>> call,
+                                  Throwable t) {
+
+                Log.e("DJANGO_API",
+                        t.getMessage());
+            }
         });
     }
 }
