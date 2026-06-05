@@ -32,7 +32,6 @@ public class MyVouchers extends Fragment {
     private TextView btnTabActive, btnTabHistory;
     private LinearLayout voucherContainer;
     private View layoutEmptyVouchers;
-
     private List<VoucherItem> voucherList = new ArrayList<>();
     private String activeTab = "ACTIVE"; // "ACTIVE" hoặc "USED"
 

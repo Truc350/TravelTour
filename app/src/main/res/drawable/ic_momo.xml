@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <!-- Rounded Pink Background -->
+  <path
+      android:fillColor="#E11C7E"
+      android:pathData="M3,6C3,4.34 4.34,3 6,3H18C19.66,3 21,4.34 21,6V18C21,19.66 19.66,21 18,21H6C4.34,21 3,19.66 3,18V6Z" />
+  <!-- Letter M in white -->
+  <path
+      android:fillColor="#FFFFFF"
+      android:pathData="M6,7.5h2v6.5h1.5v-6.5h2v6.5h1.5v-6.5h2v8.5H6v-8.5z" />
+</vector>

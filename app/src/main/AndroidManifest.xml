@@ -41,6 +41,16 @@
             android:name=".InvoiceActivity"
             android:exported="false" />
 
+        <!-- Màn hình Thông tin khách đặt tour (Bước 2/3) -->
+        <activity
+            android:name=".BookingInfoActivity"
+            android:exported="false" />
+
+        <!-- Màn hình Chọn phương thức thanh toán (Bước 3/3) -->
+        <activity
+            android:name=".PaymentActivity"
+            android:exported="false" />
+
 
 
         <!-- Màn hình chính MainActivity -->
