@@ -91,23 +91,37 @@ public class MainActivity extends AppCompatActivity {
 
             return true;
         });
-
         ApiService apiService =
                 RetrofitClient.getClient()
                         .create(ApiService.class);
-
         apiService.getTours().enqueue(new Callback<List<Tour>>() {
 
             @Override
             public void onResponse(Call<List<Tour>> call,
                                    Response<List<Tour>> response) {
 
+                Log.d("DJANGO_API",
+                        "HTTP CODE = " + response.code());
+
                 if (response.isSuccessful()) {
 
                     List<Tour> tours = response.body();
 
-                    Log.d("DJANGO_API",
-                            "So tour = " + tours.size());
+                    if (tours != null) {
+
+                        Log.d("DJANGO_API",
+                                "So tour = " + tours.size());
+
+                    } else {
+
+                        Log.e("DJANGO_API",
+                                "Response body NULL");
+                    }
+
+                } else {
+
+                    Log.e("DJANGO_API",
+                            "Response fail");
                 }
             }
 
@@ -116,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
                                   Throwable t) {
 
                 Log.e("DJANGO_API",
-                        t.getMessage());
+                        "Retrofit Error", t);
             }
         });
     }

@@ -14,7 +14,7 @@ import java.util.Map;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "TravelTour.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     // Users table
     private static final String TABLE_USERS = "users";
@@ -35,6 +35,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_P_ISSUING_COUNTRY = "issuing_country";
     public static final String COLUMN_P_EXPIRY_DATE = "expiry_date";
     public static final String COLUMN_P_ID_OR_PASSPORT = "id_or_passport";
+
+    // Favorites table
+    private static final String TABLE_FAVORITES = "favorites";
+    private static final String COLUMN_F_ID = "id";
+    private static final String COLUMN_F_CONTACT = "user_contact";
+    private static final String COLUMN_F_TOUR_TYPE = "tour_type";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -63,12 +69,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_P_EXPIRY_DATE + " TEXT,"
                 + COLUMN_P_ID_OR_PASSPORT + " TEXT" + ")";
         db.execSQL(CREATE_PASSENGERS_TABLE);
+
+        // Create Favorites Table
+        String CREATE_FAVORITES_TABLE = "CREATE TABLE " + TABLE_FAVORITES + "("
+                + COLUMN_F_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + COLUMN_F_CONTACT + " TEXT,"
+                + COLUMN_F_TOUR_TYPE + " TEXT,"
+                + "UNIQUE(" + COLUMN_F_CONTACT + ", " + COLUMN_F_TOUR_TYPE + ")" + ")";
+        db.execSQL(CREATE_FAVORITES_TABLE);
+
+        // Pre-insert default test credentials (admin@gmail.com / 123456)
+        ContentValues defaultUser = new ContentValues();
+        defaultUser.put(COLUMN_NAME, "Ngọc Quyên");
+        defaultUser.put(COLUMN_CONTACT, "admin@gmail.com");
+        defaultUser.put(COLUMN_PASSWORD, "123456");
+        defaultUser.put(COLUMN_GENDER, "Nữ");
+        defaultUser.put(COLUMN_DOB, "18/09/2004");
+        db.insert(TABLE_USERS, null, defaultUser);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_PASSENGERS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_FAVORITES);
         onCreate(db);
     }
 
@@ -307,6 +331,70 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor != null) cursor.close();
         db.close();
         return contact;
+    }
+
+    // ==========================================
+    // WISHLIST (FAVORITES) CRUD OPERATIONS
+    // ==========================================
+
+    /**
+     * Thêm tour vào danh sách yêu thích
+     */
+    public boolean addFavorite(String contact, String tourType) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_F_CONTACT, contact);
+        values.put(COLUMN_F_TOUR_TYPE, tourType);
+
+        long result = db.insertWithOnConflict(TABLE_FAVORITES, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+        db.close();
+        return result != -1;
+    }
+
+    /**
+     * Xóa tour khỏi danh sách yêu thích
+     */
+    public boolean removeFavorite(String contact, String tourType) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int result = db.delete(TABLE_FAVORITES, COLUMN_F_CONTACT + "=? AND " + COLUMN_F_TOUR_TYPE + "=?",
+                new String[]{contact, tourType});
+        db.close();
+        return result > 0;
+    }
+
+    /**
+     * Kiểm tra xem tour có được yêu thích bởi người dùng không
+     */
+    public boolean isTourFavorited(String contact, String tourType) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_FAVORITES, new String[]{COLUMN_F_ID},
+                COLUMN_F_CONTACT + "=? AND " + COLUMN_F_TOUR_TYPE + "=?",
+                new String[]{contact, tourType},
+                null, null, null);
+        int count = cursor.getCount();
+        cursor.close();
+        db.close();
+        return count > 0;
+    }
+
+    /**
+     * Lấy danh sách tất cả các loại tour yêu thích của người dùng
+     */
+    public List<String> getFavoriteTours(String contact) {
+        List<String> list = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_FAVORITES, new String[]{COLUMN_F_TOUR_TYPE},
+                COLUMN_F_CONTACT + "=?", new String[]{contact},
+                null, null, COLUMN_F_ID + " DESC");
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                list.add(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_F_TOUR_TYPE)));
+            } while (cursor.moveToNext());
+        }
+        if (cursor != null) cursor.close();
+        db.close();
+        return list;
     }
 }
 
