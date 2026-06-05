@@ -65,4 +65,46 @@ class Booking(models.Model):
         db_table = 'bookings'
 
     def __str__(self):
-        return f"Booking {self.id} by {self.user.name}"
+        return f"Booking {self.id} by {self.user.name}"
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name='favorites')
+
+    class Meta:
+        db_table = 'favorites'
+
+    def __str__(self):
+        return f"{self.user.name} likes {self.tour.title}"
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    date = models.CharField(max_length=255)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'notifications'
+
+    def __str__(self):
+        return self.title
+
+
+class Passenger(models.Model):
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='passengers')
+    salutation = models.CharField(max_length=50)
+    fullname = models.CharField(max_length=255)
+    birthdate = models.CharField(max_length=255)
+    nationality = models.CharField(max_length=255)
+    issuing_country = models.CharField(max_length=255)
+    expiry_date = models.CharField(max_length=255)
+    id_or_passport = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'passengers'
+
+    def __str__(self):
+        return self.fullname
