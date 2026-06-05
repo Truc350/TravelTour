@@ -7,6 +7,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.widget.TextView;
+import java.util.Map;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -17,11 +22,25 @@ import androidx.fragment.app.Fragment;
  */
 public class Account extends Fragment {
 
+    private DatabaseHelper dbHelper;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         // Nạp giao diện XML account vào Fragment
         View view = inflater.inflate(R.layout.account, container, false);
+        dbHelper = new DatabaseHelper(requireContext());
+
+        // Hiển thị tên người dùng thực tế
+        TextView tvUserName = view.findViewById(R.id.tv_user_name);
+        SharedPreferences prefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+        String contact = prefs.getString("current_user_contact", "");
+        if (!contact.isEmpty()) {
+            Map<String, String> userDetails = dbHelper.getUserDetails(contact);
+            if (userDetails != null && userDetails.get("name") != null) {
+                tvUserName.setText(userDetails.get("name"));
+            }
+        }
 
         // Thiết lập sự kiện click cho các nút chức năng (bạn có thể mở rộng xử lý sau này)
         view.findViewById(R.id.btnMyProfile).setOnClickListener(v -> {
@@ -82,6 +101,11 @@ public class Account extends Fragment {
                     .setTitle("Đăng xuất")
                     .setMessage("Bạn có chắc muốn đăng xuất không?")
                     .setPositiveButton("Đăng xuất", (dialog, which) -> {
+                        // Xóa phiên đăng nhập trong SharedPreferences
+                        requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE)
+                                .edit()
+                                .clear()
+                                .apply();
                         // Chuyển sang LoginActivity và xóa toàn bộ back stack
                         Intent intent = new Intent(requireActivity(), LoginActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
