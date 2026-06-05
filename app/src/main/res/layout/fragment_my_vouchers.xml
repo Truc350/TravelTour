@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:background="#F5F7FA">
 
-    <!-- Header Toolbar -->
+    <!-- Header Toolbar (cố định, không cuộn) -->
     <RelativeLayout
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -44,137 +44,137 @@
             android:layout_alignParentBottom="true" />
     </RelativeLayout>
 
-    <!-- Code Input Section -->
-    <LinearLayout
+    <!-- Toàn bộ nội dung có thể cuộn -->
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        android:orientation="horizontal"
-        android:padding="16dp">
+        android:scrollbars="none">
 
-        <EditText
-            android:id="@+id/etPromoCode"
-            android:layout_width="0dp"
-            android:layout_height="44dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_input_field"
-            android:hint="Nhập mã voucher"
-            android:textColorHint="#A0AEC0"
-            android:textColor="#2D3748"
-            android:textSize="14sp"
-            android:paddingHorizontal="12dp"
-            android:singleLine="true"
-            android:textAllCaps="true" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnApplyPromo"
-            android:layout_width="90dp"
-            android:layout_height="44dp"
-            android:layout_marginStart="12dp"
-            android:background="@drawable/bg_button_orange"
-            android:text="Áp dụng"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textAllCaps="false" />
-    </LinearLayout>
-
-    <!-- Tab filter bar -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
-        android:paddingBottom="12dp">
-
-        <TextView
-            android:id="@+id/btnTabActive"
-            android:layout_width="0dp"
-            android:layout_height="36dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Chưa sử dụng"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:background="@drawable/bg_pref_selected"
-            android:clickable="true"
-            android:focusable="true"
-            android:layout_marginEnd="8dp" />
-
-        <TextView
-            android:id="@+id/btnTabHistory"
-            android:layout_width="0dp"
-            android:layout_height="36dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Lịch sử voucher"
-            android:textColor="#4A5568"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:background="@drawable/bg_pref_unselected"
-            android:clickable="true"
-            android:focusable="true" />
-    </LinearLayout>
-
-    <!-- Content Area -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <!-- Scrollable Vouchers List -->
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/scrollViewVouchers"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fillViewport="true"
-            android:visibility="visible">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
+            <!-- Code Input Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <EditText
+                    android:id="@+id/etPromoCode"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_input_field"
+                    android:hint="Nhập mã voucher"
+                    android:textColorHint="#A0AEC0"
+                    android:textColor="#2D3748"
+                    android:textSize="14sp"
+                    android:paddingHorizontal="12dp"
+                    android:singleLine="true"
+                    android:inputType="textCapCharacters" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnApplyPromo"
+                    android:layout_width="90dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="12dp"
+                    android:background="@drawable/bg_button_orange"
+                    android:text="Áp dụng"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <!-- Tab filter bar -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp"
+                android:paddingBottom="12dp">
+
+                <TextView
+                    android:id="@+id/btnTabActive"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Chưa sử dụng"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_pref_selected"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/btnTabHistory"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Lịch sử voucher"
+                    android:textColor="#4A5568"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_pref_unselected"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <!-- Danh sách voucher: co giãn theo nội dung thực tế -->
             <LinearLayout
                 android:id="@+id/voucherContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingVertical="12dp" />
-        </androidx.core.widget.NestedScrollView>
 
-        <!-- Empty State View -->
-        <LinearLayout
-            android:id="@+id/layoutEmptyVouchers"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="32dp"
-            android:visibility="gone">
-
-            <ImageView
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:src="@drawable/ic_voucher"
-                android:alpha="0.4"
-                app:tint="#A0AEC0" />
-
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Trạng thái trống (hiển thị khi không có voucher) -->
+            <LinearLayout
+                android:id="@+id/layoutEmptyVouchers"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Không có voucher nào"
-                android:textColor="#718096"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp" />
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingVertical="48dp"
+                android:paddingHorizontal="32dp"
+                android:visibility="gone">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Bạn không có phiếu quà tặng nào trong mục này."
-                android:textColor="#A0AEC0"
-                android:textSize="13sp"
-                android:layout_marginTop="6dp"
-                android:gravity="center" />
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/ic_voucher"
+                    android:alpha="0.4"
+                    app:tint="#A0AEC0" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Không có voucher nào"
+                    android:textColor="#718096"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bạn không có phiếu quà tặng nào trong mục này."
+                    android:textColor="#A0AEC0"
+                    android:textSize="13sp"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center" />
+            </LinearLayout>
+
         </LinearLayout>
+    </ScrollView>
 
-    </FrameLayout>
 </LinearLayout>
