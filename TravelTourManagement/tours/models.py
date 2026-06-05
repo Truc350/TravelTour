@@ -38,4 +38,31 @@ class User(models.Model):
         db_table = 'users'
 
     def __str__(self):
-        return self.name
+        return self.name
+
+
+class TourDeparture(models.Model):
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name='departures')
+    departure_date = models.CharField(max_length=255)
+    available_seats = models.IntegerField()
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        db_table = 'tour_departures'
+
+    def __str__(self):
+        return f"{self.tour.title} - {self.departure_date}"
+
+
+class Booking(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings')
+    departure = models.ForeignKey(TourDeparture, on_delete=models.RESTRICT, related_name='bookings')
+    booking_date = models.CharField(max_length=255)
+    status = models.CharField(max_length=50, default='PENDING')
+    total_price = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        db_table = 'bookings'
+
+    def __str__(self):
+        return f"Booking {self.id} by {self.user.name}"
