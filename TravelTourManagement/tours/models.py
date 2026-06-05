@@ -107,4 +107,28 @@ class Passenger(models.Model):
         db_table = 'passengers'
 
     def __str__(self):
-        return self.fullname
+        return self.fullname
+
+
+class TourImage(models.Model):
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name='images')
+    image_url = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'tour_images'
+
+    def __str__(self):
+        return f"Image for {self.tour.title}"
+
+
+class TourItinerary(models.Model):
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name='itineraries')
+    day_number = models.IntegerField()
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+
+    class Meta:
+        db_table = 'tour_itineraries'
+
+    def __str__(self):
+        return f"Day {self.day_number}: {self.title}"

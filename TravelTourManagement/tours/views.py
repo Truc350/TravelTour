@@ -1,5 +1,5 @@
 from rest_framework import generics
-from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger
+from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary
 from .serializers import (
     TourSerializer,
     UserSerializer,
@@ -8,6 +8,8 @@ from .serializers import (
     FavoriteSerializer,
     NotificationSerializer,
     PassengerSerializer,
+    TourImageSerializer,
+    TourItinerarySerializer,
 )
 
 
@@ -74,3 +76,23 @@ class PassengerListCreateAPIView(generics.ListCreateAPIView):
 class PassengerRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Passenger.objects.all()
     serializer_class = PassengerSerializer
+
+
+class TourImageListCreateAPIView(generics.ListCreateAPIView):
+    queryset = TourImage.objects.all()
+    serializer_class = TourImageSerializer
+
+
+class TourImageRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = TourImage.objects.all()
+    serializer_class = TourImageSerializer
+
+
+class TourItineraryListCreateAPIView(generics.ListCreateAPIView):
+    queryset = TourItinerary.objects.all()
+    serializer_class = TourItinerarySerializer
+
+
+class TourItineraryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = TourItinerary.objects.all()
+    serializer_class = TourItinerarySerializer

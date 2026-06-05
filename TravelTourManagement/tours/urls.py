@@ -13,6 +13,10 @@ from .views import (
     NotificationRetrieveUpdateDestroyAPIView,
     PassengerListCreateAPIView,
     PassengerRetrieveUpdateDestroyAPIView,
+    TourImageListCreateAPIView,
+    TourImageRetrieveUpdateDestroyAPIView,
+    TourItineraryListCreateAPIView,
+    TourItineraryRetrieveUpdateDestroyAPIView,
 )
 
 urlpatterns = [
@@ -29,4 +33,8 @@ urlpatterns = [
     path('notifications/<int:pk>/', NotificationRetrieveUpdateDestroyAPIView.as_view(), name='notification-detail'),
     path('passengers/', PassengerListCreateAPIView.as_view(), name='passenger-list-create'),
     path('passengers/<int:pk>/', PassengerRetrieveUpdateDestroyAPIView.as_view(), name='passenger-detail'),
+    path('tour-images/', TourImageListCreateAPIView.as_view(), name='tourimage-list-create'),
+    path('tour-images/<int:pk>/', TourImageRetrieveUpdateDestroyAPIView.as_view(), name='tourimage-detail'),
+    path('tour-itineraries/', TourItineraryListCreateAPIView.as_view(), name='touritinerary-list-create'),
+    path('tour-itineraries/<int:pk>/', TourItineraryRetrieveUpdateDestroyAPIView.as_view(), name='touritinerary-detail'),
 ]
