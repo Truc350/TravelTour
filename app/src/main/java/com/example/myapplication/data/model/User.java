@@ -3,6 +3,7 @@ package com.example.myapplication.data.model;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import com.google.gson.annotations.SerializedName;
 
 @Entity(tableName = "users")
 public class User {
@@ -20,6 +21,7 @@ public class User {
     private String password;
 
     @ColumnInfo(name = "avatar_url")
+    @SerializedName("avatar_url")
     private String avatarUrl;
 
     public User(String name, String contact, String password, String avatarUrl) {

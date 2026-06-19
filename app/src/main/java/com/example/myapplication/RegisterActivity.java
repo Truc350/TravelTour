@@ -26,6 +26,16 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import com.example.myapplication.data.model.User;
+import com.example.myapplication.data.remote.ApiService;
+import com.example.myapplication.data.remote.RetrofitClient;
+
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class RegisterActivity extends AppCompatActivity {
 
     private TextInputLayout layoutName, layoutContact, layoutPassword;
@@ -124,27 +134,72 @@ public class RegisterActivity extends AppCompatActivity {
 
         // Action when validation succeeds
         if (isValid) {
-            // Kiểm tra xem số điện thoại hoặc email đã tồn tại hay chưa
-            if (dbHelper.checkUserExists(contact)) {
-                layoutContact.setError(getString(R.string.error_contact_exists));
-                return;
-            }
+            ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+            btnRegister.setEnabled(false);
+            Toast.makeText(this, "Đang đăng ký...", Toast.LENGTH_SHORT).show();
 
-            // Lưu tài khoản vào cơ sở dữ liệu SQLite
-            boolean isAdded = dbHelper.addUser(name, contact, password);
-            if (isAdded) {
-                Toast.makeText(this, R.string.msg_register_success, Toast.LENGTH_LONG).show();
-                // Store session in SharedPreferences
-                getSharedPreferences("UserSession", MODE_PRIVATE).edit()
-                        .putString("current_user_contact", contact)
-                        .apply();
-                // Navigate to MainActivity
-                Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-                startActivity(intent);
-                finish(); // Close RegisterActivity so user can't press back to return here
-            } else {
-                Toast.makeText(this, "Đã xảy ra lỗi khi tạo tài khoản. Vui lòng thử lại!", Toast.LENGTH_LONG).show();
-            }
+            apiService.getUsers().enqueue(new Callback<List<User>>() {
+                @Override
+                public void onResponse(Call<List<User>> call, Response<List<User>> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        List<User> users = response.body();
+                        boolean exists = false;
+                        for (User u : users) {
+                            if (contact.equals(u.getContact())) {
+                                exists = true;
+                                break;
+                            }
+                        }
+
+                        if (exists) {
+                            btnRegister.setEnabled(true);
+                            layoutContact.setError(getString(R.string.error_contact_exists));
+                        } else {
+                            User newUser = new User(name, contact, password, "");
+                            apiService.registerUser(newUser).enqueue(new Callback<User>() {
+                                @Override
+                                public void onResponse(Call<User> call, Response<User> response) {
+                                    btnRegister.setEnabled(true);
+                                    if (response.isSuccessful()) {
+                                        // Lưu cục bộ làm cache
+                                        dbHelper.addUser(name, contact, password);
+
+                                        User registeredUser = response.body();
+                                        int userId = (registeredUser != null) ? registeredUser.getId() : -1;
+
+                                        Toast.makeText(RegisterActivity.this, R.string.msg_register_success, Toast.LENGTH_LONG).show();
+                                        getSharedPreferences("UserSession", MODE_PRIVATE).edit()
+                                                .putString("current_user_contact", contact)
+                                                .putInt("current_user_id", userId)
+                                                .apply();
+
+                                        Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                                        startActivity(intent);
+                                        finish();
+                                    } else {
+                                        Toast.makeText(RegisterActivity.this, "Đăng ký thất bại trên máy chủ!", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call<User> call, Throwable t) {
+                                    btnRegister.setEnabled(true);
+                                    Toast.makeText(RegisterActivity.this, "Lỗi kết nối máy chủ: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    } else {
+                        btnRegister.setEnabled(true);
+                        Toast.makeText(RegisterActivity.this, "Không thể tải danh sách tài khoản từ máy chủ!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<User>> call, Throwable t) {
+                    btnRegister.setEnabled(true);
+                    Toast.makeText(RegisterActivity.this, "Lỗi kết nối máy chủ: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 

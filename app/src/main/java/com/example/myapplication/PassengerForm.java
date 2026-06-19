@@ -18,6 +18,14 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.Map;
 
+import com.example.myapplication.data.model.Passenger;
+import com.example.myapplication.data.remote.ApiService;
+import com.example.myapplication.data.remote.RetrofitClient;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 /**
  * Fragment biểu mẫu cập nhật thông tin hành khách (Hình 2).
  * Hỗ trợ cả hai chế độ: Thêm mới và Chỉnh sửa hành khách sẵn có qua SQLite.
@@ -113,29 +121,44 @@ public class PassengerForm extends Fragment {
     }
 
     private void loadPassengerData() {
-        Map<String, String> passenger = dbHelper.getPassenger(passengerId);
-        if (passenger != null) {
-            tvToolbarTitle.setText("Cập nhật thông tin");
-            
-            tvSalutation.setText(passenger.get("salutation"));
-            tvSalutation.setTextColor(0xFF333333);
-            
-            etFullName.setText(passenger.get("fullname"));
-            
-            tvBirthDate.setText(passenger.get("birthdate"));
-            tvBirthDate.setTextColor(0xFF333333);
-            
-            tvNationality.setText(passenger.get("nationality"));
-            tvNationality.setTextColor(0xFF333333);
-            
-            tvIssuingCountry.setText(passenger.get("issuing_country"));
-            tvIssuingCountry.setTextColor(0xFF333333);
-            
-            tvExpiryDate.setText(passenger.get("expiry_date"));
-            tvExpiryDate.setTextColor(0xFF333333);
-            
-            etIdOrPassport.setText(passenger.get("id_or_passport"));
-        }
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        apiService.getPassengerById(passengerId).enqueue(new Callback<Passenger>() {
+            @Override
+            public void onResponse(Call<Passenger> call, Response<Passenger> response) {
+                if (getContext() == null || !isAdded()) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    Passenger passenger = response.body();
+                    tvToolbarTitle.setText("Cập nhật thông tin");
+                    
+                    tvSalutation.setText(passenger.getSalutation());
+                    tvSalutation.setTextColor(0xFF333333);
+                    
+                    etFullName.setText(passenger.getFullname());
+                    
+                    tvBirthDate.setText(passenger.getBirthdate());
+                    tvBirthDate.setTextColor(0xFF333333);
+                    
+                    tvNationality.setText(passenger.getNationality());
+                    tvNationality.setTextColor(0xFF333333);
+                    
+                    tvIssuingCountry.setText(passenger.getIssuingCountry());
+                    tvIssuingCountry.setTextColor(0xFF333333);
+                    
+                    tvExpiryDate.setText(passenger.getExpiryDate());
+                    tvExpiryDate.setTextColor(0xFF333333);
+                    
+                    etIdOrPassport.setText(passenger.getIdOrPassport());
+                } else {
+                    Toast.makeText(requireContext(), "Không thể tải thông tin hành khách từ máy chủ!", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Passenger> call, Throwable t) {
+                if (getContext() == null || !isAdded()) return;
+                Toast.makeText(requireContext(), "Lỗi mạng: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void showChoiceDialog(String title, String[] items, TextView textView) {
@@ -191,20 +214,57 @@ public class PassengerForm extends Fragment {
             return;
         }
 
-        boolean success;
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        Passenger passenger = new Passenger(null, salutation, fullName, birthDate, nationality, issuingCountry, expiryDate, idOrPassport);
+        
+        Toast.makeText(requireContext(), "Đang lưu thông tin...", Toast.LENGTH_SHORT).show();
+
         if (passengerId == -1) {
             // Thêm mới
-            success = dbHelper.addPassenger(salutation, fullName, birthDate, nationality, issuingCountry, expiryDate, idOrPassport);
+            apiService.addPassenger(passenger).enqueue(new Callback<Passenger>() {
+                @Override
+                public void onResponse(Call<Passenger> call, Response<Passenger> response) {
+                    if (getContext() == null) return;
+                    if (response.isSuccessful()) {
+                        // Sync cục bộ SQLite làm cache
+                        dbHelper.addPassenger(salutation, fullName, birthDate, nationality, issuingCountry, expiryDate, idOrPassport);
+                        
+                        Toast.makeText(requireContext(), "Lưu thông tin hành khách thành công!", Toast.LENGTH_SHORT).show();
+                        getParentFragmentManager().popBackStack();
+                    } else {
+                        Toast.makeText(requireContext(), "Lỗi khi lưu thông tin lên máy chủ!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Passenger> call, Throwable t) {
+                    if (getContext() == null) return;
+                    Toast.makeText(requireContext(), "Lỗi mạng: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         } else {
             // Chỉnh sửa
-            success = dbHelper.updatePassenger(passengerId, salutation, fullName, birthDate, nationality, issuingCountry, expiryDate, idOrPassport);
-        }
+            apiService.updatePassenger(passengerId, passenger).enqueue(new Callback<Passenger>() {
+                @Override
+                public void onResponse(Call<Passenger> call, Response<Passenger> response) {
+                    if (getContext() == null) return;
+                    if (response.isSuccessful()) {
+                        // Sync cục bộ SQLite làm cache
+                        dbHelper.updatePassenger(passengerId, salutation, fullName, birthDate, nationality, issuingCountry, expiryDate, idOrPassport);
+                        
+                        Toast.makeText(requireContext(), "Cập nhật thông tin hành khách thành công!", Toast.LENGTH_SHORT).show();
+                        getParentFragmentManager().popBackStack();
+                    } else {
+                        Toast.makeText(requireContext(), "Lỗi khi cập nhật lên máy chủ!", Toast.LENGTH_SHORT).show();
+                    }
+                }
 
-        if (success) {
-            Toast.makeText(requireContext(), "Lưu thông tin hành khách thành công!", Toast.LENGTH_SHORT).show();
-            getParentFragmentManager().popBackStack();
-        } else {
-            Toast.makeText(requireContext(), "Lỗi khi lưu thông tin. Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+                @Override
+                public void onFailure(Call<Passenger> call, Throwable t) {
+                    if (getContext() == null) return;
+                    Toast.makeText(requireContext(), "Lỗi mạng: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 }

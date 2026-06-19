@@ -26,6 +26,16 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import com.example.myapplication.data.model.User;
+import com.example.myapplication.data.remote.ApiService;
+import com.example.myapplication.data.remote.RetrofitClient;
+
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class LoginActivity extends AppCompatActivity {
 
     private TextInputLayout layoutContact, layoutPassword;
@@ -118,20 +128,58 @@ public class LoginActivity extends AppCompatActivity {
 
         // Action when validation succeeds
         if (isValid) {
-            // Xác thực thông tin tài khoản qua SQLite
-            if (dbHelper.checkUserCredentials(contact, password)) {
-                Toast.makeText(this, R.string.msg_login_success, Toast.LENGTH_LONG).show();
-                // Store session in SharedPreferences
-                getSharedPreferences("UserSession", MODE_PRIVATE).edit()
-                        .putString("current_user_contact", contact)
-                        .apply();
-                // Navigate to MainActivity
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(intent);
-                finish(); // Close LoginActivity
-            } else {
-                layoutPassword.setError(getString(R.string.error_login_failed));
-            }
+            ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+            btnLogin.setEnabled(false);
+            Toast.makeText(this, "Đang đăng nhập...", Toast.LENGTH_SHORT).show();
+
+            apiService.getUsers().enqueue(new Callback<List<User>>() {
+                @Override
+                public void onResponse(Call<List<User>> call, Response<List<User>> response) {
+                    btnLogin.setEnabled(true);
+                    if (response.isSuccessful() && response.body() != null) {
+                        List<User> users = response.body();
+                        boolean authenticated = false;
+                        String userName = "";
+                        int userId = -1;
+                        for (User u : users) {
+                            if (contact.equals(u.getContact()) && password.equals(u.getPassword())) {
+                                authenticated = true;
+                                userName = u.getName();
+                                userId = u.getId();
+                                break;
+                            }
+                        }
+
+                        if (authenticated) {
+                            // Sync cục bộ làm cache
+                            if (!dbHelper.checkUserExists(contact)) {
+                                dbHelper.addUser(userName, contact, password);
+                            }
+
+                            Toast.makeText(LoginActivity.this, R.string.msg_login_success, Toast.LENGTH_LONG).show();
+                            // Store session in SharedPreferences
+                            getSharedPreferences("UserSession", MODE_PRIVATE).edit()
+                                    .putString("current_user_contact", contact)
+                                    .putInt("current_user_id", userId)
+                                    .apply();
+                            // Navigate to MainActivity
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            startActivity(intent);
+                            finish(); // Close LoginActivity
+                        } else {
+                            layoutPassword.setError(getString(R.string.error_login_failed));
+                        }
+                    } else {
+                        Toast.makeText(LoginActivity.this, "Không thể kết nối xác thực tài khoản!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<User>> call, Throwable t) {
+                    btnLogin.setEnabled(true);
+                    Toast.makeText(LoginActivity.this, "Lỗi mạng: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
