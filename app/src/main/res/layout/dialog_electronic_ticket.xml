@@ -24,7 +24,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="VÉ TÀU HỎA ĐIỆN TỬ"
+                android:text="VÉ TOUR DU LỊCH ĐIỆN TỬ"
                 android:textColor="#FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -238,10 +238,14 @@
                 android:paddingTop="12dp">
 
                 <ImageView
-                    android:layout_width="220dp"
-                    android:layout_height="64dp"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/ic_barcode" />
+                    android:id="@+id/imgDlgQrCode"
+                    android:layout_width="160dp"
+                    android:layout_height="160dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_qr_code"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground" />
 
                 <TextView
                     android:id="@+id/tvDlgTicketCode"
@@ -257,10 +261,23 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Xuất trình mã này tại cửa kiểm soát ga"
+                    android:text="Quét mã QR/nhấn để xem chi tiết Tour"
                     android:textColor="#A0AEC0"
                     android:textSize="11sp"
                     android:layout_marginTop="4dp" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnDlgViewTour"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_button_orange"
+                    android:text="XEM CHI TIẾT TOUR"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

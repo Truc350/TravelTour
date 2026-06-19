@@ -39,9 +39,10 @@ public class BookedTripAdapter extends RecyclerView.Adapter<BookedTripAdapter.Tr
         public String price;
         public String date; // định dạng "dd/MM" ví dụ "09/09"
         public boolean isHistory; // true nếu là chuyến đi trong lịch sử
+        public String tourType; // loại tour (ví dụ "sapa", "taiwan")
 
         public TripItem(String id, String trainName, String statusBadge, String depTime, String arrTime,
-                        String depStation, String arrStation, String duration, String price, String date, boolean isHistory) {
+                        String depStation, String arrStation, String duration, String price, String date, boolean isHistory, String tourType) {
             this.id = id;
             this.trainName = trainName;
             this.statusBadge = statusBadge;
@@ -53,6 +54,7 @@ public class BookedTripAdapter extends RecyclerView.Adapter<BookedTripAdapter.Tr
             this.price = price;
             this.date = date;
             this.isHistory = isHistory;
+            this.tourType = tourType;
         }
     }
 
@@ -88,8 +90,8 @@ public class BookedTripAdapter extends RecyclerView.Adapter<BookedTripAdapter.Tr
             holder.tvStatusBadge.setTextColor(Color.parseColor("#388E3C")); // Màu xanh lá đậm
             holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_score_green); // Màu nền xanh nhạt
             
-            // Thay đổi nút Chọn thành Đặt lại hoặc Đánh giá
-            holder.btnAction.setText("Đặt lại");
+            // Thay đổi nút Chọn thành Chi tiết
+            holder.btnAction.setText("Chi tiết");
             holder.btnAction.setBackgroundResource(R.drawable.bg_chip_selected_cyan);
             holder.btnAction.setTextColor(Color.parseColor("#00B4D8"));
             
@@ -104,7 +106,7 @@ public class BookedTripAdapter extends RecyclerView.Adapter<BookedTripAdapter.Tr
             holder.tvStatusBadge.setTextColor(Color.parseColor("#E65100")); // Cam đậm
             holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_orange_badge); // Cam nhạt
             
-            holder.btnAction.setText("Chọn");
+            holder.btnAction.setText("Xem vé");
             holder.btnAction.setBackgroundResource(R.drawable.bg_button_orange);
             holder.btnAction.setTextColor(Color.WHITE);
             

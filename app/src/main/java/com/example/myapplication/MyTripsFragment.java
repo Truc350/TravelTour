@@ -116,103 +116,110 @@ public class MyTripsFragment extends Fragment {
         allTrips.clear();
         
         // --- CHUYẾN ĐI SẮP TỚI (isHistory = false) ---
-        // Ngày 09/09 (Trùng y hệt screenshot của user)
+        // Ngày 09/09
         allTrips.add(new BookedTripAdapter.TripItem(
-                "HP1",
-                "Tàu hoa phượng đỏ - HP1",
-                "Còn 99 chỗ",
-                "06:00",
-                "08:25",
-                "Ga Hà Nội",
-                "Ga Hải Phòng",
-                "2g25p",
-                "109.000 đ",
+                "SAPA09",
+                "Tour Sapa 3N2Đ: Hà Nội - Bản Cát Cát - Đỉnh Fansipan",
+                "Sắp đi",
+                "07:00",
+                "13:00",
+                "Hà Nội",
+                "Sapa",
+                "3 ngày 2 đêm",
+                "3.290.000 đ",
                 "09/09",
-                false
+                false,
+                "sapa"
         ));
         allTrips.add(new BookedTripAdapter.TripItem(
-                "LP3",
-                "Tàu hoa phượng đỏ - LP3",
-                "Còn 99 chỗ",
-                "09:20",
-                "12:00",
-                "Ga Hà Nội",
-                "Ga Hải Phòng",
-                "2g40p",
-                "109.000 đ",
+                "TAIWAN09",
+                "Tour Đài Loan 5N4Đ: HCM - Cao Hùng - Đài Bắc",
+                "Sắp đi",
+                "08:30",
+                "13:00",
+                "TP. Hồ Chí Minh",
+                "Cao Hùng (Taiwan)",
+                "5 ngày 4 đêm",
+                "14.390.000 đ",
                 "09/09",
-                false
+                false,
+                "taiwan"
         ));
 
         // Ngày 08/09
         allTrips.add(new BookedTripAdapter.TripItem(
-                "HP3",
-                "Tàu hoa phượng đỏ - HP3",
-                "Còn 45 chỗ",
-                "14:00",
-                "16:15",
-                "Ga Hà Nội",
-                "Ga Hải Phòng",
-                "2g15p",
-                "109.000 đ",
+                "DANANG08",
+                "Tour Đà Nẵng - Hội An - Bà Nà Hills 4N3Đ Trọn Gói",
+                "Chờ xác nhận",
+                "12:00",
+                "13:20",
+                "Hà Nội",
+                "Đà Nẵng",
+                "4 ngày 3 đêm",
+                "4.890.000 đ",
                 "08/09",
-                false
+                false,
+                "danang"
         ));
 
         // Ngày 10/09
         allTrips.add(new BookedTripAdapter.TripItem(
-                "LP5",
-                "Tàu hoa phượng đỏ - LP5",
-                "Còn 12 chỗ",
-                "18:15",
-                "20:50",
-                "Ga Hà Nội",
-                "Ga Hải Phòng",
-                "2g35p",
-                "109.000 đ",
+                "SING10",
+                "Tour Singapore - Malaysia 5N4Đ Trọn Gói Cao Cấp",
+                "Sắp đi",
+                "10:00",
+                "13:30",
+                "TP. Hồ Chí Minh",
+                "Singapore",
+                "5 ngày 4 đêm",
+                "12.890.000 đ",
                 "10/09",
-                false
+                false,
+                "singapore"
         ));
 
         // --- LỊCH SỬ CHUYẾN ĐI ĐÃ ĐI (isHistory = true) ---
         allTrips.add(new BookedTripAdapter.TripItem(
-                "LP1",
-                "Tàu hoa phượng đỏ - LP1",
+                "PHUQUOC25",
+                "Tour Phú Quốc 3N2Đ: Khám Phá Địa Trung Hải",
                 "Đã đi",
-                "06:00",
-                "08:25",
-                "Ga Hà Nội",
-                "Ga Hải Phòng",
-                "2g25p",
-                "109.000 đ",
-                "01/09",
-                true
+                "14:00",
+                "15:00",
+                "TP. Hồ Chí Minh",
+                "Phú Quốc",
+                "3 ngày 2 đêm",
+                "4.590.000 đ",
+                "25/08",
+                true,
+                "phuquoc"
         ));
         allTrips.add(new BookedTripAdapter.TripItem(
-                "HP5",
-                "Tàu hoa phượng đỏ - HP5",
+                "HALONG15",
+                "Tour Vịnh Hạ Long 2N1Đ: Nghỉ Dưỡng Du Thuyền 5 Sao",
                 "Đã đi",
-                "15:00",
-                "17:30",
-                "Ga Hà Nội",
-                "Ga Hải Phòng",
-                "2g30p",
-                "109.000 đ",
-                "25/08",
-                true
+                "08:00",
+                "11:30",
+                "Hà Nội",
+                "Vịnh Hạ Long",
+                "2 ngày 1 đêm",
+                "2.590.000 đ",
+                "15/08",
+                true,
+                "halong"
         ));
         allTrips.add(new BookedTripAdapter.TripItem(
                 "SAPATRIP",
-                "Chuyến đi Sapa - Fansipan 3N2Đ",
+                "Tour Sapa 3N2Đ: Chinh Phục Đỉnh Fansipan",
                 "Đã hoàn thành",
                 "07:00",
                 "13:00",
                 "Hà Nội (Mỹ Đình)",
                 "Sapa (Trung tâm)",
-                "6g00p",
+                "3 ngày 2 đêm",
                 "3.290.000 đ",
                 "15/08",
-                true
+                true,
+                "sapa"
         ));
     }
 
@@ -389,17 +396,57 @@ public class MyTripsFragment extends Fragment {
         
         // Mock seat and ticket code based on ID
         if (tvDlgSeat != null) {
-            int coach = (item.id.hashCode() % 6) + 1;
-            int seat = (item.id.hashCode() % 64) + 1;
-            tvDlgSeat.setText("Toa " + Math.abs(coach) + " / Ghế " + Math.abs(seat));
+            tvDlgSeat.setText(item.tourType.toUpperCase() + "-" + Math.abs(item.id.hashCode() % 1000));
         }
+        String ticketCode = "TKT-2026-" + item.date.replace("/", "") + "-" + item.tourType.toUpperCase();
         if (tvDlgTicketCode != null) {
-            tvDlgTicketCode.setText("TKT-2026-" + item.date.replace("/", "") + "-" + item.id);
+            tvDlgTicketCode.setText(ticketCode);
         }
 
-        // Đổi nút bấm dialog thành đóng hoặc dùng thiết lập mặc định của AlertDialog
         builder.setView(dialogView)
-               .setPositiveButton("Đóng", (dialog, id) -> dialog.dismiss())
-               .show();
+               .setPositiveButton("Đóng", (dialog, id) -> dialog.dismiss());
+        
+        android.app.AlertDialog alertDialog = builder.create();
+
+        ImageView imgQrCode = dialogView.findViewById(R.id.imgDlgQrCode);
+        View btnViewTour = dialogView.findViewById(R.id.btnDlgViewTour);
+
+        // Sinh QR Code động dựa trên thông tin vé chi tiết
+        if (imgQrCode != null) {
+            String qrPayload = "VÉ TOUR ĐIỆN TỬ\n" +
+                    "Mã vé: " + ticketCode + "\n" +
+                    "Tour: " + item.trainName + "\n" +
+                    "Khởi hành: " + item.depTime + " " + item.date + "/2026\n" +
+                    "Hành trình: " + item.depStation + " -> " + item.arrStation + "\n" +
+                    "Thời gian: " + item.duration + "\n" +
+                    "Giá vé: " + item.price;
+            android.graphics.Bitmap qrBitmap = QrCodeGenerator.generateQrCode(qrPayload, 400, 400);
+            if (qrBitmap != null) {
+                imgQrCode.setImageBitmap(qrBitmap);
+            }
+        }
+
+        View.OnClickListener openTourDetail = v -> {
+            alertDialog.dismiss();
+            
+            DetailTour detailFragment = new DetailTour();
+            Bundle args = new Bundle();
+            args.putString("tour_type", item.tourType);
+            detailFragment.setArguments(args);
+            
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.contentFrame, detailFragment)
+                    .addToBackStack(null)
+                    .commit();
+        };
+
+        if (imgQrCode != null) {
+            imgQrCode.setOnClickListener(openTourDetail);
+        }
+        if (btnViewTour != null) {
+            btnViewTour.setOnClickListener(openTourDetail);
+        }
+
+        alertDialog.show();
     }
 }
