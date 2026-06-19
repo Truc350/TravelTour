@@ -66,6 +66,16 @@
                 android:text="Quốc tịch: Việt Nam | Hạn: 20/12/2030"
                 android:textColor="#777777"
                 android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvCardStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Chờ duyệt"
+                android:textColor="#FF9800"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <!-- Right Quick Actions -->

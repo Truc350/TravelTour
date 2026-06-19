@@ -59,10 +59,15 @@ class TourDeparture(models.Model):
 
 
 class Booking(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Chờ duyệt'),
+        ('CONFIRMED', 'Đã xác nhận'),
+        ('CANCELLED', 'Đã hủy'),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings')
     departure = models.ForeignKey(TourDeparture, on_delete=models.RESTRICT, related_name='bookings')
     booking_date = models.CharField(max_length=255)
-    status = models.CharField(max_length=50, default='PENDING')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='PENDING')
     total_price = models.DecimalField(max_digits=12, decimal_places=2)
 
     class Meta:
@@ -98,7 +103,12 @@ class Notification(models.Model):
 
 
 class Passenger(models.Model):
-    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='passengers')
+    STATUS_CHOICES = [
+        ('PENDING', 'Chờ duyệt'),
+        ('VERIFIED', 'Đã duyệt'),
+        ('REJECTED', 'Bị từ chối'),
+    ]
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='passengers', null=True, blank=True)
     salutation = models.CharField(max_length=50)
     fullname = models.CharField(max_length=255)
     birthdate = models.CharField(max_length=255)
@@ -106,6 +116,7 @@ class Passenger(models.Model):
     issuing_country = models.CharField(max_length=255)
     expiry_date = models.CharField(max_length=255)
     id_or_passport = models.CharField(max_length=255)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='PENDING')
 
     class Meta:
         db_table = 'passengers'

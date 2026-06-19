@@ -6,6 +6,8 @@ import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import com.google.gson.annotations.SerializedName;
+
 @Entity(tableName = "passengers",
         foreignKeys = @ForeignKey(entity = Booking.class,
                 parentColumns = "id",
@@ -18,7 +20,8 @@ public class Passenger {
     private int id;
 
     @ColumnInfo(name = "booking_id")
-    private int bookingId;
+    @SerializedName("booking")
+    private Integer bookingId;
 
     @ColumnInfo(name = "salutation")
     private String salutation;
@@ -33,15 +36,22 @@ public class Passenger {
     private String nationality;
 
     @ColumnInfo(name = "issuing_country")
+    @SerializedName("issuing_country")
     private String issuingCountry;
 
     @ColumnInfo(name = "expiry_date")
+    @SerializedName("expiry_date")
     private String expiryDate;
 
     @ColumnInfo(name = "id_or_passport")
+    @SerializedName("id_or_passport")
     private String idOrPassport;
 
-    public Passenger(int bookingId, String salutation, String fullname, String birthdate, String nationality, String issuingCountry, String expiryDate, String idOrPassport) {
+    @ColumnInfo(name = "status")
+    @SerializedName("status")
+    private String status = "PENDING";
+
+    public Passenger(Integer bookingId, String salutation, String fullname, String birthdate, String nationality, String issuingCountry, String expiryDate, String idOrPassport) {
         this.bookingId = bookingId;
         this.salutation = salutation;
         this.fullname = fullname;
@@ -50,13 +60,14 @@ public class Passenger {
         this.issuingCountry = issuingCountry;
         this.expiryDate = expiryDate;
         this.idOrPassport = idOrPassport;
+        this.status = "PENDING";
     }
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
-    public int getBookingId() { return bookingId; }
-    public void setBookingId(int bookingId) { this.bookingId = bookingId; }
+    public Integer getBookingId() { return bookingId; }
+    public void setBookingId(Integer bookingId) { this.bookingId = bookingId; }
 
     public String getSalutation() { return salutation; }
     public void setSalutation(String salutation) { this.salutation = salutation; }
@@ -78,4 +89,7 @@ public class Passenger {
 
     public String getIdOrPassport() { return idOrPassport; }
     public void setIdOrPassport(String idOrPassport) { this.idOrPassport = idOrPassport; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

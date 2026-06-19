@@ -14,7 +14,7 @@ import java.util.Map;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "TravelTour.db";
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 6;
 
     // Users table
     private static final String TABLE_USERS = "users";
@@ -40,6 +40,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_P_ISSUING_COUNTRY = "issuing_country";
     public static final String COLUMN_P_EXPIRY_DATE = "expiry_date";
     public static final String COLUMN_P_ID_OR_PASSPORT = "id_or_passport";
+    public static final String COLUMN_P_STATUS = "status";
 
     // Favorites table
     private static final String TABLE_FAVORITES = "favorites";
@@ -77,7 +78,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_P_NATIONALITY + " TEXT,"
                 + COLUMN_P_ISSUING_COUNTRY + " TEXT,"
                 + COLUMN_P_EXPIRY_DATE + " TEXT,"
-                + COLUMN_P_ID_OR_PASSPORT + " TEXT" + ")";
+                + COLUMN_P_ID_OR_PASSPORT + " TEXT,"
+                + COLUMN_P_STATUS + " TEXT DEFAULT 'PENDING'" + ")";
         db.execSQL(CREATE_PASSENGERS_TABLE);
 
         // Create Favorites Table

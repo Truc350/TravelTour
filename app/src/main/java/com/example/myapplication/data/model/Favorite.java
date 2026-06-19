@@ -6,6 +6,8 @@ import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import com.google.gson.annotations.SerializedName;
+
 @Entity(tableName = "favorites",
         foreignKeys = {
                 @ForeignKey(entity = User.class,
@@ -24,9 +26,11 @@ public class Favorite {
     private int id;
 
     @ColumnInfo(name = "user_id")
+    @SerializedName("user")
     private int userId;
 
     @ColumnInfo(name = "tour_id")
+    @SerializedName("tour")
     private int tourId;
 
     public Favorite(int userId, int tourId) {

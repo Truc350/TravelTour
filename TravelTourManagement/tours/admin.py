@@ -159,7 +159,8 @@ class TourAdmin(ImportExportModelAdmin):
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin):
-    pass
+    list_display = ('id', 'name', 'contact', 'avatar_url')
+    search_fields = ('name', 'contact')
 
 @admin.register(TourDeparture)
 class TourDepartureAdmin(ImportExportModelAdmin):
@@ -167,19 +168,48 @@ class TourDepartureAdmin(ImportExportModelAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(ImportExportModelAdmin):
-    pass
+    list_display = ('id', 'user', 'departure', 'booking_date', 'status', 'total_price')
+    list_filter = ('status', 'booking_date')
+    search_fields = ('user__name', 'departure__tour__title')
+    list_editable = ('status',)
+    actions = ['confirm_bookings', 'cancel_bookings']
+
+    def confirm_bookings(self, request, queryset):
+        rows_updated = queryset.update(status='CONFIRMED')
+        self.message_user(request, f"Đã xác nhận {rows_updated} bookings thành công.")
+    confirm_bookings.short_description = "Xác nhận các Booking đã chọn"
+
+    def cancel_bookings(self, request, queryset):
+        rows_updated = queryset.update(status='CANCELLED')
+        self.message_user(request, f"Đã hủy {rows_updated} bookings thành công.")
+    cancel_bookings.short_description = "Hủy các Booking đã chọn"
 
 @admin.register(Favorite)
 class FavoriteAdmin(ImportExportModelAdmin):
-    pass
+    list_display = ('id', 'user', 'tour')
 
 @admin.register(Notification)
 class NotificationAdmin(ImportExportModelAdmin):
-    pass
+    list_display = ('id', 'user', 'title', 'date', 'is_read')
+    list_filter = ('is_read', 'date')
 
 @admin.register(Passenger)
 class PassengerAdmin(ImportExportModelAdmin):
-    pass
+    list_display = ('id', 'salutation', 'fullname', 'birthdate', 'nationality', 'id_or_passport', 'status', 'booking')
+    list_filter = ('status', 'nationality', 'salutation')
+    search_fields = ('fullname', 'id_or_passport')
+    list_editable = ('status',)
+    actions = ['verify_passengers', 'reject_passengers']
+
+    def verify_passengers(self, request, queryset):
+        rows_updated = queryset.update(status='VERIFIED')
+        self.message_user(request, f"Đã duyệt {rows_updated} hành khách thành công.")
+    verify_passengers.short_description = "Duyệt thông tin các hành khách đã chọn"
+
+    def reject_passengers(self, request, queryset):
+        rows_updated = queryset.update(status='REJECTED')
+        self.message_user(request, f"Đã từ chối {rows_updated} hành khách.")
+    reject_passengers.short_description = "Từ chối thông tin các hành khách đã chọn"
 
 @admin.register(TourImage)
 class TourImageAdmin(ImportExportModelAdmin):

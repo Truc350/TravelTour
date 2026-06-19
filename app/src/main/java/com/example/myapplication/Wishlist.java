@@ -15,6 +15,17 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import java.util.List;
+import java.util.ArrayList;
+
+import com.example.myapplication.data.model.Tour;
+import com.example.myapplication.data.model.Favorite;
+import com.example.myapplication.data.model.User;
+import com.example.myapplication.data.remote.ApiService;
+import com.example.myapplication.data.remote.RetrofitClient;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Fragment đại diện cho danh sách yêu thích (Wishlist).
@@ -58,8 +69,115 @@ public class Wishlist extends Fragment {
     }
 
     private void loadFavorites(LayoutInflater inflater, String contact) {
-        List<String> favoriteTourTypes = dbHelper.getFavoriteTours(contact);
+        SharedPreferences prefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+        int currentUserId = prefs.getInt("current_user_id", -1);
 
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+
+        if (currentUserId != -1) {
+            fetchFavoritesForUser(inflater, apiService, currentUserId);
+        } else {
+            // Tìm ID người dùng từ contact trên server
+            apiService.getUsers().enqueue(new Callback<List<User>>() {
+                @Override
+                public void onResponse(Call<List<User>> call, Response<List<User>> response) {
+                    if (getContext() == null || !isAdded()) return;
+                    if (response.isSuccessful() && response.body() != null) {
+                        int matchedUserId = -1;
+                        for (User u : response.body()) {
+                            if (contact.equals(u.getContact())) {
+                                matchedUserId = u.getId();
+                                break;
+                            }
+                        }
+                        if (matchedUserId != -1) {
+                            prefs.edit().putInt("current_user_id", matchedUserId).apply();
+                            fetchFavoritesForUser(inflater, apiService, matchedUserId);
+                        } else {
+                            layoutEmptyState.setVisibility(View.VISIBLE);
+                            scrollViewFavoriteList.setVisibility(View.GONE);
+                        }
+                    } else {
+                        layoutEmptyState.setVisibility(View.VISIBLE);
+                        scrollViewFavoriteList.setVisibility(View.GONE);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<User>> call, Throwable t) {
+                    if (getContext() == null || !isAdded()) return;
+                    layoutEmptyState.setVisibility(View.VISIBLE);
+                    scrollViewFavoriteList.setVisibility(View.GONE);
+                }
+            });
+        }
+    }
+
+    private void fetchFavoritesForUser(LayoutInflater inflater, ApiService apiService, int userId) {
+        apiService.getFavorites().enqueue(new Callback<List<Favorite>>() {
+            @Override
+            public void onResponse(Call<List<Favorite>> call, Response<List<Favorite>> response) {
+                if (getContext() == null || !isAdded()) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Favorite> allFavorites = response.body();
+                    List<Integer> userFavTourIds = new ArrayList<>();
+                    for (Favorite f : allFavorites) {
+                        if (f.getUserId() == userId) {
+                            userFavTourIds.add(f.getTourId());
+                        }
+                    }
+
+                    if (userFavTourIds.isEmpty()) {
+                        layoutEmptyState.setVisibility(View.VISIBLE);
+                        scrollViewFavoriteList.setVisibility(View.GONE);
+                    } else {
+                        // Tải danh sách Tour để khớp tourId thành tour_type (code)
+                        apiService.getTours().enqueue(new Callback<List<Tour>>() {
+                            @Override
+                            public void onResponse(Call<List<Tour>> call, Response<List<Tour>> response) {
+                                if (getContext() == null || !isAdded()) return;
+                                if (response.isSuccessful() && response.body() != null) {
+                                    List<Tour> allTours = response.body();
+                                    List<String> favoriteTourTypes = new ArrayList<>();
+                                    for (Tour tour : allTours) {
+                                        if (userFavTourIds.contains(tour.getId())) {
+                                            String code = tour.getCode();
+                                            if (code != null) {
+                                                favoriteTourTypes.add(code.trim().toLowerCase());
+                                            }
+                                        }
+                                    }
+                                    renderFavoritesList(inflater, favoriteTourTypes);
+                                } else {
+                                    layoutEmptyState.setVisibility(View.VISIBLE);
+                                    scrollViewFavoriteList.setVisibility(View.GONE);
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<List<Tour>> call, Throwable t) {
+                                if (getContext() == null || !isAdded()) return;
+                                layoutEmptyState.setVisibility(View.VISIBLE);
+                                scrollViewFavoriteList.setVisibility(View.GONE);
+                            }
+                        });
+                    }
+                } else {
+                    layoutEmptyState.setVisibility(View.VISIBLE);
+                    scrollViewFavoriteList.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Favorite>> call, Throwable t) {
+                if (getContext() == null || !isAdded()) return;
+                layoutEmptyState.setVisibility(View.VISIBLE);
+                scrollViewFavoriteList.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private void renderFavoritesList(LayoutInflater inflater, List<String> favoriteTourTypes) {
         if (favoriteTourTypes.isEmpty()) {
             layoutEmptyState.setVisibility(View.VISIBLE);
             scrollViewFavoriteList.setVisibility(View.GONE);
