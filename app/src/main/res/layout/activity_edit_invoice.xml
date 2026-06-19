@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E6F1FB"
+    android:orientation="vertical">
+
+    <!-- ==================== TOOLBAR ==================== -->
+    <LinearLayout
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#FFFFFF"
+        android:elevation="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- Nút quay lại -->
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Quay lại"
+            android:padding="12dp"
+            android:src="@drawable/ic_arrow_left_dark" />
+
+        <!-- Tiêu đề trang -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Thông tin hóa đơn"
+            android:textColor="#333333"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Spacer to balance back button -->
+        <View
+            android:layout_width="48dp"
+            android:layout_height="48dp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Card chứa các trường nhập liệu -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="1dp"
+                app:cardBackgroundColor="#FFFFFF"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Lời khuyên/Thông báo -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Vui lòng nhập chính xác thông tin doanh nghiệp đăng ký thuế để xuất hóa đơn điện tử GTGT (VAT)."
+                        android:textColor="#FF8F00"
+                        android:textSize="13sp"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- 1. Tên công ty -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tên công ty / Đơn vị"
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
+
+                    <EditText
+                        android:id="@+id/edt_invoice_company"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_edittext_border"
+                        android:hint="Nhập tên đầy đủ của công ty"
+                        android:textColorHint="#999999"
+                        android:textColor="#333333"
+                        android:textSize="14sp"
+                        android:paddingHorizontal="12dp"
+                        android:inputType="text"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- 2. Mã số thuế -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mã số thuế"
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
+
+                    <EditText
+                        android:id="@+id/edt_invoice_tax_code"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_edittext_border"
+                        android:hint="Nhập mã số thuế công ty"
+                        android:textColorHint="#999999"
+                        android:textColor="#333333"
+                        android:textSize="14sp"
+                        android:paddingHorizontal="12dp"
+                        android:inputType="number"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- 3. Địa chỉ công ty -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Địa chỉ công ty"
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
+
+                    <EditText
+                        android:id="@+id/edt_invoice_address"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_edittext_border"
+                        android:hint="Địa chỉ đăng ký kinh doanh"
+                        android:textColorHint="#999999"
+                        android:textColor="#333333"
+                        android:textSize="14sp"
+                        android:paddingHorizontal="12dp"
+                        android:inputType="text"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- 4. Email nhận hóa đơn -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Email nhận hoá đơn"
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
+
+                    <EditText
+                        android:id="@+id/edt_invoice_email"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_edittext_border"
+                        android:hint="Vd: ketoan@congty.com"
+                        android:textColorHint="#999999"
+                        android:textColor="#333333"
+                        android:textSize="14sp"
+                        android:paddingHorizontal="12dp"
+                        android:inputType="textEmailAddress" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Nút Lưu thông tin -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_save_invoice"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/btn_gradient"
+                android:text="Lưu thông tin"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textAllCaps="false" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

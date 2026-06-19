@@ -31,6 +31,7 @@ public class InvoiceActivity extends AppCompatActivity {
         // Nhận dữ liệu truyền từ Intent
         String tourTitle = getIntent().getStringExtra("tour_title");
         long totalPrice = getIntent().getLongExtra("total_price", 0);
+        boolean isInvoiceRequested = getIntent().getBooleanExtra("is_invoice_requested", false);
 
         android.widget.TextView tvTourTitle = findViewById(R.id.tv_invoice_tour_title);
         android.widget.TextView tvTotalPrice = findViewById(R.id.tv_invoice_total_price);
@@ -41,6 +42,48 @@ public class InvoiceActivity extends AppCompatActivity {
 
         if (tvTotalPrice != null && totalPrice > 0) {
             tvTotalPrice.setText("Tổng tiền: " + formatVnd(totalPrice));
+        }
+
+        // Xử lý hiển thị thông tin hóa đơn điện tử
+        android.widget.LinearLayout layoutInvoiceDetails = findViewById(R.id.layout_invoice_details_block);
+        if (isInvoiceRequested && layoutInvoiceDetails != null) {
+            android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+            String contact = prefs.getString("current_user_contact", "");
+            if (!contact.isEmpty()) {
+                DatabaseHelper dbHelper = new DatabaseHelper(this);
+                java.util.Map<String, String> userDetails = dbHelper.getUserDetails(contact);
+                if (userDetails != null) {
+                    layoutInvoiceDetails.setVisibility(android.view.View.VISIBLE);
+                    
+                    android.widget.TextView tvCustName = findViewById(R.id.tv_invoice_cust_name);
+                    android.widget.TextView tvCustContact = findViewById(R.id.tv_invoice_cust_contact);
+                    android.widget.TextView tvCompName = findViewById(R.id.tv_invoice_comp_name);
+                    android.widget.TextView tvTaxCode = findViewById(R.id.tv_invoice_tax_code);
+                    android.widget.TextView tvCompAddress = findViewById(R.id.tv_invoice_comp_address);
+                    android.widget.TextView tvCompEmail = findViewById(R.id.tv_invoice_comp_email);
+
+                    if (tvCustName != null && userDetails.get("name") != null) {
+                        tvCustName.setText("Khách hàng: " + userDetails.get("name"));
+                    }
+                    if (tvCustContact != null && userDetails.get("contact") != null) {
+                        tvCustContact.setText("Liên hệ: " + userDetails.get("contact"));
+                    }
+                    if (tvCompName != null && userDetails.get("invoice_company") != null) {
+                        tvCompName.setText("Công ty: " + userDetails.get("invoice_company"));
+                    }
+                    if (tvTaxCode != null && userDetails.get("invoice_tax_code") != null) {
+                        tvTaxCode.setText("Mã số thuế: " + userDetails.get("invoice_tax_code"));
+                    }
+                    if (tvCompAddress != null && userDetails.get("invoice_address") != null) {
+                        tvCompAddress.setText("Địa chỉ: " + userDetails.get("invoice_address"));
+                    }
+                    if (tvCompEmail != null && userDetails.get("invoice_email") != null) {
+                        tvCompEmail.setText("Email nhận HĐ: " + userDetails.get("invoice_email"));
+                    }
+                }
+            }
+        } else if (layoutInvoiceDetails != null) {
+            layoutInvoiceDetails.setVisibility(android.view.View.GONE);
         }
     }
 

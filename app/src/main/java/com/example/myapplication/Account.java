@@ -2,6 +2,9 @@ package com.example.myapplication;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,8 +12,10 @@ import android.view.ViewGroup;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.widget.ImageView;
 import android.widget.TextView;
 import java.util.Map;
+import java.io.File;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,6 +28,8 @@ import androidx.fragment.app.Fragment;
 public class Account extends Fragment {
 
     private DatabaseHelper dbHelper;
+    private TextView tvUserName;
+    private ImageView imgAvatar;
 
     @Nullable
     @Override
@@ -31,16 +38,10 @@ public class Account extends Fragment {
         View view = inflater.inflate(R.layout.account, container, false);
         dbHelper = new DatabaseHelper(requireContext());
 
-        // Hiển thị tên người dùng thực tế
-        TextView tvUserName = view.findViewById(R.id.tv_user_name);
-        SharedPreferences prefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
-        String contact = prefs.getString("current_user_contact", "");
-        if (!contact.isEmpty()) {
-            Map<String, String> userDetails = dbHelper.getUserDetails(contact);
-            if (userDetails != null && userDetails.get("name") != null) {
-                tvUserName.setText(userDetails.get("name"));
-            }
-        }
+        tvUserName = view.findViewById(R.id.tv_user_name);
+        imgAvatar = view.findViewById(R.id.img_avatar);
+
+        loadUserData();
 
         // Thiết lập sự kiện click cho các nút chức năng (bạn có thể mở rộng xử lý sau này)
         view.findViewById(R.id.btnMyProfile).setOnClickListener(v -> {
@@ -120,5 +121,51 @@ public class Account extends Fragment {
         });
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadUserData();
+    }
+
+    private void loadUserData() {
+        if (getContext() == null || tvUserName == null) return;
+        SharedPreferences prefs = getContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+        String contact = prefs.getString("current_user_contact", "");
+        if (!contact.isEmpty()) {
+            Map<String, String> userDetails = dbHelper.getUserDetails(contact);
+            if (userDetails != null) {
+                if (userDetails.get("name") != null) {
+                    tvUserName.setText(userDetails.get("name"));
+                }
+                
+                // Tải ảnh đại diện
+                String avatarPath = userDetails.get("avatar");
+                loadAvatarImage(avatarPath, imgAvatar);
+            }
+        }
+    }
+
+    private void loadAvatarImage(String path, ImageView imageView) {
+        if (path != null && !path.isEmpty() && getContext() != null) {
+            File imgFile = new File(path);
+            if (imgFile.exists()) {
+                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                if (myBitmap != null) {
+                    imageView.setImageBitmap(myBitmap);
+                    imageView.setImageTintList(null);
+                    imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    imageView.setPadding(0, 0, 0, 0);
+                    return;
+                }
+            }
+        }
+        // Giao diện mặc định nếu chưa chọn ảnh đại diện
+        imageView.setImageResource(R.drawable.ic_account);
+        imageView.setImageTintList(ColorStateList.valueOf(0xFF185FA5));
+        imageView.setScaleType(ImageView.ScaleType.CENTER);
+        int padding = (int) (16 * imageView.getResources().getDisplayMetrics().density);
+        imageView.setPadding(padding, padding, padding, padding);
     }
 }

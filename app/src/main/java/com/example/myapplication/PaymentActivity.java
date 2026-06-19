@@ -34,6 +34,7 @@ public class PaymentActivity extends AppCompatActivity {
     private int totalGuests = 1;
     private long totalPrice = 0;
     private String orderId = "";
+    private boolean isInvoiceRequested = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +58,7 @@ public class PaymentActivity extends AppCompatActivity {
             int infant = intent.getIntExtra("infant_count", 0);
             totalGuests = adult + child + infant;
             totalPrice = intent.getLongExtra("total_price", 10980000L);
+            isInvoiceRequested = intent.getBooleanExtra("is_invoice_requested", false);
         }
 
         // Tạo mã đơn hàng ngẫu nhiên để tăng tính thực tế (hoặc dùng mã mẫu DL0091642)
@@ -111,6 +113,7 @@ public class PaymentActivity extends AppCompatActivity {
             invoiceIntent.putExtra("tour_title", tourTitle);
             invoiceIntent.putExtra("total_price", totalPrice);
             invoiceIntent.putExtra("order_id", orderId);
+            invoiceIntent.putExtra("is_invoice_requested", isInvoiceRequested);
             startActivity(invoiceIntent);
             finish();
         });
