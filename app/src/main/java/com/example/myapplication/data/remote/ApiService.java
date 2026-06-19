@@ -6,6 +6,7 @@ import com.example.myapplication.data.model.Passenger;
 import com.example.myapplication.data.model.Favorite;
 
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -13,6 +14,7 @@ import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.PATCH;
 import retrofit2.http.Path;
 
 public interface ApiService {
@@ -23,6 +25,9 @@ public interface ApiService {
     // User authentication & registration
     @GET("api/users/")
     Call<List<User>> getUsers();
+
+    @PATCH("api/users/{id}/")
+    Call<User> patchUser(@Path("id") int id, @Body Map<String, Object> fields);
 
     @POST("api/users/")
     Call<User> registerUser(@Body User user);

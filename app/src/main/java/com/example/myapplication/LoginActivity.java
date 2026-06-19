@@ -128,6 +128,18 @@ public class LoginActivity extends AppCompatActivity {
 
         // Action when validation succeeds
         if (isValid) {
+            // Ưu tiên kiểm tra trong SQLite nội bộ trước (hỗ trợ các tài khoản offline/test)
+            if (dbHelper.checkUserCredentials(contact, password)) {
+                Toast.makeText(LoginActivity.this, R.string.msg_login_success, Toast.LENGTH_LONG).show();
+                getSharedPreferences("UserSession", MODE_PRIVATE).edit()
+                        .putString("current_user_contact", contact)
+                        .apply();
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+                return;
+            }
+            // Nếu không có dưới local, gọi API lên Server
             ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
             btnLogin.setEnabled(false);
             Toast.makeText(this, "Đang đăng nhập...", Toast.LENGTH_SHORT).show();
