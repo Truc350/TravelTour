@@ -23,7 +23,7 @@
             android:layout_centerVertical="true"
             android:layout_marginStart="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_arrow_left"
+            android:src="@drawable/ic_arrow_left_dark"
             android:contentDescription="Quay lại"
             android:padding="12dp" />
 
