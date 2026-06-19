@@ -34,7 +34,13 @@ public class Tour {
     @ColumnInfo(name = "reviews_count")
     private int reviewsCount;
 
-    public Tour(String code, String title, String description, double originalPrice, double discountPrice, String provider, double ratingScore, int reviewsCount) {
+    @ColumnInfo(name = "description_tour_include")
+    private String descriptionTourInclude;
+
+    @ColumnInfo(name = "note")
+    private String note;
+
+    public Tour(String code, String title, String description, double originalPrice, double discountPrice, String provider, double ratingScore, int reviewsCount, String descriptionTourInclude, String note) {
         this.code = code;
         this.title = title;
         this.description = description;
@@ -43,6 +49,8 @@ public class Tour {
         this.provider = provider;
         this.ratingScore = ratingScore;
         this.reviewsCount = reviewsCount;
+        this.descriptionTourInclude = descriptionTourInclude;
+        this.note = note;
     }
 
     public int getId() { return id; }
@@ -71,4 +79,10 @@ public class Tour {
 
     public int getReviewsCount() { return reviewsCount; }
     public void setReviewsCount(int reviewsCount) { this.reviewsCount = reviewsCount; }
+
+    public String getDescriptionTourInclude() { return descriptionTourInclude; }
+    public void setDescriptionTourInclude(String descriptionTourInclude) { this.descriptionTourInclude = descriptionTourInclude; }
+
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
 }
