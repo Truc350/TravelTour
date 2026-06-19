@@ -2,6 +2,13 @@ package com.example.myapplication;
 
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -13,15 +20,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import java.util.Map;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.Calendar;
+import java.util.Map;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -40,6 +49,10 @@ public class ProfileActivity extends AppCompatActivity {
     
     private LinearLayout btnDob, btnGender;
     private TextView tvDob, tvGender;
+
+    private ImageView imgProfileAvatar;
+    private TextView tvInvoiceStatus;
+    private static final int PICK_IMAGE_REQUEST = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -187,15 +200,21 @@ public class ProfileActivity extends AppCompatActivity {
         });
 
         // 5. Thông tin xuất hoá đơn điện tử
+        tvInvoiceStatus = findViewById(R.id.tv_invoice_status);
         LinearLayout btnInvoice = findViewById(R.id.btn_invoice);
         btnInvoice.setOnClickListener(v -> {
-            android.content.Intent intent = new android.content.Intent(this, InvoiceActivity.class);
+            Intent intent = new Intent(this, EditInvoiceActivity.class);
             startActivity(intent);
         });
 
         // Khởi tạo views bổ sung và DatabaseHelper
         dbHelper = new DatabaseHelper(this);
         edtFullname = findViewById(R.id.edt_fullname);
+        imgProfileAvatar = findViewById(R.id.img_profile_avatar);
+
+        // Chọn ảnh đại diện
+        findViewById(R.id.btn_change_avatar).setOnClickListener(v -> selectAvatarImage());
+        imgProfileAvatar.setOnClickListener(v -> selectAvatarImage());
 
         // Lấy phiên làm việc hiện tại
         SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
@@ -231,6 +250,13 @@ public class ProfileActivity extends AppCompatActivity {
                     tvGender.setText(gender);
                     tvGender.setTextColor(0xFF333333);
                 }
+
+                // Tải ảnh đại diện
+                String avatarPath = userDetails.get("avatar");
+                loadAvatarImage(avatarPath, imgProfileAvatar);
+
+                // Hiển thị trạng thái hóa đơn điện tử
+                refreshInvoiceStatus(userDetails);
             }
         }
 
@@ -290,6 +316,94 @@ public class ProfileActivity extends AppCompatActivity {
             finish(); // Đóng ProfileActivity và quay lại Account Fragment
         } else {
             Toast.makeText(this, "Cập nhật thông tin thất bại. Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void selectAvatarImage() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            Uri selectedImageUri = data.getData();
+            String savedPath = saveAvatarToInternalStorage(selectedImageUri);
+            if (savedPath != null) {
+                // Lưu vào cơ sở dữ liệu
+                dbHelper.updateUserAvatar(currentContact, savedPath);
+                // Hiển thị ảnh vừa chọn
+                loadAvatarImage(savedPath, imgProfileAvatar);
+                Toast.makeText(this, "Cập nhật ảnh đại diện thành công!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Không thể lưu ảnh đại diện!", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private String saveAvatarToInternalStorage(Uri uri) {
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(uri);
+            File file = new File(getFilesDir(), "avatar_" + System.currentTimeMillis() + ".jpg");
+            FileOutputStream outputStream = new FileOutputStream(file);
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            inputStream.close();
+            outputStream.close();
+            return file.getAbsolutePath();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void loadAvatarImage(String path, ImageView imageView) {
+        if (path != null && !path.isEmpty()) {
+            File imgFile = new File(path);
+            if (imgFile.exists()) {
+                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                if (myBitmap != null) {
+                    imageView.setImageBitmap(myBitmap);
+                    imageView.setImageTintList(null);
+                    imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    imageView.setPadding(0, 0, 0, 0);
+                    return;
+                }
+            }
+        }
+        imageView.setImageResource(R.drawable.ic_account);
+        imageView.setImageTintList(ColorStateList.valueOf(0xFF185FA5));
+        imageView.setScaleType(ImageView.ScaleType.CENTER);
+        int padding = (int) (12 * imageView.getResources().getDisplayMetrics().density);
+        imageView.setPadding(padding, padding, padding, padding);
+    }
+
+    private void refreshInvoiceStatus(Map<String, String> userDetails) {
+        if (userDetails != null && tvInvoiceStatus != null) {
+            String company = userDetails.get("invoice_company");
+            if (company != null && !company.isEmpty()) {
+                tvInvoiceStatus.setText("Đã cung cấp (" + company + ")");
+                tvInvoiceStatus.setTextColor(0xFF185FA5);
+            } else {
+                tvInvoiceStatus.setText("Chưa cung cấp");
+                tvInvoiceStatus.setTextColor(0xFF999999);
+            }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!currentContact.isEmpty() && dbHelper != null) {
+            Map<String, String> userDetails = dbHelper.getUserDetails(currentContact);
+            if (userDetails != null) {
+                refreshInvoiceStatus(userDetails);
+            }
         }
     }
 }

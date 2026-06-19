@@ -14,7 +14,7 @@ import java.util.Map;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "TravelTour.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
 
     // Users table
     private static final String TABLE_USERS = "users";
@@ -24,6 +24,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_PASSWORD = "password";
     private static final String COLUMN_GENDER = "gender";
     private static final String COLUMN_DOB = "dob";
+    private static final String COLUMN_AVATAR = "avatar";
+    private static final String COLUMN_INVOICE_COMPANY = "invoice_company";
+    private static final String COLUMN_INVOICE_TAX_CODE = "invoice_tax_code";
+    private static final String COLUMN_INVOICE_ADDRESS = "invoice_address";
+    private static final String COLUMN_INVOICE_EMAIL = "invoice_email";
 
     // Passengers table
     public static final String TABLE_PASSENGERS = "passengers";
@@ -55,7 +60,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_CONTACT + " TEXT UNIQUE,"
                 + COLUMN_PASSWORD + " TEXT,"
                 + COLUMN_GENDER + " TEXT,"
-                + COLUMN_DOB + " TEXT" + ")";
+                + COLUMN_DOB + " TEXT,"
+                + COLUMN_AVATAR + " TEXT,"
+                + COLUMN_INVOICE_COMPANY + " TEXT,"
+                + COLUMN_INVOICE_TAX_CODE + " TEXT,"
+                + COLUMN_INVOICE_ADDRESS + " TEXT,"
+                + COLUMN_INVOICE_EMAIL + " TEXT" + ")";
         db.execSQL(CREATE_USERS_TABLE);
 
         // Create Passengers Table
@@ -158,6 +168,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             user.put("contact", cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTACT)));
             user.put("gender", cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_GENDER)));
             user.put("dob", cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DOB)));
+            user.put("avatar", cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_AVATAR)));
+            user.put("invoice_company", cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_INVOICE_COMPANY)));
+            user.put("invoice_tax_code", cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_INVOICE_TAX_CODE)));
+            user.put("invoice_address", cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_INVOICE_ADDRESS)));
+            user.put("invoice_email", cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_INVOICE_EMAIL)));
         }
         if (cursor != null) cursor.close();
         db.close();
@@ -176,6 +191,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_GENDER, gender);
         
         int result = db.update(TABLE_USERS, values, COLUMN_CONTACT + "=?", new String[]{oldContact});
+        db.close();
+        return result > 0;
+    }
+
+    /**
+     * Cập nhật ảnh đại diện của người dùng
+     */
+    public boolean updateUserAvatar(String contact, String avatarPath) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_AVATAR, avatarPath);
+        int result = db.update(TABLE_USERS, values, COLUMN_CONTACT + "=?", new String[]{contact});
+        db.close();
+        return result > 0;
+    }
+
+    /**
+     * Cập nhật thông tin hóa đơn điện tử của người dùng
+     */
+    public boolean updateUserInvoiceInfo(String contact, String company, String taxCode, String address, String email) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_INVOICE_COMPANY, company);
+        values.put(COLUMN_INVOICE_TAX_CODE, taxCode);
+        values.put(COLUMN_INVOICE_ADDRESS, address);
+        values.put(COLUMN_INVOICE_EMAIL, email);
+        int result = db.update(TABLE_USERS, values, COLUMN_CONTACT + "=?", new String[]{contact});
         db.close();
         return result > 0;
     }

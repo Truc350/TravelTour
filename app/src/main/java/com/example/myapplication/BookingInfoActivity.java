@@ -15,6 +15,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import androidx.annotation.Nullable;
+
 /**
  * Activity bước 2/3: Điền thông tin khách hàng và tiến hành đặt tour.
  */
@@ -30,6 +32,9 @@ public class BookingInfoActivity extends AppCompatActivity {
     private int infantCount = 0;
     private long totalPrice = 0;
     private long discountAmount = 0;
+
+    private boolean isInvoiceRequested = false;
+    private static final int REQUEST_CODE_EDIT_INVOICE = 1002;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,9 +85,8 @@ public class BookingInfoActivity extends AppCompatActivity {
 
         // Yêu cầu xuất hóa đơn
         tvRequestInvoice.setOnClickListener(v -> {
-            Toast.makeText(this, "Đã ghi nhận yêu cầu xuất hoá đơn tài chính cho tour này.", Toast.LENGTH_SHORT).show();
-            tvRequestInvoice.setText("Đã yêu cầu ✓");
-            tvRequestInvoice.setTextColor(0xFF4CAF50);
+            Intent intent = new Intent(this, EditInvoiceActivity.class);
+            startActivityForResult(intent, REQUEST_CODE_EDIT_INVOICE);
         });
 
         // Nút Đặt ngay
@@ -174,7 +178,18 @@ public class BookingInfoActivity extends AppCompatActivity {
         intent.putExtra("child_count", childCount);
         intent.putExtra("infant_count", infantCount);
         intent.putExtra("total_price", finalPrice);
+        intent.putExtra("is_invoice_requested", isInvoiceRequested);
         startActivity(intent);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_EDIT_INVOICE && resultCode == RESULT_OK) {
+            isInvoiceRequested = true;
+            tvRequestInvoice.setText("Đã yêu cầu ✓");
+            tvRequestInvoice.setTextColor(0xFF4CAF50);
+        }
     }
 
     private String formatVnd(long price) {
