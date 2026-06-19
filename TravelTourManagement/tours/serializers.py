@@ -2,7 +2,22 @@ from rest_framework import serializers
 from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary
 
 
+class TourImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TourImage
+        fields = '__all__'
+
+
+class TourItinerarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TourItinerary
+        fields = '__all__'
+
+
 class TourSerializer(serializers.ModelSerializer):
+    images = TourImageSerializer(many=True, read_only=True)
+    itineraries = TourItinerarySerializer(many=True, read_only=True)
+
     class Meta:
         model = Tour
         fields = '__all__'
@@ -41,16 +56,4 @@ class NotificationSerializer(serializers.ModelSerializer):
 class PassengerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Passenger
-        fields = '__all__'
-
-
-class TourImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TourImage
-        fields = '__all__'
-
-
-class TourItinerarySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TourItinerary
         fields = '__all__'
