@@ -24,6 +24,10 @@ class Tour(models.Model):
 
     reviews_count = models.IntegerField(default=0)
 
+    description_tour_include = models.TextField(blank=True, null=True)
+
+    note = models.TextField(blank=True, null=True)
+
     def __str__(self):
         return self.title
 
