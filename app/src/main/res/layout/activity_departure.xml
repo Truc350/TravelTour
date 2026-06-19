@@ -22,7 +22,6 @@
             android:layout_centerVertical="true"
             android:layout_marginStart="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_arrow_left"
             android:contentDescription="Quay lại"
             android:padding="12dp" />
 
@@ -521,8 +520,6 @@
         android:background="#FFFFFF"
         android:elevation="8dp"
         android:padding="12dp">
-
-        <!-- Nút Liên hệ tư vấn -->
         <Button
             android:id="@+id/btn_contact"
             android:layout_width="0dp"
@@ -531,7 +528,6 @@
             android:layout_marginEnd="8dp"
             android:background="@drawable/bg_btn_outline_blue"
             android:text="Liên hệ tư vấn"
-            android:textColor="#185FA5"
             android:textSize="14sp"
             android:textStyle="bold"
             android:textAllCaps="false" />
