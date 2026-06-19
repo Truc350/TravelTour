@@ -54,4 +54,7 @@ dependencies {
 
     // ZXing QR Code Library
     implementation("com.google.zxing:core:3.5.3")
+
+    // Glide for image loading
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 }

@@ -64,6 +64,27 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             if (listener != null) listener.onTourClick(tour);
         });
 
+        // Load hình ảnh bằng Glide
+        if (holder.ivTourImage != null) {
+            String imageUrl = null;
+            if (tour.getImages() != null && !tour.getImages().isEmpty()) {
+                imageUrl = tour.getImages().get(0).getImageUrl();
+            }
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                if (imageUrl.startsWith("/")) {
+                    imageUrl = "http://10.0.2.2:8000" + imageUrl;
+                }
+                com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                        .load(imageUrl)
+                        .placeholder(R.drawable.img_taiwan_tour) // hiển thị tạm trong lúc tải
+                        .centerCrop()
+                        .into(holder.ivTourImage);
+            } else {
+                // Đặt ảnh mặc định nếu không có ảnh
+                holder.ivTourImage.setImageResource(R.drawable.img_taiwan_tour);
+            }
+        }
+
         // Click cả card
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onTourClick(tour);
@@ -82,6 +103,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
 
     static class TourViewHolder extends RecyclerView.ViewHolder {
         TextView tvTourTitle, tvOldPrice, tvNewPrice, tvRibbonBadge, btnViewTour;
+        android.widget.ImageView ivTourImage;
 
         public TourViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -90,6 +112,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             tvNewPrice     = itemView.findViewById(R.id.tvNewPrice);
             tvRibbonBadge  = itemView.findViewById(R.id.tvRibbonBadge);
             btnViewTour    = itemView.findViewById(R.id.btnViewTour);
+            ivTourImage    = itemView.findViewById(R.id.ivTourImage);
         }
     }
 }

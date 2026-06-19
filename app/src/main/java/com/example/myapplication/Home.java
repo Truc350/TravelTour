@@ -152,12 +152,38 @@ public class Home extends Fragment {
                     List<Tour> all = response.body();
                     Log.d("DJANGO_API", "Tổng tour = " + all.size());
 
-                    // Hiện tại chưa có field phân loại → hiển thị tất cả ở mỗi section
-                    // Sau này thêm field "region" vào Django thì filter tại đây
-                    adapterUuDai.updateData(all);
-                    adapterMienBac.updateData(all);
-                    adapterMienTrung.updateData(all);
-                    adapterMienNam.updateData(all);
+                    List<Tour> listUuDai = new ArrayList<>();
+                    List<Tour> listMienBac = new ArrayList<>();
+                    List<Tour> listMienTrung = new ArrayList<>();
+                    List<Tour> listMienNam = new ArrayList<>();
+
+                    for (Tour tour : all) {
+                        // Ưu đãi: Giá khuyến mãi nhỏ hơn giá gốc và lớn hơn 0
+                        if (tour.getDiscountPrice() > 0 && tour.getDiscountPrice() < tour.getOriginalPrice()) {
+                            listUuDai.add(tour);
+                        }
+
+                        // Phân loại theo vùng miền dựa vào title
+                        String title = tour.getTitle();
+                        if (title != null) {
+                            String lowerTitle = title.toLowerCase();
+                            if (lowerTitle.contains("bắc") || lowerTitle.contains("bac") || 
+                                lowerTitle.contains("sapa") || lowerTitle.contains("hà nội") || lowerTitle.contains("hạ long")) {
+                                listMienBac.add(tour);
+                            } else if (lowerTitle.contains("trung") || lowerTitle.contains("đà nẵng") || 
+                                       lowerTitle.contains("nha trang") || lowerTitle.contains("hội an") || lowerTitle.contains("huế")) {
+                                listMienTrung.add(tour);
+                            } else if (lowerTitle.contains("nam") || lowerTitle.contains("miền tây") || 
+                                       lowerTitle.contains("phú quốc") || lowerTitle.contains("cần thơ") || lowerTitle.contains("hcm")) {
+                                listMienNam.add(tour);
+                            }
+                        }
+                    }
+
+                    adapterUuDai.updateData(listUuDai);
+                    adapterMienBac.updateData(listMienBac);
+                    adapterMienTrung.updateData(listMienTrung);
+                    adapterMienNam.updateData(listMienNam);
                 }
             }
 
@@ -171,7 +197,7 @@ public class Home extends Fragment {
     private void openDetail(Tour tour) {
         DetailTour detailFragment = new DetailTour();
         Bundle args = new Bundle();
-        args.putString("tour_type", tour.getCode()); // dùng code tour
+        args.putSerializable("tour_object", tour); // truyền đối tượng tour
         detailFragment.setArguments(args);
         if (getParentFragmentManager() != null)
             getParentFragmentManager().beginTransaction()
