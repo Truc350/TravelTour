@@ -18,6 +18,16 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import com.example.myapplication.data.remote.ApiService;
+import com.example.myapplication.data.remote.RetrofitClient;
+import com.example.myapplication.data.model.User;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 /**
  * Fragment xử lý logic thay đổi mật khẩu của người dùng.
  * Quản lý kiểm tra dữ liệu nhập vào, đối chiếu mật khẩu cũ và cập nhật mật khẩu mới qua SQLite.
@@ -140,6 +150,25 @@ public class ChangePassword extends Fragment {
         if (isValid) {
             boolean isUpdated = dbHelper.updatePassword(contact, newPasswordInput);
             if (isUpdated) {
+                // Đồng bộ mật khẩu mới lên server qua API
+                int userId = prefs.getInt("current_user_id", -1);
+                if (userId != -1) {
+                    ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put("password", newPasswordInput);
+                    apiService.patchUser(userId, updates).enqueue(new Callback<User>() {
+                        @Override
+                        public void onResponse(Call<User> call, Response<User> response) {
+                            // Cập nhật thành công trên server
+                        }
+
+                        @Override
+                        public void onFailure(Call<User> call, Throwable t) {
+                            // Có lỗi mạng, mật khẩu chỉ được cập nhật dưới local
+                        }
+                    });
+                }
+
                 Toast.makeText(requireContext(), "Đổi mật khẩu thành công!", Toast.LENGTH_LONG).show();
                 if (getParentFragmentManager() != null) {
                     getParentFragmentManager().popBackStack();

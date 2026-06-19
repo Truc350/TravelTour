@@ -8,6 +8,7 @@ material = "1.14.0"
 activity = "1.13.0"
 constraintlayout = "2.2.1"
 roomCommonJvm = "2.8.4"
+retrofit = "2.9.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -22,6 +23,8 @@ room-common-jvm = { group = "androidx.room", name = "room-common-jvm", version.r
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomCommonJvm" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomCommonJvm" }
 
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 
