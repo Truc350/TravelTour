@@ -218,62 +218,19 @@ public class BookingInfoActivity extends AppCompatActivity {
             isInvoiceRequested = cbRequestInvoice.isChecked();
         }
 
-        // Tạo chuyến đi và đẩy vào Sắp tới (MyTripsFragment)
+        // Chuyển tiếp sang màn hình thanh toán (PaymentActivity)
         long finalPrice = Math.max(0, totalPrice - discountAmount);
-        String mockDate = "09/09";
-        String bookingId = "REQ-" + (System.currentTimeMillis() % 10000);
-        
-        BookedTripAdapter.TripItem newTrip = new BookedTripAdapter.TripItem(
-                bookingId,
-                tourTitle,
-                "Chờ duyệt",
-                departureTime != null && !departureTime.isEmpty() ? departureTime : "08:00",
-                "Dự kiến",
-                "Điểm đi",
-                "Điểm đến",
-                adultCount + " người lớn" + (childCount > 0 ? ", " + childCount + " trẻ em" : ""),
-                formatVnd(finalPrice),
-                mockDate,
-                false,
-                "tour"
-        );
-        MyTripsFragment.additionalTrips.add(newTrip);
-        Toast.makeText(this, "Yêu cầu đặt tour thành công, đang chờ duyệt!", Toast.LENGTH_LONG).show();
-        // Gửi email nếu tích vào ô xuất hóa đơn
-        if (isInvoiceRequested) {
-            String subject = "[Chill Tour] Xác nhận đặt tour & Yêu cầu xuất hóa đơn - Đơn hàng " + bookingId;
-            String emailBody = "Kính gửi Quý khách " + fullName + ",\n\n" +
-                    "Cảm ơn Quý khách đã tin tưởng và lựa chọn dịch vụ của Chill Tour. Chúng tôi xin xác nhận đã tiếp nhận yêu cầu đặt tour của Quý khách với thông tin chi tiết như sau:\n\n" +
-                    "--------------------------------------------------\n" +
-                    "THÔNG TIN ĐƠN ĐẶT TOUR:\n" +
-                    "- Mã đơn hàng: " + bookingId + "\n" +
-                    "- Tên tour: " + tourTitle + "\n" +
-                    "- Số lượng khách: " + adultCount + " người lớn" + (childCount > 0 ? ", " + childCount + " trẻ em" : "") + "\n" +
-                    "- Giờ khởi hành: " + (departureTime != null && !departureTime.isEmpty() ? departureTime : "08:00") + "\n" +
-                    "- Tổng thanh toán: " + formatVnd(finalPrice) + "\n" +
-                    "--------------------------------------------------\n\n" +
-                    "Yêu cầu xuất hóa đơn đỏ (VAT) của Quý khách đã được tiếp nhận thành công. Bộ phận kế toán của Chill Tour sẽ sớm liên hệ với Quý khách qua email này để xác nhận thông tin doanh nghiệp (Tên công ty, MST, Địa chỉ) và tiến hành xuất hóa đơn điện tử trong vòng 24 giờ làm việc.\n\n" +
-                    "Mọi thắc mắc cần hỗ trợ gấp, Quý khách vui lòng liên hệ hotline chăm sóc khách hàng của chúng tôi.\n\n" +
-                    "Chúc Quý khách có một chuyến đi tuyệt vời!\n\n" +
-                    "Trân trọng,\n" +
-                    "Đội ngũ Chill Tour";
-
-            Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
-            emailIntent.setData(android.net.Uri.parse("mailto:"));
-            emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{email});
-            emailIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
-            emailIntent.putExtra(Intent.EXTRA_TEXT, emailBody);
-            try {
-                startActivity(Intent.createChooser(emailIntent, "Gửi email xác nhận hóa đơn qua..."));
-            } catch (android.content.ActivityNotFoundException ex) {
-                Toast.makeText(this, "Không tìm thấy ứng dụng gửi mail trên thiết bị.", Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        // Chuyển về màn hình chính và mở tab Chuyến đi
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra("navigate_to", "MyTrips");
+        Intent intent = new Intent(this, PaymentActivity.class);
+        intent.putExtra("tour_title", tourTitle);
+        intent.putExtra("adult_count", adultCount);
+        intent.putExtra("child_count", childCount);
+        intent.putExtra("infant_count", infantCount);
+        intent.putExtra("total_price", finalPrice);
+        intent.putExtra("is_invoice_requested", isInvoiceRequested);
+        intent.putExtra("departure_time", departureTime);
+        intent.putExtra("full_name", fullName);
+        intent.putExtra("phone", phone);
+        intent.putExtra("email", email);
         startActivity(intent);
         finish();
     }
