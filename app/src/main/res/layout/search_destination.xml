@@ -89,6 +89,21 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- Search Results Section (visible when searching) -->
+            <LinearLayout
+                android:id="@+id/layoutSearchResultsSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:id="@+id/containerSearchResults"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </LinearLayout>
+
             <!-- "Gần đây" Section -->
             <LinearLayout
                 android:id="@+id/layoutRecentSection"
