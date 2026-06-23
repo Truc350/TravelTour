@@ -220,10 +220,19 @@ public class DepartureActivity extends AppCompatActivity {
             sheet.show(getSupportFragmentManager(), "CalendarSheet");
         });
 
-        // Nút Liên hệ tư vấn
-        findViewById(R.id.btn_contact).setOnClickListener(v ->
-                Toast.makeText(this, "Đang kết nối tư vấn viên...", Toast.LENGTH_SHORT).show()
-        );
+        // Nút Liên hệ tư vấn – mở Zalo ChillTour
+        findViewById(R.id.btn_contact).setOnClickListener(v -> {
+            try {
+                android.net.Uri uri = android.net.Uri.parse("https://zalo.me/0858342303");
+                Intent zaloIntent = new Intent(Intent.ACTION_VIEW, uri);
+                zaloIntent.setPackage("com.zing.zalo");
+                startActivity(zaloIntent);
+            } catch (android.content.ActivityNotFoundException e) {
+                // Zalo chưa cài – mở trình duyệt
+                android.net.Uri uri = android.net.Uri.parse("https://zalo.me/0858342303");
+                startActivity(new Intent(Intent.ACTION_VIEW, uri));
+            }
+        });
 
         // Nút Đặt tour ngay
         findViewById(R.id.btn_book).setOnClickListener(v -> {
@@ -362,13 +371,59 @@ public class DepartureActivity extends AppCompatActivity {
     private void populateTimeChips(String[] times) {
         if (layoutTimeChips == null) return;
         layoutTimeChips.removeAllViews();
-        if (times.length > 0) {
-            selectedTime = times[0];
+
+        // Kiểm tra nếu ngày chọn là hôm nay thì lọc bỏ giờ đã qua
+        Calendar now = Calendar.getInstance();
+        int nowHour   = now.get(Calendar.HOUR_OF_DAY);
+        int nowMinute = now.get(Calendar.MINUTE);
+
+        boolean isToday = false;
+        if (!selectedDateStr.isEmpty()) {
+            try {
+                Date selDate = DB_FORMAT.parse(selectedDateStr);
+                if (selDate != null) {
+                    Calendar selCal = Calendar.getInstance();
+                    selCal.setTime(selDate);
+                    isToday = selCal.get(Calendar.YEAR)  == now.get(Calendar.YEAR)
+                           && selCal.get(Calendar.MONTH) == now.get(Calendar.MONTH)
+                           && selCal.get(Calendar.DAY_OF_MONTH) == now.get(Calendar.DAY_OF_MONTH);
+                }
+            } catch (ParseException ignored) {}
+        }
+
+        // Xây danh sách giờ còn hiệu lực
+        List<String> validTimes = new ArrayList<>();
+        for (String time : times) {
+            if (isToday) {
+                String[] parts = time.split(":");
+                if (parts.length == 2) {
+                    try {
+                        int h = Integer.parseInt(parts[0]);
+                        int m = Integer.parseInt(parts[1]);
+                        // Giữ lại nếu giờ:phút > thời điểm hiện tại
+                        if (h > nowHour || (h == nowHour && m > nowMinute)) {
+                            validTimes.add(time);
+                        }
+                        // else: bỏ qua – giờ đã qua
+                    } catch (NumberFormatException ignored) {
+                        validTimes.add(time);
+                    }
+                } else {
+                    validTimes.add(time);
+                }
+            } else {
+                validTimes.add(time);
+            }
+        }
+
+        if (!validTimes.isEmpty()) {
+            selectedTime = validTimes.get(0);
         } else {
             selectedTime = "";
         }
-        for (int i = 0; i < times.length; i++) {
-            final String time = times[i];
+
+        for (int i = 0; i < validTimes.size(); i++) {
+            final String time = validTimes.get(i);
             final TextView tvChip = new TextView(this);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -381,8 +436,8 @@ public class DepartureActivity extends AppCompatActivity {
             tvChip.setText(time);
             tvChip.setTextSize(14);
             boolean isSelected = time.equals(selectedTime);
-            tvChip.setBackgroundResource(isSelected 
-                    ? R.drawable.bg_chip_selected 
+            tvChip.setBackgroundResource(isSelected
+                    ? R.drawable.bg_chip_selected
                     : R.drawable.bg_chip_unselected);
             tvChip.setTextColor(isSelected ? 0xFF185FA5 : 0xFF777777);
             tvChip.setTypeface(null, isSelected ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
@@ -393,14 +448,19 @@ public class DepartureActivity extends AppCompatActivity {
                 for (int j = 0; j < layoutTimeChips.getChildCount(); j++) {
                     TextView child = (TextView) layoutTimeChips.getChildAt(j);
                     boolean sel = child.getText().toString().equals(selectedTime);
-                    child.setBackgroundResource(sel 
-                            ? R.drawable.bg_chip_selected 
+                    child.setBackgroundResource(sel
+                            ? R.drawable.bg_chip_selected
                             : R.drawable.bg_chip_unselected);
                     child.setTextColor(sel ? 0xFF185FA5 : 0xFF777777);
                     child.setTypeface(null, sel ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
                 }
             });
             layoutTimeChips.addView(tvChip);
+        }
+
+        // Nếu tất cả giờ trong ngày hôm nay đều đã qua, thông báo cho người dùng
+        if (isToday && validTimes.isEmpty()) {
+            Toast.makeText(this, "Các giờ khởi hành hôm nay đã qua, vui lòng chọn ngày khác!", Toast.LENGTH_LONG).show();
         }
     }
     
