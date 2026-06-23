@@ -6,6 +6,7 @@ import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 
 @Entity(tableName = "tour_itineraries",
@@ -17,18 +18,23 @@ import java.io.Serializable;
 public class TourItinerary implements Serializable {
 
     @PrimaryKey(autoGenerate = true)
+    @SerializedName("id")
     private int id;
 
     @ColumnInfo(name = "tour_id")
+    @SerializedName("tour")
     private int tourId;
 
     @ColumnInfo(name = "day_number")
+    @SerializedName("day_number")
     private int dayNumber;
 
     @ColumnInfo(name = "title")
+    @SerializedName("title")
     private String title;
 
     @ColumnInfo(name = "description")
+    @SerializedName("description")
     private String description;
 
     public TourItinerary(int tourId, int dayNumber, String title, String description) {

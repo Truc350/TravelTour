@@ -27,14 +27,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="250dp">
 
-                <!-- Tour Image -->
-                <ImageView
-                    android:id="@+id/ivHero"
+                <!-- ViewPager2 for swipeable images -->
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/vpImages"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/img"
-                    android:contentDescription="Ảnh tour" />
+                    android:layout_height="match_parent" />
 
                 <!-- Bottom overlay gradient for badges readability -->
                 <View

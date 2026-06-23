@@ -78,7 +78,6 @@ public class DetailTour extends Fragment {
         }
 
         // Lấy tham chiếu đến các view trong chi tiết
-        ImageView ivHero = view.findViewById(R.id.ivHero);
         TextView tvTourTitle = view.findViewById(R.id.tvTourTitle);
         TextView tvTourPrice = view.findViewById(R.id.tvTourPrice);
         TextView tvAirlineBadge = view.findViewById(R.id.tvAirlineBadge);
@@ -95,7 +94,7 @@ public class DetailTour extends Fragment {
             bindTourData(view, inflater);
         } else if (!tourType.isEmpty()) {
             if ("taiwan".equals(tourType)) {
-                if (ivHero != null) ivHero.setImageResource(R.drawable.img_taiwan_tour);
+                setupImageSlider(view, null, R.drawable.img_taiwan_tour);
                 if (tvTourTitle != null) tvTourTitle.setText("Tour Đài Loan 5N4Đ: HCM - Cao Hùng - Đài Trung - Đài Bắc - Đảo Hoà Bình");
                 if (tvTourPrice != null) tvTourPrice.setText("14.390.000đ");
                 if (tvAirlineBadge != null) tvAirlineBadge.setText("Bamboo Airways");
@@ -103,7 +102,7 @@ public class DetailTour extends Fragment {
                 if (tvRatingStatus != null) tvRatingStatus.setText("Rất tốt");
                 if (tvReviewsCount != null) tvReviewsCount.setText("4 đánh giá");
             } else if ("singapore".equals(tourType)) {
-                if (ivHero != null) ivHero.setImageResource(R.drawable.img_singapore_tour);
+                setupImageSlider(view, null, R.drawable.img_singapore_tour);
                 if (tvTourTitle != null) tvTourTitle.setText("Tour Singapore - Malaysia 5N4Đ: HCM - Singapore - Kuala Lumpur - Genting");
                 if (tvTourPrice != null) tvTourPrice.setText("12.890.000đ");
                 if (tvAirlineBadge != null) tvAirlineBadge.setText("Singapore Airlines");
@@ -111,7 +110,7 @@ public class DetailTour extends Fragment {
                 if (tvRatingStatus != null) tvRatingStatus.setText("Xuất sắc");
                 if (tvReviewsCount != null) tvReviewsCount.setText("10 đánh giá");
             } else if ("sapa".equals(tourType)) {
-                if (ivHero != null) ivHero.setImageResource(R.drawable.img_sapa_tour);
+                setupImageSlider(view, null, R.drawable.img_sapa_tour);
                 if (tvTourTitle != null) tvTourTitle.setText("Tour Sapa 3N2Đ: Hà Nội - Bản Cát Cát - Chinh Phục Đỉnh Fansipan");
                 if (tvTourPrice != null) tvTourPrice.setText("3.290.000đ");
                 if (tvAirlineBadge != null) tvAirlineBadge.setText("Xe giường nằm cabin VIP");
@@ -119,7 +118,7 @@ public class DetailTour extends Fragment {
                 if (tvRatingStatus != null) tvRatingStatus.setText("Tuyệt vời");
                 if (tvReviewsCount != null) tvReviewsCount.setText("15 đánh giá");
             } else if ("halong".equals(tourType)) {
-                if (ivHero != null) ivHero.setImageResource(R.drawable.img_halong_tour);
+                setupImageSlider(view, null, R.drawable.img_halong_tour);
                 if (tvTourTitle != null) tvTourTitle.setText("Tour Vịnh Hạ Long 2N1Đ: Nghỉ Dưỡng Trên Du Thuyền Sang Trọng");
                 if (tvTourPrice != null) tvTourPrice.setText("2.590.000đ");
                 if (tvAirlineBadge != null) tvAirlineBadge.setText("Du Thuyền 5 Sao cao cấp");
@@ -127,7 +126,7 @@ public class DetailTour extends Fragment {
                 if (tvRatingStatus != null) tvRatingStatus.setText("Xuất sắc");
                 if (tvReviewsCount != null) tvReviewsCount.setText("25 đánh giá");
             } else if ("danang".equals(tourType)) {
-                if (ivHero != null) ivHero.setImageResource(R.drawable.img_danang_tour);
+                setupImageSlider(view, null, R.drawable.img_danang_tour);
                 if (tvTourTitle != null) tvTourTitle.setText("Tour Đà Nẵng - Hội An - Bà Nà Hills 4N3Đ Trọn Gói Giá Tốt");
                 if (tvTourPrice != null) tvTourPrice.setText("4.890.000đ");
                 if (tvAirlineBadge != null) tvAirlineBadge.setText("Vietnam Airlines");
@@ -135,7 +134,7 @@ public class DetailTour extends Fragment {
                 if (tvRatingStatus != null) tvRatingStatus.setText("Xuất sắc");
                 if (tvReviewsCount != null) tvReviewsCount.setText("30 đánh giá");
             } else if ("nhatrang".equals(tourType)) {
-                if (ivHero != null) ivHero.setImageResource(R.drawable.img_nhatrang_tour);
+                setupImageSlider(view, null, R.drawable.img_nhatrang_tour);
                 if (tvTourTitle != null) tvTourTitle.setText("Tour Nha Trang 3N2Đ: Khám Phá Vịnh San Hô - VinWonders Trọn Gói");
                 if (tvTourPrice != null) tvTourPrice.setText("3.190.000đ");
                 if (tvAirlineBadge != null) tvAirlineBadge.setText("VietJet Air");
@@ -143,7 +142,7 @@ public class DetailTour extends Fragment {
                 if (tvRatingStatus != null) tvRatingStatus.setText("Rất tốt");
                 if (tvReviewsCount != null) tvReviewsCount.setText("12 đánh giá");
             } else if ("phuquoc".equals(tourType)) {
-                if (ivHero != null) ivHero.setImageResource(R.drawable.img_phuquoc_tour);
+                setupImageSlider(view, null, R.drawable.img_phuquoc_tour);
                 if (tvTourTitle != null) tvTourTitle.setText("Tour Phú Quốc 3N2Đ: Khám Phá Địa Trung Hải - Grand World Trọn Gói");
                 if (tvTourPrice != null) tvTourPrice.setText("4.590.000đ");
                 if (tvAirlineBadge != null) tvAirlineBadge.setText("Vietnam Airlines");
@@ -151,7 +150,7 @@ public class DetailTour extends Fragment {
                 if (tvRatingStatus != null) tvRatingStatus.setText("Xuất sắc");
                 if (tvReviewsCount != null) tvReviewsCount.setText("40 đánh giá");
             } else if ("mientay".equals(tourType)) {
-                if (ivHero != null) ivHero.setImageResource(R.drawable.img_mientay_tour);
+                setupImageSlider(view, null, R.drawable.img_mientay_tour);
                 if (tvTourTitle != null) tvTourTitle.setText("Tour Miền Tây Sông Nước 2N1Đ: Mỹ Tho - Cần Thơ - Chợ Nổi Cái Răng");
                 if (tvTourPrice != null) tvTourPrice.setText("1.890.000đ");
                 if (tvAirlineBadge != null) tvAirlineBadge.setText("Xe du lịch đời mới máy lạnh");
@@ -260,7 +259,6 @@ public class DetailTour extends Fragment {
     private void bindTourData(View view, LayoutInflater inflater) {
         if (tour == null) return;
 
-        ImageView ivHero = view.findViewById(R.id.ivHero);
         TextView tvTourTitle = view.findViewById(R.id.tvTourTitle);
         TextView tvTourPrice = view.findViewById(R.id.tvTourPrice);
         TextView tvAirlineBadge = view.findViewById(R.id.tvAirlineBadge);
@@ -291,35 +289,24 @@ public class DetailTour extends Fragment {
         if (tvReviewsCount != null) {
             tvReviewsCount.setText(tour.getReviewsCount() + " đánh giá");
         }
-        // Xử lý hình ảnh (load bằng Glide nếu có URL)
-        if (ivHero != null) {
-            String imageUrl = null;
-            if (tour.getImages() != null && !tour.getImages().isEmpty()) {
-                imageUrl = tour.getImages().get(0).getImageUrl();
-            }
-            String resolvedType = getNormalizedTourType(tour.getCode(), tour.getTitle());
-            int imageResId = R.drawable.img_taiwan_tour;
-            if ("singapore".equals(resolvedType)) imageResId = R.drawable.img_singapore_tour;
-            else if ("sapa".equals(resolvedType)) imageResId = R.drawable.img_sapa_tour;
-            else if ("halong".equals(resolvedType)) imageResId = R.drawable.img_halong_tour;
-            else if ("danang".equals(resolvedType)) imageResId = R.drawable.img_danang_tour;
-            else if ("nhatrang".equals(resolvedType)) imageResId = R.drawable.img_nhatrang_tour;
-            else if ("phuquoc".equals(resolvedType)) imageResId = R.drawable.img_phuquoc_tour;
-            else if ("mientay".equals(resolvedType)) imageResId = R.drawable.img_mientay_tour;
-
-            if (imageUrl != null && !imageUrl.isEmpty()) {
-                if (imageUrl.startsWith("/")) {
-                    imageUrl = "http://10.0.2.2:8000" + imageUrl;
-                }
-                com.bumptech.glide.Glide.with(this)
-                        .load(imageUrl)
-                        .placeholder(imageResId)
-                        .centerCrop()
-                        .into(ivHero);
-            } else {
-                ivHero.setImageResource(imageResId);
+        // Xử lý hình ảnh (load bằng Glide vào ViewPager2)
+        java.util.List<String> imageUrls = new java.util.ArrayList<>();
+        if (tour.getImages() != null) {
+            for (com.example.myapplication.data.model.TourImage img : tour.getImages()) {
+                imageUrls.add(img.getImageUrl());
             }
         }
+        String resolvedType = getNormalizedTourType(tour.getCode(), tour.getTitle());
+        int imageResId = R.drawable.img_taiwan_tour;
+        if ("singapore".equals(resolvedType)) imageResId = R.drawable.img_singapore_tour;
+        else if ("sapa".equals(resolvedType)) imageResId = R.drawable.img_sapa_tour;
+        else if ("halong".equals(resolvedType)) imageResId = R.drawable.img_halong_tour;
+        else if ("danang".equals(resolvedType)) imageResId = R.drawable.img_danang_tour;
+        else if ("nhatrang".equals(resolvedType)) imageResId = R.drawable.img_nhatrang_tour;
+        else if ("phuquoc".equals(resolvedType)) imageResId = R.drawable.img_phuquoc_tour;
+        else if ("mientay".equals(resolvedType)) imageResId = R.drawable.img_mientay_tour;
+
+        setupImageSlider(view, imageUrls, imageResId);
 
         // Gán thông tin khởi hành, mã tour, trải nghiệm chi tiết
         TextView tvDepartureLocation = view.findViewById(R.id.tvDepartureLocation);
@@ -415,12 +402,23 @@ public class DetailTour extends Fragment {
         android.widget.LinearLayout itineraryContainer = view.findViewById(R.id.itineraryContainer);
         if (itineraryContainer != null && tour.getItineraries() != null && !tour.getItineraries().isEmpty()) {
             itineraryContainer.removeAllViews();
-            for (com.example.myapplication.data.model.TourItinerary itinerary : tour.getItineraries()) {
+            
+            // Sao chép và sắp xếp danh sách lịch trình theo dayNumber tăng dần
+            java.util.List<com.example.myapplication.data.model.TourItinerary> itineraryList = 
+                    new java.util.ArrayList<>(tour.getItineraries());
+            java.util.Collections.sort(itineraryList, (a, b) -> Integer.compare(a.getDayNumber(), b.getDayNumber()));
+
+            for (com.example.myapplication.data.model.TourItinerary itinerary : itineraryList) {
                 View itemItinerary = inflater.inflate(R.layout.item_itinerary, itineraryContainer, false);
                 
+                View layoutHeader = itemItinerary.findViewById(R.id.layoutHeader);
+                View layoutDetails = itemItinerary.findViewById(R.id.layoutDetails);
                 TextView tvDayNumber = itemItinerary.findViewById(R.id.tvDayNumber);
                 TextView tvDayTitle = itemItinerary.findViewById(R.id.tvDayTitle);
+                TextView tvDayDescription = itemItinerary.findViewById(R.id.tvDayDescription);
                 ImageView ivDayImage = itemItinerary.findViewById(R.id.ivDayImage);
+                ImageView ivExpandedDayImage = itemItinerary.findViewById(R.id.ivExpandedDayImage);
+                ImageView ivChevron = itemItinerary.findViewById(R.id.ivChevron);
 
                 if (tvDayNumber != null) {
                     tvDayNumber.setText("Ngày " + itinerary.getDayNumber());
@@ -428,11 +426,15 @@ public class DetailTour extends Fragment {
                 if (tvDayTitle != null) {
                     tvDayTitle.setText(itinerary.getTitle());
                 }
+                if (tvDayDescription != null) {
+                    tvDayDescription.setText(itinerary.getDescription());
+                }
                 
                 // Lấy ảnh tương ứng từ danh sách ảnh của Tour
-                if (ivDayImage != null && tour.getImages() != null && !tour.getImages().isEmpty()) {
+                if (tour.getImages() != null && !tour.getImages().isEmpty()) {
                     int size = tour.getImages().size();
-                    int imgIndex = (itinerary.getDayNumber() - 1) % size;
+                    int dayNum = itinerary.getDayNumber();
+                    int imgIndex = (dayNum - 1) % size;
                     if (imgIndex < 0) {
                         imgIndex = 0;
                     }
@@ -441,12 +443,38 @@ public class DetailTour extends Fragment {
                         if (dayImageUrl.startsWith("/")) {
                             dayImageUrl = "http://10.0.2.2:8000" + dayImageUrl;
                         }
-                        com.bumptech.glide.Glide.with(this)
-                                .load(dayImageUrl)
-                                .placeholder(R.drawable.img_taiwan_tour)
-                                .centerCrop()
-                                .into(ivDayImage);
+                        if (ivDayImage != null) {
+                            com.bumptech.glide.Glide.with(this)
+                                    .load(dayImageUrl)
+                                    .placeholder(R.drawable.img_taiwan_tour)
+                                    .centerCrop()
+                                    .into(ivDayImage);
+                        }
+                        if (ivExpandedDayImage != null) {
+                            com.bumptech.glide.Glide.with(this)
+                                    .load(dayImageUrl)
+                                    .placeholder(R.drawable.img_taiwan_tour)
+                                    .centerCrop()
+                                    .into(ivExpandedDayImage);
+                        }
                     }
+                }
+
+                // Sự kiện click mở rộng / thu gọn
+                if (layoutHeader != null && layoutDetails != null) {
+                    layoutHeader.setOnClickListener(v -> {
+                        if (layoutDetails.getVisibility() == View.GONE) {
+                            layoutDetails.setVisibility(View.VISIBLE);
+                            if (ivChevron != null) {
+                                ivChevron.animate().rotation(180f).setDuration(200).start();
+                            }
+                        } else {
+                            layoutDetails.setVisibility(View.GONE);
+                            if (ivChevron != null) {
+                                ivChevron.animate().rotation(0f).setDuration(200).start();
+                            }
+                        }
+                    });
                 }
 
                 itineraryContainer.addView(itemItinerary);
@@ -581,6 +609,91 @@ public class DetailTour extends Fragment {
             if (t.contains("miền tây") || t.contains("mien tay")) return "mientay";
         }
         return c;
+    }
+
+    private void setupImageSlider(View view, java.util.List<String> imageUrls, int fallbackResId) {
+        androidx.viewpager2.widget.ViewPager2 vpImages = view.findViewById(R.id.vpImages);
+        TextView tvPhotoCount = view.findViewById(R.id.tvPhotoCount);
+        if (vpImages == null) return;
+
+        // Bắt buộc luôn hiển thị đúng 5 ảnh bằng cách lặp lại nếu danh sách ít
+        java.util.List<String> sliderImages = new java.util.ArrayList<>();
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            for (int i = 0; i < 5; i++) {
+                sliderImages.add(imageUrls.get(i % imageUrls.size()));
+            }
+        } else {
+            for (int i = 0; i < 5; i++) {
+                sliderImages.add("");
+            }
+        }
+
+        ImageSliderAdapter adapter = new ImageSliderAdapter(sliderImages, fallbackResId);
+        vpImages.setAdapter(adapter);
+
+        if (tvPhotoCount != null) {
+            tvPhotoCount.setText("1/5");
+        }
+
+        vpImages.registerOnPageChangeCallback(new androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                if (tvPhotoCount != null) {
+                    tvPhotoCount.setText((position + 1) + "/5");
+                }
+            }
+        });
+    }
+
+    private class ImageSliderAdapter extends androidx.recyclerview.widget.RecyclerView.Adapter<ImageSliderAdapter.SliderViewHolder> {
+        private final java.util.List<String> imageUrls;
+        private final int fallbackResId;
+
+        public ImageSliderAdapter(java.util.List<String> imageUrls, int fallbackResId) {
+            this.imageUrls = imageUrls;
+            this.fallbackResId = fallbackResId;
+        }
+
+        @NonNull
+        @Override
+        public SliderViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            ImageView imageView = new ImageView(parent.getContext());
+            imageView.setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            return new SliderViewHolder(imageView);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull SliderViewHolder holder, int position) {
+            String url = imageUrls.get(position);
+            ImageView imageView = (ImageView) holder.itemView;
+            if (url != null && !url.isEmpty()) {
+                if (url.startsWith("/")) {
+                    url = "http://10.0.2.2:8000" + url;
+                }
+                com.bumptech.glide.Glide.with(DetailTour.this)
+                        .load(url)
+                        .placeholder(fallbackResId)
+                        .centerCrop()
+                        .into(imageView);
+            } else {
+                imageView.setImageResource(fallbackResId);
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return imageUrls.size();
+        }
+
+        class SliderViewHolder extends androidx.recyclerview.widget.RecyclerView.ViewHolder {
+            public SliderViewHolder(@NonNull View itemView) {
+                super(itemView);
+            }
+        }
     }
 
     @Override
