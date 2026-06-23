@@ -30,12 +30,16 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class TourDepartureSerializer(serializers.ModelSerializer):
+    tour_detail = TourSerializer(source='tour', read_only=True)
+
     class Meta:
         model = TourDeparture
         fields = '__all__'
 
 
 class BookingSerializer(serializers.ModelSerializer):
+    departure_detail = TourDepartureSerializer(source='departure', read_only=True)
+
     class Meta:
         model = Booking
         fields = '__all__'

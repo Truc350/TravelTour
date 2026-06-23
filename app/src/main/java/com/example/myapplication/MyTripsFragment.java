@@ -20,6 +20,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import com.example.myapplication.data.remote.ApiService;
+import com.example.myapplication.data.remote.RetrofitClient;
+import com.example.myapplication.data.model.BookingResponse;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 /**
  * Fragment hiển thị tab "Chuyến đi" (My Trips) gồm:
  * - Các chuyến đi sắp tới (Upcoming): hiển thị vé tàu giống screenshot với thanh chọn ngày ngang.
@@ -103,126 +112,140 @@ public class MyTripsFragment extends Fragment {
     }
 
     private void initData() {
-        // 1. Dữ liệu các Ngày cho thanh cuộn ngang (Khớp thiết kế)
+        // 1. Dữ liệu các Ngày cho thanh cuộn ngang được tạo động xung quanh ngày hiện tại (2 ngày trước và 4 ngày sau)
         dateTabs.clear();
-        dateTabs.add(new DateTab("CN-07/09", "07/09"));
-        dateTabs.add(new DateTab("T2-08/09", "08/09"));
-        dateTabs.add(new DateTab("T3-09/09", "09/09")); // Ngày active mặc định
-        dateTabs.add(new DateTab("T4-10/09", "10/09"));
-        dateTabs.add(new DateTab("T5-11/09", "11/09"));
-        dateTabs.add(new DateTab("T6-12/09", "12/09"));
-        dateTabs.add(new DateTab("T7-13/09", "13/09"));
 
-        // 2. Dữ liệu Chuyến đi mẫu phong phú
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.add(java.util.Calendar.DAY_OF_YEAR, -2); // bắt đầu từ 2 ngày trước
+
+        java.text.SimpleDateFormat filterFmt = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
+
+        for (int i = 0; i < 7; i++) {
+            int dayOfWeek = cal.get(java.util.Calendar.DAY_OF_WEEK);
+            String dayOfWeekStr;
+            switch (dayOfWeek) {
+                case java.util.Calendar.SUNDAY:
+                    dayOfWeekStr = "CN";
+                    break;
+                default:
+                    dayOfWeekStr = "T" + dayOfWeek;
+                    break;
+            }
+
+            String filterVal = filterFmt.format(cal.getTime());
+            String label = dayOfWeekStr + "-" + filterVal;
+
+            dateTabs.add(new DateTab(label, filterVal));
+
+            // Đặt ngày hôm nay làm mặc định (ngày thứ 3 trong danh sách, tức i = 2)
+            if (i == 2) {
+                selectedDate = filterVal;
+            }
+
+            cal.add(java.util.Calendar.DAY_OF_YEAR, 1);
+        }
+
         allTrips.clear();
-        
-        // --- CHUYẾN ĐI SẮP TỚI (isHistory = false) ---
-        // Ngày 09/09
-        allTrips.add(new BookedTripAdapter.TripItem(
-                "SAPA09",
-                "Tour Sapa 3N2Đ: Hà Nội - Bản Cát Cát - Đỉnh Fansipan",
-                "Sắp đi",
-                "07:00",
-                "13:00",
-                "Hà Nội",
-                "Sapa",
-                "3 ngày 2 đêm",
-                "3.290.000 đ",
-                "09/09",
-                false,
-                "sapa"
-        ));
-        allTrips.add(new BookedTripAdapter.TripItem(
-                "TAIWAN09",
-                "Tour Đài Loan 5N4Đ: HCM - Cao Hùng - Đài Bắc",
-                "Sắp đi",
-                "08:30",
-                "13:00",
-                "TP. Hồ Chí Minh",
-                "Cao Hùng (Taiwan)",
-                "5 ngày 4 đêm",
-                "14.390.000 đ",
-                "09/09",
-                false,
-                "taiwan"
-        ));
+        loadBookingsFromServer();
+    }
 
-        // Ngày 08/09
-        allTrips.add(new BookedTripAdapter.TripItem(
-                "DANANG08",
-                "Tour Đà Nẵng - Hội An - Bà Nà Hills 4N3Đ Trọn Gói",
-                "Chờ xác nhận",
-                "12:00",
-                "13:20",
-                "Hà Nội",
-                "Đà Nẵng",
-                "4 ngày 3 đêm",
-                "4.890.000 đ",
-                "08/09",
-                false,
-                "danang"
-        ));
+    private void loadBookingsFromServer() {
+        if (getContext() == null) return;
 
-        // Ngày 10/09
-        allTrips.add(new BookedTripAdapter.TripItem(
-                "SING10",
-                "Tour Singapore - Malaysia 5N4Đ Trọn Gói Cao Cấp",
-                "Sắp đi",
-                "10:00",
-                "13:30",
-                "TP. Hồ Chí Minh",
-                "Singapore",
-                "5 ngày 4 đêm",
-                "12.890.000 đ",
-                "10/09",
-                false,
-                "singapore"
-        ));
+        SharedPreferences prefs = getContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+        int currentUserId = prefs.getInt("current_user_id", 1); // default user 1
 
-        // --- LỊCH SỬ CHUYẾN ĐI ĐÃ ĐI (isHistory = true) ---
-        allTrips.add(new BookedTripAdapter.TripItem(
-                "PHUQUOC25",
-                "Tour Phú Quốc 3N2Đ: Khám Phá Địa Trung Hải",
-                "Đã đi",
-                "14:00",
-                "15:00",
-                "TP. Hồ Chí Minh",
-                "Phú Quốc",
-                "3 ngày 2 đêm",
-                "4.590.000 đ",
-                "25/08",
-                true,
-                "phuquoc"
-        ));
-        allTrips.add(new BookedTripAdapter.TripItem(
-                "HALONG15",
-                "Tour Vịnh Hạ Long 2N1Đ: Nghỉ Dưỡng Du Thuyền 5 Sao",
-                "Đã đi",
-                "08:00",
-                "11:30",
-                "Hà Nội",
-                "Vịnh Hạ Long",
-                "2 ngày 1 đêm",
-                "2.590.000 đ",
-                "15/08",
-                true,
-                "halong"
-        ));
-        allTrips.add(new BookedTripAdapter.TripItem(
-                "SAPATRIP",
-                "Tour Sapa 3N2Đ: Chinh Phục Đỉnh Fansipan",
-                "Đã hoàn thành",
-                "07:00",
-                "13:00",
-                "Hà Nội (Mỹ Đình)",
-                "Sapa (Trung tâm)",
-                "3 ngày 2 đêm",
-                "3.290.000 đ",
-                "15/08",
-                true,
-                "sapa"
-        ));
-        allTrips.addAll(0, additionalTrips);
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        apiService.getBookings().enqueue(new Callback<List<BookingResponse>>() {
+            @Override
+            public void onResponse(Call<List<BookingResponse>> call, Response<List<BookingResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<BookingResponse> bookings = response.body();
+                    allTrips.clear();
+
+                    // Thêm additionalTrips local trước
+                    allTrips.addAll(additionalTrips);
+
+                    for (BookingResponse b : bookings) {
+                        // Lọc chỉ lấy booking của user hiện tại
+                        if (b.user == currentUserId) {
+                            String code = "DL0" + b.id;
+                            String trainName = "Tour Du Lịch";
+                            String tourType = "tour";
+                            String depStation = "Hồ Chí Minh";
+                            String arrStation = "Điểm đến";
+                            
+                            if (b.departureDetail != null) {
+                                if (b.departureDetail.tourDetail != null) {
+                                    trainName = b.departureDetail.tourDetail.getTitle();
+                                    tourType = b.departureDetail.tourDetail.getCode();
+                                    arrStation = b.departureDetail.tourDetail.getTitle();
+                                }
+                                if (b.departureDetail.departureDate != null) {
+                                    depStation = "Khởi hành: " + b.departureDetail.departureDate;
+                                }
+                            }
+
+                            String statusBadge = "Chờ duyệt";
+                            if ("CONFIRMED".equalsIgnoreCase(b.status)) {
+                                statusBadge = "Đã thanh toán";
+                            } else if ("CANCELLED".equalsIgnoreCase(b.status)) {
+                                statusBadge = "Đã hủy";
+                            }
+
+                            String priceFormatted = formatVndPrice((long) b.totalPrice);
+
+                            BookedTripAdapter.TripItem item = new BookedTripAdapter.TripItem(
+                                    code,
+                                    trainName,
+                                    statusBadge,
+                                    b.departureHour != null ? b.departureHour : "08:00",
+                                    "Dự kiến",
+                                    depStation,
+                                    arrStation,
+                                    "Trọn gói",
+                                    priceFormatted,
+                                    b.bookingDate != null ? b.bookingDate : "09/09",
+                                    "CANCELLED".equalsIgnoreCase(b.status), // coi như history nếu đã hủy hoặc completed
+                                    tourType
+                            );
+                            allTrips.add(item);
+                        }
+                    }
+
+                    filterAndDisplayTrips();
+                } else {
+                    Toast.makeText(getContext(), "Lỗi tải dữ liệu chuyến đi từ máy chủ!", Toast.LENGTH_SHORT).show();
+                    // Fallback to local additionalTrips
+                    allTrips.clear();
+                    allTrips.addAll(additionalTrips);
+                    filterAndDisplayTrips();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<BookingResponse>> call, Throwable t) {
+                Toast.makeText(getContext(), "Không thể kết nối máy chủ để tải chuyến đi!", Toast.LENGTH_SHORT).show();
+                // Fallback to local additionalTrips
+                allTrips.clear();
+                allTrips.addAll(additionalTrips);
+                filterAndDisplayTrips();
+            }
+        });
+    }
+
+    private String formatVndPrice(long price) {
+        String raw = String.valueOf(price);
+        StringBuilder sb = new StringBuilder();
+        int len = raw.length();
+        for (int i = 0; i < len; i++) {
+            sb.append(raw.charAt(i));
+            int remaining = len - i - 1;
+            if (remaining > 0 && remaining % 3 == 0) {
+                sb.append('.');
+            }
+        }
+        return sb + " đ";
     }
 
     private void setupTabs() {

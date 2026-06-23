@@ -29,6 +29,8 @@ public class BookingInfoActivity extends AppCompatActivity {
     private Button btnSubmitBooking;
 
     private String tourTitle = "";
+    private int tourId = -1;
+    private int departureId = -1;
     private int adultCount = 1;
     private int childCount = 0;
     private int infantCount = 0;
@@ -55,6 +57,8 @@ public class BookingInfoActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent != null) {
             tourTitle = intent.getStringExtra("tour_title");
+            tourId = intent.getIntExtra("tour_id", -1);
+            departureId = intent.getIntExtra("departure_id", -1);
             adultCount = intent.getIntExtra("adult_count", 1);
             childCount = intent.getIntExtra("child_count", 0);
             infantCount = intent.getIntExtra("infant_count", 0);
@@ -222,6 +226,8 @@ public class BookingInfoActivity extends AppCompatActivity {
         long finalPrice = Math.max(0, totalPrice - discountAmount);
         Intent intent = new Intent(this, PaymentActivity.class);
         intent.putExtra("tour_title", tourTitle);
+        intent.putExtra("tour_id", tourId);
+        intent.putExtra("departure_id", departureId);
         intent.putExtra("adult_count", adultCount);
         intent.putExtra("child_count", childCount);
         intent.putExtra("infant_count", infantCount);

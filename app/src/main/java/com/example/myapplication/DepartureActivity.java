@@ -245,9 +245,21 @@ public class DepartureActivity extends AppCompatActivity {
                 return;
             }
             long total = calculateTotal();
+            int departureId = -1;
+            for (TourDeparture dep : departureList) {
+                if (dep.getDepartureDate().equals(selectedDateStr)) {
+                    departureId = dep.getId();
+                    break;
+                }
+            }
+            if (departureId == -1 && !departureList.isEmpty()) {
+                departureId = departureList.get(0).getId();
+            }
+
             Intent intent = new Intent(this, BookingInfoActivity.class);
             intent.putExtra("tour_title",    tourTitle);
             intent.putExtra("tour_id",       tourId);
+            intent.putExtra("departure_id",   departureId);
             intent.putExtra("departure_date", selectedDateStr);
             intent.putExtra("departure_time", selectedTime);
             intent.putExtra("adult_count",   adultCount);
