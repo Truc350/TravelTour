@@ -57,8 +57,16 @@ public class MainActivity extends AppCompatActivity {
         // Lấy tham chiếu đến thanh điều hướng dưới cùng
         BottomNavigationView bottomNavigation = findViewById(R.id.bottomNavigation);
 
-        // Đặt tab "Home" được chọn mặc định
-        bottomNavigation.setSelectedItemId(R.id.nav_home);
+        String navigateTo = getIntent().getStringExtra("navigate_to");
+        if ("MyTrips".equals(navigateTo)) {
+            bottomNavigation.setSelectedItemId(R.id.nav_trip);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.contentFrame, new MyTripsFragment())
+                    .commit();
+        } else {
+            // Đặt tab "Home" được chọn mặc định
+            bottomNavigation.setSelectedItemId(R.id.nav_home);
+        }
 
         // Lắng nghe sự kiện khi người dùng bấm vào từng tab điều hướng
         bottomNavigation.setOnItemSelectedListener(item -> {

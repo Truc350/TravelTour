@@ -38,6 +38,7 @@ public class MyTripsFragment extends Fragment {
     private TextView tvEmptyTitle, tvEmptySubtitle;
 
     // Data lists
+    public static List<BookedTripAdapter.TripItem> additionalTrips = new ArrayList<>();
     private List<BookedTripAdapter.TripItem> allTrips = new ArrayList<>();
     private List<BookedTripAdapter.TripItem> displayedTrips = new ArrayList<>();
     private BookedTripAdapter adapter;
@@ -221,6 +222,7 @@ public class MyTripsFragment extends Fragment {
                 true,
                 "sapa"
         ));
+        allTrips.addAll(0, additionalTrips);
     }
 
     private void setupTabs() {

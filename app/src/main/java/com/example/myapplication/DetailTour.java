@@ -200,6 +200,11 @@ public class DetailTour extends Fragment {
             String titleStr = tvTourTitle != null ? tvTourTitle.getText().toString() : "";
             android.content.Intent intent = new android.content.Intent(requireContext(), DepartureActivity.class);
             intent.putExtra("tour_title", titleStr);
+            // Truyền tour_id và giá người lớn cho DepartureActivity
+            if (tour != null) {
+                intent.putExtra("tour_id", tour.getId());
+                intent.putExtra("adult_price", (long) tour.getDiscountPrice());
+            }
             startActivity(intent);
         };
 

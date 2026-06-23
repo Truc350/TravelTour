@@ -32,6 +32,9 @@ public class Booking {
     @ColumnInfo(name = "booking_date")
     private String bookingDate;
 
+    @ColumnInfo(name = "departure_hour")
+    private String departureHour;
+
     @ColumnInfo(name = "status")
     private String status; // "PENDING", "CONFIRMED", "CANCELLED"
 
@@ -58,6 +61,8 @@ public class Booking {
     public String getBookingDate() { return bookingDate; }
     public void setBookingDate(String bookingDate) { this.bookingDate = bookingDate; }
 
+    public String getDepartureHour() { return departureHour; }
+    public void setDepartureHour(String departureHour) { this.departureHour = departureHour; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 

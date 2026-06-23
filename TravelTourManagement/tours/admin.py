@@ -168,7 +168,7 @@ class TourDepartureAdmin(ImportExportModelAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'user', 'departure', 'booking_date', 'status', 'total_price')
+    list_display = ('id', 'user', 'departure', 'booking_date', 'departure_hour', 'status', 'total_price')
     list_filter = ('status', 'booking_date')
     search_fields = ('user__name', 'departure__tour__title')
     list_editable = ('status',)

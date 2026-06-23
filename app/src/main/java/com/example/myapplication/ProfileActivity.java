@@ -51,7 +51,6 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView tvDob, tvGender;
 
     private ImageView imgProfileAvatar;
-    private TextView tvInvoiceStatus;
     private static final int PICK_IMAGE_REQUEST = 1001;
 
     @Override
@@ -199,14 +198,6 @@ public class ProfileActivity extends AppCompatActivity {
             builder.show();
         });
 
-        // 5. Thông tin xuất hoá đơn điện tử
-        tvInvoiceStatus = findViewById(R.id.tv_invoice_status);
-        LinearLayout btnInvoice = findViewById(R.id.btn_invoice);
-        btnInvoice.setOnClickListener(v -> {
-            Intent intent = new Intent(this, EditInvoiceActivity.class);
-            startActivity(intent);
-        });
-
         // Khởi tạo views bổ sung và DatabaseHelper
         dbHelper = new DatabaseHelper(this);
         edtFullname = findViewById(R.id.edt_fullname);
@@ -251,12 +242,8 @@ public class ProfileActivity extends AppCompatActivity {
                     tvGender.setTextColor(0xFF333333);
                 }
 
-                // Tải ảnh đại diện
                 String avatarPath = userDetails.get("avatar");
                 loadAvatarImage(avatarPath, imgProfileAvatar);
-
-                // Hiển thị trạng thái hóa đơn điện tử
-                refreshInvoiceStatus(userDetails);
             }
         }
 
@@ -383,27 +370,8 @@ public class ProfileActivity extends AppCompatActivity {
         imageView.setPadding(padding, padding, padding, padding);
     }
 
-    private void refreshInvoiceStatus(Map<String, String> userDetails) {
-        if (userDetails != null && tvInvoiceStatus != null) {
-            String company = userDetails.get("invoice_company");
-            if (company != null && !company.isEmpty()) {
-                tvInvoiceStatus.setText("Đã cung cấp (" + company + ")");
-                tvInvoiceStatus.setTextColor(0xFF185FA5);
-            } else {
-                tvInvoiceStatus.setText("Chưa cung cấp");
-                tvInvoiceStatus.setTextColor(0xFF999999);
-            }
-        }
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
-        if (!currentContact.isEmpty() && dbHelper != null) {
-            Map<String, String> userDetails = dbHelper.getUserDetails(currentContact);
-            if (userDetails != null) {
-                refreshInvoiceStatus(userDetails);
-            }
-        }
     }
 }

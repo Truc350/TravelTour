@@ -2,6 +2,8 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -11,34 +13,60 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import com.example.myapplication.data.AppDatabase;
+import com.example.myapplication.data.model.TourDeparture;
 
-/**
- * Activity hiển thị lịch khởi hành, chọn số lượng hành khách và tính tổng giá tour.
- */
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 public class DepartureActivity extends AppCompatActivity {
 
     // ===== Số lượng mặc định =====
-    private int adultCount = 1;
-    private int childCount = 0;
-    private int infantCount = 1;
+    private int adultCount  = 1;
+    private int childCount  = 0;
+    private int infantCount = 0;
 
-    // Giá mỗi người lớn và trẻ nhỏ (VND)
-    private static final long ADULT_PRICE  = 5_490_000L;
-    private static final long INFANT_PRICE = 5_490_000L;
+    private long adultPrice  = 5_490_000L;
+    private long childPrice  = 0L;
+    private long infantPrice = 0L;
 
-    // Tên tour nhận từ Intent
+    // Dữ liệu tour
     private String tourTitle = "";
+    private int    tourId    = -1;
+    // Ngày đang chọn (hiển thị trên chip hoặc sau khi chọn từ Calendar)
+    private String selectedDateStr = ""; // "dd-MM-yyyy" hoặc "yyyy-MM-dd"
 
     // ===== Views =====
     private TextView tvAdultCount, tvChildCount, tvInfantCount, tvTotalPrice;
+    private TextView tvAdultPrice, tvChildPrice, tvInfantPrice;
     private TextView btnAdultMinus, btnAdultPlus;
     private TextView btnChildMinus, btnChildPlus;
     private TextView btnInfantMinus, btnInfantPlus;
+    private TextView tvSelectedDate;
+    private TextView tvSeatsLeft;
 
-    // Chips chọn ngày
+    // Chip containers (tối đa 3 ngày từ DB + "Tất cả")
     private LinearLayout chipDate1, chipDate2, chipDate3, chipDateAll;
     private TextView tvChipDate1, tvChipDate2, tvChipDate3, tvChipDateAll;
-    private int selectedChipIndex = 1; // Ngày 28-06 được chọn mặc định
+    // Danh sách ngày khởi hành lấy từ DB
+    private final List<String> departureDates = new ArrayList<>(); // "yyyy-MM-dd"
+    private final List<TourDeparture> departureList = new ArrayList<>();
+    private int selectedChipIndex = -1;
+    private String selectedTime = "";
+    private LinearLayout layoutTimeChips;
+    private static final String[] PROPOSED_TIMES = {"07:30", "09:00", "13:30", "15:00"};
+    private static final String[] CUSTOM_TIMES = {"08:00", "14:00"};
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private static final SimpleDateFormat DB_FORMAT   = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+    private static final SimpleDateFormat DISP_FORMAT = new SimpleDateFormat("EE, dd-MM", new Locale("vi", "VN"));
+    private static final SimpleDateFormat SHORT_FMT   = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,8 +76,14 @@ public class DepartureActivity extends AppCompatActivity {
 
         // Nhận dữ liệu tour từ Intent
         if (getIntent() != null) {
-            tourTitle = getIntent().getStringExtra("tour_title");
+            tourTitle  = getIntent().getStringExtra("tour_title");
+            tourId     = getIntent().getIntExtra("tour_id", -1);
+            long priceFromIntent = getIntent().getLongExtra("adult_price", 0L);
+            if (priceFromIntent > 0) adultPrice = priceFromIntent;
         }
+        if (tourTitle == null) tourTitle = "";
+        // Tính giá trẻ em và trẻ nhỏ
+        recalcChildInfantPrice();
 
         // Xử lý khoảng cách với thanh hệ thống
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -60,16 +94,36 @@ public class DepartureActivity extends AppCompatActivity {
 
         initViews();
         setupListeners();
+        updatePriceLabels();
         updateCounterUI();
-        selectChip(1); // Mặc định chọn ngày 28-06
 
-        // Cập nhật tên tour nếu có nhận được từ Intent
-        if (tourTitle != null && !tourTitle.isEmpty()) {
+        // Hiển thị tên tour
+        if (!tourTitle.isEmpty()) {
             TextView tvTourName = findViewById(R.id.tv_tour_name);
-            if (tvTourName != null) {
-                tvTourName.setText(tourTitle);
-            }
+            if (tvTourName != null) tvTourName.setText(tourTitle);
         }
+        // Lắng nghe kết quả từ CalendarBottomSheet khi người dùng chọn ngày "Tất cả"
+        getSupportFragmentManager().setFragmentResultListener(
+                "date_request", this,
+                (requestKey, result) -> {
+                    int day   = result.getInt("day");
+                    int month = result.getInt("month");
+                    int year  = result.getInt("year");
+                    // Tạo chuỗi ngày được chọn
+                    Calendar cal = Calendar.getInstance();
+                    cal.set(year, month, day);
+                    selectedDateStr = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, day);
+                    String display  = DISP_FORMAT.format(cal.getTime());
+                    // Bỏ chọn chip cố định
+                    selectedChipIndex = 3; // vẫn là chip "Tất cả" nhưng hiển thị ngày đã chọn
+                    tvChipDateAll.setText(display);
+                    populateTimeChips(CUSTOM_TIMES);
+                    clampPassengerCount();
+                    refreshChipUI();
+                    updateCounterUI();
+                });
+        // Load ngày khởi hành từ Room DB
+        loadDepartureDates();
     }
 
     // ===== Khởi tạo các View =====
@@ -79,6 +133,12 @@ public class DepartureActivity extends AppCompatActivity {
         tvInfantCount = findViewById(R.id.tv_infant_count);
         tvTotalPrice  = findViewById(R.id.tv_total_price);
 
+        tvAdultPrice  = findViewById(R.id.tv_adult_price);
+        tvChildPrice  = findViewById(R.id.tv_child_price);
+        tvInfantPrice = findViewById(R.id.tv_infant_price);
+        tvSelectedDate = findViewById(R.id.tv_selected_date);
+        tvSeatsLeft    = findViewById(R.id.tv_seats_left);
+        layoutTimeChips = findViewById(R.id.layout_time_chips);
         btnAdultMinus  = findViewById(R.id.btn_adult_minus);
         btnAdultPlus   = findViewById(R.id.btn_adult_plus);
         btnChildMinus  = findViewById(R.id.btn_child_minus);
@@ -106,68 +166,292 @@ public class DepartureActivity extends AppCompatActivity {
         btnAdultMinus.setOnClickListener(v -> {
             if (adultCount > 1) { adultCount--; updateCounterUI(); }
         });
-        btnAdultPlus.setOnClickListener(v -> { adultCount++; updateCounterUI(); });
+        btnAdultPlus.setOnClickListener(v -> {
+            int baseSeats = getAvailableSeatsForSelectedDate();
+            int totalSelected = adultCount + childCount;
+            if (totalSelected >= baseSeats) {
+                Toast.makeText(this, "Không thể đặt quá số chỗ còn nhận (" + baseSeats + " chỗ)!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            adultCount++;
+            updateCounterUI();
+        });
 
-        // Bộ đếm Trẻ em
+        // Bộ đếm Trẻ em (5-9t)
         btnChildMinus.setOnClickListener(v -> {
             if (childCount > 0) { childCount--; updateCounterUI(); }
         });
-        btnChildPlus.setOnClickListener(v -> { childCount++; updateCounterUI(); });
+        btnChildPlus.setOnClickListener(v -> {
+            int baseSeats = getAvailableSeatsForSelectedDate();
+            int totalSelected = adultCount + childCount;
+            if (totalSelected >= baseSeats) {
+                Toast.makeText(this, "Không thể đặt quá số chỗ còn nhận (" + baseSeats + " chỗ)!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            childCount++;
+            updateCounterUI();
+        });
 
-        // Bộ đếm Trẻ nhỏ
+        // Bộ đếm Trẻ nhỏ (<5t)
         btnInfantMinus.setOnClickListener(v -> {
             if (infantCount > 0) { infantCount--; updateCounterUI(); }
         });
-        btnInfantPlus.setOnClickListener(v -> { infantCount++; updateCounterUI(); });
+        btnInfantPlus.setOnClickListener(v -> {
+            if (infantCount >= 10) {
+                Toast.makeText(this, "Tối đa 10 trẻ nhỏ!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            infantCount++;
+            updateCounterUI();
+        });
 
         // Chips chọn ngày
         chipDate1.setOnClickListener(v -> selectChip(0));
         chipDate2.setOnClickListener(v -> selectChip(1));
         chipDate3.setOnClickListener(v -> selectChip(2));
-        chipDateAll.setOnClickListener(v -> selectChip(3));
+        // Chip "Tất cả" mở CalendarBottomSheet
+        chipDateAll.setOnClickListener(v -> {
+            Calendar today = Calendar.getInstance();
+            CalendarBottomSheet sheet = CalendarBottomSheet.newInstance(
+                    today.get(Calendar.DAY_OF_MONTH),
+                    today.get(Calendar.MONTH),
+                    today.get(Calendar.YEAR)
+            );
+            sheet.show(getSupportFragmentManager(), "CalendarSheet");
+        });
 
         // Nút Liên hệ tư vấn
         findViewById(R.id.btn_contact).setOnClickListener(v ->
                 Toast.makeText(this, "Đang kết nối tư vấn viên...", Toast.LENGTH_SHORT).show()
         );
 
-        // Nút Yêu cầu đặt tour (Mở màn hình thông tin đặt tour bước 2/3)
+        // Nút Đặt tour ngay
         findViewById(R.id.btn_book).setOnClickListener(v -> {
-            long total = adultCount * ADULT_PRICE + infantCount * INFANT_PRICE;
+            if (selectedDateStr.isEmpty()) {
+                Toast.makeText(this, "Vui lòng chọn ngày khởi hành!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (selectedTime.isEmpty()) {
+                Toast.makeText(this, "Vui lòng chọn giờ khởi hành!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            long total = calculateTotal();
             Intent intent = new Intent(this, BookingInfoActivity.class);
-            intent.putExtra("tour_title", tourTitle);
-            intent.putExtra("adult_count", adultCount);
-            intent.putExtra("child_count", childCount);
-            intent.putExtra("infant_count", infantCount);
-            intent.putExtra("total_price", total);
+            intent.putExtra("tour_title",    tourTitle);
+            intent.putExtra("tour_id",       tourId);
+            intent.putExtra("departure_date", selectedDateStr);
+            intent.putExtra("departure_time", selectedTime);
+            intent.putExtra("adult_count",   adultCount);
+            intent.putExtra("child_count",   childCount);
+            intent.putExtra("infant_count",  infantCount);
+            intent.putExtra("adult_price",   adultPrice);
+            intent.putExtra("child_price",   childPrice);
+            intent.putExtra("infant_price",  infantPrice);
+            intent.putExtra("total_price",   total);
             startActivity(intent);
         });
     }
-
-    /**
-     * Cập nhật hiển thị chip ngày được chọn (đổi màu nền và chữ).
-     */
+    private void loadDepartureDates() {
+        executor.execute(() -> {
+            List<TourDeparture> departures = new ArrayList<>();
+            if (tourId > 0) {
+                try {
+                    AppDatabase db = AppDatabase.getDatabase(getApplicationContext());
+                    List<TourDeparture> allDeps = db.tourDao().getDeparturesForTour(tourId);
+                    Date today = new Date();
+                    for (TourDeparture dep : allDeps) {
+                        try {
+                            Date depDate = DB_FORMAT.parse(dep.getDepartureDate());
+                            if (depDate != null && !depDate.before(today)) {
+                                departures.add(dep);
+                            }
+                        } catch (ParseException ignored) {}
+                    }
+                } catch (Exception ignored) {}
+            }
+            if (departures.isEmpty()) {
+                Calendar cal = Calendar.getInstance();
+                for (int i = 0; i < 3; i++) {
+                    String dateStr = DB_FORMAT.format(cal.getTime());
+                    departures.add(new TourDeparture(tourId, dateStr, 14, (double) adultPrice));
+                    cal.add(Calendar.DAY_OF_MONTH, 7);
+                }
+            }
+            // Giới hạn chỉ hiện tối đa 3 ngày trên chip
+            while (departures.size() > 3) departures.remove(departures.size() - 1);
+            mainHandler.post(() -> bindDepartureChips(departures));
+        });
+    }
+    private void bindDepartureChips(List<TourDeparture> departures) {
+        departureList.clear();
+        departureList.addAll(departures);
+        departureDates.clear();
+        for (TourDeparture dep : departures) {
+            departureDates.add(dep.getDepartureDate());
+        }
+        LinearLayout[] chips     = {chipDate1, chipDate2, chipDate3};
+        TextView[]     chipTexts = {tvChipDate1, tvChipDate2, tvChipDate3};
+        for (int i = 0; i < chips.length; i++) {
+            if (i < departureDates.size()) {
+                chips[i].setVisibility(android.view.View.VISIBLE);
+                String formatted = formatDateForChip(departureDates.get(i));
+                chipTexts[i].setText(formatted);
+            } else {
+                chips[i].setVisibility(android.view.View.GONE);
+            }
+        }
+        // Mặc định chọn chip đầu tiên nếu có
+        if (!departureDates.isEmpty()) {
+            selectChip(0);
+        }
+    }
+    private String formatDateForChip(String dbDate) {
+        try {
+            Date d = DB_FORMAT.parse(dbDate);
+            if (d != null) return DISP_FORMAT.format(d);
+        } catch (ParseException ignored) {}
+        return dbDate;
+    }
+    private int getAvailableSeatsForSelectedDate() {
+        if (selectedDateStr.isEmpty()) return 0;
+        String normalizedDate = selectedDateStr;
+        if (selectedDateStr.contains("-") && selectedDateStr.indexOf("-") == 2) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                Date date = sdf.parse(selectedDateStr);
+                if (date != null) {
+                    normalizedDate = DB_FORMAT.format(date);
+                }
+            } catch (ParseException ignored) {}
+        }
+        for (TourDeparture dep : departureList) {
+            if (dep.getDepartureDate().equals(normalizedDate)) {
+                return dep.getAvailableSeats();
+            }
+        }
+        return 14;
+    }
+    private void clampPassengerCount() {
+        int baseSeats = getAvailableSeatsForSelectedDate();
+        int totalSelected = adultCount + childCount;
+        if (totalSelected > baseSeats) {
+            while (adultCount + childCount > baseSeats) {
+                if (childCount > 0) {
+                    childCount--;
+                } else if (adultCount > 1) {
+                    adultCount--;
+                } else {
+                    adultCount = Math.max(0, baseSeats);
+                    break;
+                }
+            }
+            Toast.makeText(this, "Số chỗ trống tối đa cho ngày này là: " + baseSeats + " chỗ", Toast.LENGTH_SHORT).show();
+        }
+    }
     private void selectChip(int index) {
-        selectedChipIndex = index;
-
+        if (index >= 0 && index < departureDates.size()) {
+            selectedChipIndex = index;
+            selectedDateStr   = departureDates.get(index);
+            updateSelectedDateLabel();
+            populateTimeChips(PROPOSED_TIMES);
+        }
+        clampPassengerCount();
+        refreshChipUI();
+        updateCounterUI();
+    }
+    private void populateTimeChips(String[] times) {
+        if (layoutTimeChips == null) return;
+        layoutTimeChips.removeAllViews();
+        if (times.length > 0) {
+            selectedTime = times[0];
+        } else {
+            selectedTime = "";
+        }
+        for (int i = 0; i < times.length; i++) {
+            final String time = times[i];
+            final TextView tvChip = new TextView(this);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    dpToPx(40)
+            );
+            params.setMargins(0, 0, dpToPx(8), 0);
+            tvChip.setLayoutParams(params);
+            tvChip.setGravity(android.view.Gravity.CENTER);
+            tvChip.setPadding(dpToPx(16), 0, dpToPx(16), 0);
+            tvChip.setText(time);
+            tvChip.setTextSize(14);
+            boolean isSelected = time.equals(selectedTime);
+            tvChip.setBackgroundResource(isSelected 
+                    ? R.drawable.bg_chip_selected 
+                    : R.drawable.bg_chip_unselected);
+            tvChip.setTextColor(isSelected ? 0xFF185FA5 : 0xFF777777);
+            tvChip.setTypeface(null, isSelected ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+            tvChip.setClickable(true);
+            tvChip.setFocusable(true);
+            tvChip.setOnClickListener(v -> {
+                selectedTime = time;
+                for (int j = 0; j < layoutTimeChips.getChildCount(); j++) {
+                    TextView child = (TextView) layoutTimeChips.getChildAt(j);
+                    boolean sel = child.getText().toString().equals(selectedTime);
+                    child.setBackgroundResource(sel 
+                            ? R.drawable.bg_chip_selected 
+                            : R.drawable.bg_chip_unselected);
+                    child.setTextColor(sel ? 0xFF185FA5 : 0xFF777777);
+                    child.setTypeface(null, sel ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+                }
+            });
+            layoutTimeChips.addView(tvChip);
+        }
+    }
+    
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round((float) dp * density);
+    }
+    private void refreshChipUI() {
         LinearLayout[] chips     = {chipDate1, chipDate2, chipDate3, chipDateAll};
         TextView[]     chipTexts = {tvChipDate1, tvChipDate2, tvChipDate3, tvChipDateAll};
 
         for (int i = 0; i < chips.length; i++) {
             boolean isSelected = (i == selectedChipIndex);
-
             chips[i].setBackgroundResource(isSelected
                     ? R.drawable.bg_chip_selected
                     : R.drawable.bg_chip_unselected);
-
             chipTexts[i].setTextColor(isSelected
-                    ? 0xFF185FA5   // Xanh đậm khi chọn
-                    : 0xFF777777); // Xám khi chưa chọn
-
+                    ? 0xFF185FA5
+                    : 0xFF777777);
             chipTexts[i].setTypeface(null, isSelected
                     ? android.graphics.Typeface.BOLD
                     : android.graphics.Typeface.NORMAL);
         }
+    }
+    private void updateSelectedDateLabel() {
+        if (tvSelectedDate == null) return;
+        if (selectedDateStr.isEmpty()) {
+            tvSelectedDate.setText("Chưa chọn ngày khởi hành");
+            tvSelectedDate.setTextColor(0xFF999999);
+        } else {
+            try {
+                Date d = DB_FORMAT.parse(selectedDateStr);
+                String display = d != null ? SHORT_FMT.format(d) : selectedDateStr;
+                tvSelectedDate.setText("Ngày khởi hành: " + display);
+            } catch (ParseException e) {
+                tvSelectedDate.setText("Ngày khởi hành: " + selectedDateStr);
+            }
+            tvSelectedDate.setTextColor(0xFF185FA5);
+        }
+    }
+    private void recalcChildInfantPrice() {
+        childPrice  = adultPrice / 2;
+        infantPrice = 0L;
+    }
+    private void updatePriceLabels() {
+        if (tvAdultPrice  != null) tvAdultPrice.setText("x " + formatVnd(adultPrice));
+        if (tvChildPrice  != null) tvChildPrice.setText("x " + formatVnd(childPrice));
+        if (tvInfantPrice != null) tvInfantPrice.setText("Miễn phí");
+    }
+    private long calculateTotal() {
+        return adultCount * adultPrice + childCount * childPrice + infantCount * infantPrice;
     }
 
     /**
@@ -179,13 +463,21 @@ public class DepartureActivity extends AppCompatActivity {
         tvInfantCount.setText(String.valueOf(infantCount));
 
         // Nút trừ chỉ active khi count > giới hạn tối thiểu
-        setMinusActive(btnAdultMinus, adultCount > 1);
-        setMinusActive(btnChildMinus, childCount > 0);
+        setMinusActive(btnAdultMinus,  adultCount  > 1);
+        setMinusActive(btnChildMinus,  childCount  > 0);
         setMinusActive(btnInfantMinus, infantCount > 0);
 
-        // Tính và hiển thị tổng tiền (người lớn + trẻ nhỏ)
-        long total = adultCount * ADULT_PRICE + infantCount * INFANT_PRICE;
-        tvTotalPrice.setText(formatVnd(total));
+        // Tính và hiển thị tổng tiền real-time
+        tvTotalPrice.setText(formatVnd(calculateTotal()));
+        // Cập nhật nhãn ngày đang chọn
+        updateSelectedDateLabel();
+        // Hiển thị số chỗ còn nhận tương ứng sau khi giảm theo số khách đã chọn (không trừ trẻ nhỏ <5t)
+        int baseSeats = getAvailableSeatsForSelectedDate();
+        int totalSelected = adultCount + childCount;
+        int seatsLeft = Math.max(0, baseSeats - totalSelected);
+        if (tvSeatsLeft != null) {
+            tvSeatsLeft.setText("Còn nhận " + seatsLeft + " chỗ");
+        }
     }
 
     /**
@@ -214,5 +506,10 @@ public class DepartureActivity extends AppCompatActivity {
             }
         }
         return sb + "đ";
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executor.shutdown();
     }
 }
