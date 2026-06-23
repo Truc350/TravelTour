@@ -196,6 +196,81 @@
 
             </LinearLayout>
 
+            <!-- Voucher Section -->
+            <LinearLayout
+                android:id="@+id/layoutVoucherSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#F8FAFC"
+                android:orientation="vertical"
+                android:layout_marginTop="24dp"
+                android:paddingTop="20dp"
+                android:paddingBottom="20dp">
+
+                <!-- Header Row -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="20dp"
+                    android:layout_marginBottom="12dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@id/btnAllVouchers"
+                        android:layout_marginEnd="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Voucher Ưu Đãi Cực Hot"
+                            android:textColor="#333333"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Lưu voucher ngay, nhận ngàn ưu đãi"
+                            android:textColor="#777777"
+                            android:textSize="14sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:id="@+id/btnAllVouchers"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="@drawable/bg_circle_cyan"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_list"
+                            app:tint="#FFFFFF" />
+                    </FrameLayout>
+                </RelativeLayout>
+
+                <!-- Horizontal Scroll View for Vouchers -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvHomeVouchers"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:orientation="horizontal" />
+            </LinearLayout>
+
             <!-- Tour Discount Section -->
             <LinearLayout
                 android:id="@+id/layoutTourSection"
