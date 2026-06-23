@@ -8,6 +8,7 @@ import com.example.myapplication.data.model.Passenger;
 import com.example.myapplication.data.model.Favorite;
 import com.example.myapplication.data.model.BookingRequest;
 import com.example.myapplication.data.model.BookingResponse;
+import com.example.myapplication.data.model.VoucherHelper;
 
 import java.util.List;
 import java.util.Map;
@@ -78,4 +79,7 @@ public interface ApiService {
             @Query("month") int month,
             @Query("year") int year
     );
+
+    @GET("api/vouchers/")
+    Call<List<VoucherHelper.AppVoucher>> getVouchers();
 }

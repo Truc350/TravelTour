@@ -140,8 +140,7 @@ public class Home extends Fragment {
             currentContact = new DatabaseHelper(requireContext()).getLastUserContact();
         }
         final String finalUserContact = currentContact;
-
-        List<VoucherHelper.AppVoucher> availableVouchers = VoucherHelper.getAvailableVouchers();
+        final List<VoucherHelper.AppVoucher> availableVouchers = new ArrayList<>(VoucherHelper.getAvailableVouchers());
 
         // Build BottomSheet Dialog for all vouchers
         com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog = new com.google.android.material.bottomsheet.BottomSheetDialog(requireContext());
@@ -180,6 +179,8 @@ public class Home extends Fragment {
                 bottomSheetDialog.show();
             });
         }
+
+        loadVouchers(availableVouchers, voucherAdapter, detailAdapter);
 
         // --- Gọi API ---
         loadTours();
@@ -254,5 +255,35 @@ public class Home extends Fragment {
             getParentFragmentManager().beginTransaction()
                     .replace(R.id.contentFrame, detailFragment)
                     .addToBackStack(null).commit();
+    }
+
+    private void loadVouchers(final List<VoucherHelper.AppVoucher> availableVouchers,
+                              final HomeVoucherAdapter homeAdapter,
+                              final DetailVoucherAdapter detailAdapter) {
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        apiService.getVouchers().enqueue(new Callback<List<VoucherHelper.AppVoucher>>() {
+            @Override
+            public void onResponse(Call<List<VoucherHelper.AppVoucher>> call, Response<List<VoucherHelper.AppVoucher>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<VoucherHelper.AppVoucher> backendVouchers = response.body();
+                    Log.d("DJANGO_API", "Tải voucher thành công, số lượng = " + backendVouchers.size());
+                    if (!backendVouchers.isEmpty()) {
+                        availableVouchers.clear();
+                        availableVouchers.addAll(backendVouchers);
+                        if (homeAdapter != null) {
+                            homeAdapter.notifyDataSetChanged();
+                        }
+                        if (detailAdapter != null) {
+                            detailAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<VoucherHelper.AppVoucher>> call, Throwable t) {
+                Log.e("DJANGO_API", "Lỗi tải voucher từ API: " + t.getMessage());
+            }
+        });
     }
 }
