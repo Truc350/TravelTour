@@ -93,6 +93,21 @@ public class SearchOrigin extends Fragment {
                 @Override
                 public void afterTextChanged(Editable s) {}
             });
+
+            // Lắng nghe nút Tìm kiếm trên bàn phím (IME_ACTION_SEARCH)
+            etSearchOrigin.setOnEditorActionListener((v, actionId, event) -> {
+                if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                    String query = etSearchOrigin.getText().toString().trim();
+                    if (!query.isEmpty()) {
+                        Bundle result = new Bundle();
+                        result.putString("selected_origin", query);
+                        getParentFragmentManager().setFragmentResult("origin_request", result);
+                        getParentFragmentManager().popBackStack();
+                        return true;
+                    }
+                }
+                return false;
+            });
         }
 
         // Hiện danh sách mặc định ban đầu
@@ -107,6 +122,23 @@ public class SearchOrigin extends Fragment {
         containerOrigins.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(getContext());
         boolean hasMatches = false;
+
+        // Nếu người dùng gõ từ khóa mới, thêm mục tùy chỉnh lên đầu danh sách khởi hành
+        if (!query.isEmpty()) {
+            hasMatches = true;
+            View customItemView = inflater.inflate(R.layout.item_origin_search, containerOrigins, false);
+            TextView tvOriginName = customItemView.findViewById(R.id.tvOriginName);
+            if (tvOriginName != null) {
+                tvOriginName.setText(query);
+            }
+            customItemView.setOnClickListener(v -> {
+                Bundle result = new Bundle();
+                result.putString("selected_origin", query);
+                getParentFragmentManager().setFragmentResult("origin_request", result);
+                getParentFragmentManager().popBackStack();
+            });
+            containerOrigins.addView(customItemView);
+        }
 
         for (String originName : originList) {
             if (query.isEmpty() || originName.toLowerCase().contains(query.toLowerCase())) {

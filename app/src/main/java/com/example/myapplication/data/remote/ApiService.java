@@ -1,5 +1,7 @@
 package com.example.myapplication.data.remote;
 
+import android.app.DownloadManager;
+
 import com.example.myapplication.data.model.Tour;
 import com.example.myapplication.data.model.User;
 import com.example.myapplication.data.model.Passenger;
@@ -16,6 +18,7 @@ import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.PATCH;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ApiService {
 
@@ -57,4 +60,13 @@ public interface ApiService {
 
     @DELETE("api/favorites/{id}/")
     Call<Void> removeFavorite(@Path("id") int id);
+
+    @GET("api/tours/")
+    Call<List<Tour>> searchTours(
+            @Query("destination") String destination,
+            @Query("origin") String origin,
+            @Query("day") int day,
+            @Query("month") int month,
+            @Query("year") int year
+    );
 }
