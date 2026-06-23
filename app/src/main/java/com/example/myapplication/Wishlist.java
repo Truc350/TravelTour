@@ -138,16 +138,13 @@ public class Wishlist extends Fragment {
                                 if (getContext() == null || !isAdded()) return;
                                 if (response.isSuccessful() && response.body() != null) {
                                     List<Tour> allTours = response.body();
-                                    List<String> favoriteTourTypes = new ArrayList<>();
+                                    List<Tour> favoriteTours = new ArrayList<>();
                                     for (Tour tour : allTours) {
                                         if (userFavTourIds.contains(tour.getId())) {
-                                            String code = tour.getCode();
-                                            if (code != null) {
-                                                favoriteTourTypes.add(code.trim().toLowerCase());
-                                            }
+                                            favoriteTours.add(tour);
                                         }
                                     }
-                                    renderFavoritesList(inflater, favoriteTourTypes);
+                                    renderFavoritesList(inflater, favoriteTours);
                                 } else {
                                     layoutEmptyState.setVisibility(View.VISIBLE);
                                     scrollViewFavoriteList.setVisibility(View.GONE);
@@ -177,8 +174,34 @@ public class Wishlist extends Fragment {
         });
     }
 
-    private void renderFavoritesList(LayoutInflater inflater, List<String> favoriteTourTypes) {
-        if (favoriteTourTypes.isEmpty()) {
+    public static String getNormalizedTourType(String code, String title) {
+        if (code == null) return "taiwan";
+        String c = code.toLowerCase().trim();
+        if (c.contains("taiwan")) return "taiwan";
+        if (c.contains("singapore")) return "singapore";
+        if (c.contains("sapa")) return "sapa";
+        if (c.contains("halong")) return "halong";
+        if (c.contains("danang")) return "danang";
+        if (c.contains("nhatrang")) return "nhatrang";
+        if (c.contains("phuquoc")) return "phuquoc";
+        if (c.contains("mientay")) return "mientay";
+
+        if (title != null) {
+            String t = title.toLowerCase();
+            if (t.contains("đài loan") || t.contains("taiwan")) return "taiwan";
+            if (t.contains("singapore")) return "singapore";
+            if (t.contains("sapa")) return "sapa";
+            if (t.contains("hạ long") || t.contains("ha long")) return "halong";
+            if (t.contains("đà nẵng") || t.contains("da nang")) return "danang";
+            if (t.contains("nha trang")) return "nhatrang";
+            if (t.contains("phú quốc") || t.contains("phu quoc")) return "phuquoc";
+            if (t.contains("miền tây") || t.contains("mien tay")) return "mientay";
+        }
+        return c;
+    }
+
+    private void renderFavoritesList(LayoutInflater inflater, List<Tour> favoriteTours) {
+        if (favoriteTours.isEmpty()) {
             layoutEmptyState.setVisibility(View.VISIBLE);
             scrollViewFavoriteList.setVisibility(View.GONE);
         } else {
@@ -186,7 +209,9 @@ public class Wishlist extends Fragment {
             scrollViewFavoriteList.setVisibility(View.VISIBLE);
             favoriteContainer.removeAllViews();
 
-            for (String tourType : favoriteTourTypes) {
+            java.text.NumberFormat formatter = java.text.NumberFormat.getNumberInstance(new java.util.Locale("vi", "VN"));
+
+            for (Tour tour : favoriteTours) {
                 // Nạp tệp giao diện item_tour_card
                 View itemView = inflater.inflate(R.layout.item_tour_card, favoriteContainer, false);
 
@@ -198,71 +223,51 @@ public class Wishlist extends Fragment {
                 TextView tvNewPrice = itemView.findViewById(R.id.tvNewPrice);
                 TextView btnViewTour = itemView.findViewById(R.id.btnViewTour);
 
-                // Gán dữ liệu tương ứng theo tourType
-                int imageResId = R.drawable.img;
-                String ribbonBadge = "";
-                String title = "";
-                String oldPrice = "";
-                String newPrice = "";
+                String tourType = getNormalizedTourType(tour.getCode(), tour.getTitle());
 
-                if ("taiwan".equals(tourType)) {
-                    imageResId = R.drawable.img_taiwan_tour;
-                    ribbonBadge = "Bamboo Airways";
-                    title = "Tour Đài Loan 5N4Đ: HCM - Cao Hùng - Đài Trung - Đài Bắc - Đảo Hoà Bình";
-                    oldPrice = "15.500.000";
-                    newPrice = "14.390.000";
-                } else if ("singapore".equals(tourType)) {
+                // Gán dữ liệu tương ứng theo tourType
+                int imageResId = R.drawable.img_taiwan_tour;
+                if ("singapore".equals(tourType)) {
                     imageResId = R.drawable.img_singapore_tour;
-                    ribbonBadge = "Singapore Airlines";
-                    title = "Tour Singapore - Malaysia 5N4Đ: HCM - Singapore - Kuala Lumpur - Genting";
-                    oldPrice = "13.900.000";
-                    newPrice = "12.890.000";
                 } else if ("sapa".equals(tourType)) {
                     imageResId = R.drawable.img_sapa_tour;
-                    ribbonBadge = "Xe giường nằm cabin VIP";
-                    title = "Tour Sapa 3N2Đ: Hà Nội - Bản Cát Cát - Chinh Phục Đỉnh Fansipan";
-                    oldPrice = "3.790.000";
-                    newPrice = "3.290.000";
                 } else if ("halong".equals(tourType)) {
                     imageResId = R.drawable.img_halong_tour;
-                    ribbonBadge = "Du Thuyền 5 Sao cao cấp";
-                    title = "Tour Vịnh Hạ Long 2N1Đ: Nghỉ Dưỡng Trên Du Thuyền Sang Trọng";
-                    oldPrice = "2.990.000";
-                    newPrice = "2.590.000";
                 } else if ("danang".equals(tourType)) {
                     imageResId = R.drawable.img_danang_tour;
-                    ribbonBadge = "Vietnam Airlines";
-                    title = "Tour Đà Nẵng - Hội An - Bà Nà Hills 4N3Đ Trọn Gói Giá Tốt";
-                    oldPrice = "5.490.000";
-                    newPrice = "4.890.000";
                 } else if ("nhatrang".equals(tourType)) {
                     imageResId = R.drawable.img_nhatrang_tour;
-                    ribbonBadge = "VietJet Air";
-                    title = "Tour Nha Trang 3N2Đ: Khám Phá Vịnh San Hô - VinWonders Trọn Gói";
-                    oldPrice = "3.590.000";
-                    newPrice = "3.190.000";
                 } else if ("phuquoc".equals(tourType)) {
                     imageResId = R.drawable.img_phuquoc_tour;
-                    ribbonBadge = "Vietnam Airlines";
-                    title = "Tour Phú Quốc 3N2Đ: Khám Phá Địa Trung Hải - Grand World Trọn Gói";
-                    oldPrice = "5.190.000";
-                    newPrice = "4.590.000";
                 } else if ("mientay".equals(tourType)) {
                     imageResId = R.drawable.img_mientay_tour;
-                    ribbonBadge = "Xe du lịch đời mới";
-                    title = "Tour Miền Tây Sông Nước 2N1Đ: Mỹ Tho - Cần Thơ - Chợ Nổi Cái Răng";
-                    oldPrice = "2.190.000";
-                    newPrice = "1.890.000";
                 }
 
                 // Gán dữ liệu vào views
-                if (ivTourImage != null) ivTourImage.setImageResource(imageResId);
-                if (tvRibbonBadge != null) tvRibbonBadge.setText(ribbonBadge);
-                if (tvTourTitle != null) tvTourTitle.setText(title);
-                if (tvNewPrice != null) tvNewPrice.setText(newPrice);
+                if (ivTourImage != null) {
+                    String imageUrl = null;
+                    if (tour.getImages() != null && !tour.getImages().isEmpty()) {
+                        imageUrl = tour.getImages().get(0).getImageUrl();
+                    }
+                    if (imageUrl != null && !imageUrl.isEmpty()) {
+                        if (imageUrl.startsWith("/")) {
+                            imageUrl = "http://10.0.2.2:8000" + imageUrl;
+                        }
+                        com.bumptech.glide.Glide.with(this)
+                                .load(imageUrl)
+                                .placeholder(imageResId)
+                                .centerCrop()
+                                .into(ivTourImage);
+                    } else {
+                        ivTourImage.setImageResource(imageResId);
+                    }
+                }
+                if (tvRibbonBadge != null) tvRibbonBadge.setText(tour.getProvider());
+                if (tvTourTitle != null) tvTourTitle.setText(tour.getTitle());
+                if (tvNewPrice != null) tvNewPrice.setText(formatter.format(tour.getDiscountPrice()) + "đ");
                 
                 if (tvOldPrice != null) {
-                    tvOldPrice.setText(oldPrice);
+                    tvOldPrice.setText(formatter.format(tour.getOriginalPrice()));
                     // Áp dụng gạch ngang giá cũ
                     tvOldPrice.setPaintFlags(tvOldPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
                 }
@@ -271,6 +276,7 @@ public class Wishlist extends Fragment {
                 View.OnClickListener openDetailListener = v -> {
                     DetailTour detailFragment = new DetailTour();
                     Bundle args = new Bundle();
+                    args.putSerializable("tour_object", tour);
                     args.putString("tour_type", tourType);
                     detailFragment.setArguments(args);
 
