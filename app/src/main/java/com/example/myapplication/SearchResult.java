@@ -292,37 +292,115 @@ public class SearchResult extends Fragment {
      * Hiển thị bộ lọc tùy chọn dịch vụ thời gian thực
      */
     private void showFilterDialog() {
-        String[] options = {
-            "Tất cả dịch vụ",
-            "Hãng Vietjet Air",
-            "Hãng Vietnam Airlines",
-            "Hãng Bamboo Airways"
+        String[] filterTypes = {
+                "Lọc theo khoảng giá",
+                "Lọc theo hãng vận chuyển",
+                "Lọc theo số ngày",
+                "Xóa bộ lọc (hiển thị tất cả)"
         };
 
         new android.app.AlertDialog.Builder(requireContext())
-            .setTitle("Tùy chọn lọc")
-            .setItems(options, (dialog, which) -> {
-                if (which == 0) {
-                    fetchFilteredTours(destination, origin);
-                } else {
-                    String providerFilter = "";
-                    if (which == 1) providerFilter = "vietjet";
-                    if (which == 2) providerFilter = "vietnam";
-                    if (which == 3) providerFilter = "bamboo";
+                .setTitle("Tùy chọn lọc")
+                .setItems(filterTypes, (dialog, which) -> {
+                    if (which == 0) showPriceFilterDialog();
+                    else if (which == 1) showProviderFilterDialog();
+                    else if (which == 2) showDurationFilterDialog();
+                    else fetchFilteredTours(destination, origin);
+                })
+                .show();
+    }
+    private void showDurationFilterDialog() {
+        String[] durations = {
+                "Trong ngày (1 ngày)",
+                "2 ngày 1 đêm",
+                "3 ngày 2 đêm",
+                "4 ngày 3 đêm",
+                "5 ngày trở lên"
+        };
 
-                    final String finalFilter = providerFilter;
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Lọc theo số ngày")
+                .setItems(durations, (dialog, which) -> {
+                    String[] keywords = {"trong ngày", "2n1", "3n2", "4n3", "5n"};
+                    // Tìm theo title chứa keyword số ngày
+                    String[] titleKeywords;
+                    if (which == 0) titleKeywords = new String[]{"trong ngày", "1 ngày"};
+                    else if (which == 1) titleKeywords = new String[]{"2n1", "2 ngày 1"};
+                    else if (which == 2) titleKeywords = new String[]{"3n2", "3 ngày 2"};
+                    else if (which == 3) titleKeywords = new String[]{"4n3", "4 ngày 3"};
+                    else titleKeywords = new String[]{"5n4", "5 ngày", "6n", "7n"};
+
                     List<Tour> temp = new ArrayList<>();
                     for (Tour t : filteredList) {
-                        if (t.getProvider() != null && t.getProvider().toLowerCase().contains(finalFilter)) {
+                        if (t.getTitle() != null) {
+                            String lowerTitle = t.getTitle().toLowerCase();
+                            for (String kw : titleKeywords) {
+                                if (lowerTitle.contains(kw)) {
+                                    temp.add(t);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    filteredList = temp;
+                    displayTours();
+                })
+                .show();
+    }
+
+    private void showPriceFilterDialog() {
+        String[] priceRanges = {
+                "Dưới 2.000.000 VND",
+                "2.000.000 - 5.000.000 VND",
+                "5.000.000 - 10.000.000 VND",
+                "Trên 10.000.000 VND"
+        };
+
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Lọc theo khoảng giá")
+                .setItems(priceRanges, (dialog, which) -> {
+                    double minPrice = 0, maxPrice = Double.MAX_VALUE;
+                    if (which == 0) { minPrice = 0; maxPrice = 2_000_000; }
+                    else if (which == 1) { minPrice = 2_000_000; maxPrice = 5_000_000; }
+                    else if (which == 2) { minPrice = 5_000_000; maxPrice = 10_000_000; }
+                    else if (which == 3) { minPrice = 10_000_000; maxPrice = Double.MAX_VALUE; }
+
+                    final double fMin = minPrice, fMax = maxPrice;
+                    List<Tour> temp = new ArrayList<>();
+                    for (Tour t : filteredList) {
+                        double price = t.getDiscountPrice() > 0 ? t.getDiscountPrice() : t.getOriginalPrice();
+                        if (price >= fMin && price <= fMax) temp.add(t);
+                    }
+                    filteredList = temp;
+                    displayTours();
+                })
+                .show();
+    }
+    private void showProviderFilterDialog() {
+        String[] options = {
+                "Vietjet Air",
+                "Vietnam Airlines",
+                "Bamboo Airways",
+                "Nhà xe / Phương tiện khác"
+        };
+
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Lọc theo hãng vận chuyển")
+                .setItems(options, (dialog, which) -> {
+                    String[] keywords = {"vietjet", "vietnam airlines", "bamboo", "xe"};
+                    String keyword = keywords[which];
+                    List<Tour> temp = new ArrayList<>();
+                    for (Tour t : filteredList) {
+                        if (t.getProvider() != null && t.getProvider().toLowerCase().contains(keyword)) {
                             temp.add(t);
                         }
                     }
                     filteredList = temp;
                     displayTours();
-                }
-            })
-            .show();
+                })
+                .show();
     }
+
 
     @Override
     public void onStart() {
