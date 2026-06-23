@@ -45,6 +45,11 @@ public class SearchDestination extends Fragment {
             this.imageResId = imageResId;
         }
     }
+    private static final String PREFS_NAME = "search_history";
+    private static final String KEY_HISTORY = "history";
+    private static final int MAX_HISTORY = 10;
+    private static final int DEFAULT_SHOW = 3;
+    private boolean isShowingAllHistory = false;
 
     private List<DestinationItem> recentList = new ArrayList<>();
     private List<DestinationItem> hotList = new ArrayList<>();
@@ -158,6 +163,7 @@ public class SearchDestination extends Fragment {
                 if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
                     String query = etSearchDest.getText().toString().trim();
                     if (!query.isEmpty()) {
+                        saveSearchHistory(query);
                         Bundle result = new Bundle();
                         result.putString("selected_destination", query);
                         getParentFragmentManager().setFragmentResult("destination_request", result);
@@ -252,26 +258,100 @@ public class SearchDestination extends Fragment {
     }
 
     private void showDefaultSuggestions() {
-        if (getContext() == null || containerRecent == null || containerHot == null || containerSearchResults == null) return;
-        
+        if (getContext() == null || containerRecent == null || containerHot == null) return;
+
         containerRecent.removeAllViews();
         containerHot.removeAllViews();
-        containerSearchResults.removeAllViews();
-        
+        if (containerSearchResults != null) containerSearchResults.removeAllViews();
+
         LayoutInflater inflater = LayoutInflater.from(getContext());
 
-        if (layoutRecentSection != null) layoutRecentSection.setVisibility(View.VISIBLE);
-        if (layoutHotHeader != null) layoutHotHeader.setVisibility(View.VISIBLE);
-        if (containerHot != null) containerHot.setVisibility(View.VISIBLE);
         if (layoutSearchResultsSection != null) layoutSearchResultsSection.setVisibility(View.GONE);
         if (layoutNoResults != null) layoutNoResults.setVisibility(View.GONE);
+        if (layoutHotHeader != null) layoutHotHeader.setVisibility(View.VISIBLE);
+        if (containerHot != null) containerHot.setVisibility(View.VISIBLE);
 
-        for (DestinationItem item : recentList) {
-            addDestinationView(containerRecent, item, inflater);
+        // ✅ Hiển thị lịch sử tìm kiếm
+        List<String> history = getSearchHistory();
+        if (history.isEmpty()) {
+            if (layoutRecentSection != null) layoutRecentSection.setVisibility(View.GONE);
+        } else {
+            if (layoutRecentSection != null) layoutRecentSection.setVisibility(View.VISIBLE);
+
+            // Header "Gần đây" + nút Xóa
+            View recentHeader = inflater.inflate(R.layout.item_recent_header, containerRecent, false);
+            TextView tvClear = recentHeader != null ? recentHeader.findViewById(R.id.tvClearHistory) : null;
+            if (tvClear != null) {
+                tvClear.setOnClickListener(v -> {
+                    clearSearchHistory();
+                    showDefaultSuggestions();
+                });
+            }
+            if (recentHeader != null) containerRecent.addView(recentHeader);
+
+            // Hiện 3 cái gần nhất (hoặc tất cả nếu đang xem thêm)
+            int showCount = isShowingAllHistory ? Math.min(history.size(), MAX_HISTORY) : Math.min(history.size(), DEFAULT_SHOW);
+            for (int i = 0; i < showCount; i++) {
+                final String keyword = history.get(i);
+                addHistoryItemView(containerRecent, keyword, inflater);
+            }
+
+            // Nút "Xem thêm" nếu có hơn 3 lịch sử và chưa xem tất cả
+            if (history.size() > DEFAULT_SHOW && !isShowingAllHistory) {
+                View btnMore = inflater.inflate(R.layout.item_show_more, containerRecent, false);
+                TextView tvMore = btnMore != null ? btnMore.findViewById(R.id.tvShowMore) : null;
+                if (tvMore != null) {
+                    tvMore.setText("Xem thêm " + (history.size() - DEFAULT_SHOW) + " tìm kiếm");
+                    tvMore.setOnClickListener(v -> {
+                        isShowingAllHistory = true;
+                        showDefaultSuggestions();
+                    });
+                }
+                if (btnMore != null) containerRecent.addView(btnMore);
+            } else if (isShowingAllHistory && history.size() > DEFAULT_SHOW) {
+                // Nút "Thu gọn"
+                View btnLess = inflater.inflate(R.layout.item_show_more, containerRecent, false);
+                TextView tvLess = btnLess != null ? btnLess.findViewById(R.id.tvShowMore) : null;
+                if (tvLess != null) {
+                    tvLess.setText("Thu gọn");
+                    tvLess.setOnClickListener(v -> {
+                        isShowingAllHistory = false;
+                        showDefaultSuggestions();
+                    });
+                }
+                if (btnLess != null) containerRecent.addView(btnLess);
+            }
         }
+
         for (DestinationItem item : hotList) {
             addDestinationView(containerHot, item, inflater);
         }
+    }
+
+    private void addHistoryItemView(LinearLayout container, String keyword, LayoutInflater inflater) {
+        View itemView = inflater.inflate(R.layout.item_destination_search, container, false);
+        ImageView ivThumb = itemView.findViewById(R.id.ivDestThumb);
+        TextView tvName = itemView.findViewById(R.id.tvDestName);
+        TextView tvCount = itemView.findViewById(R.id.tvDestToursCount);
+
+        if (ivThumb != null) {
+            ivThumb.setImageResource(android.R.drawable.ic_menu_recent_history);
+            ivThumb.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            int padding = (int) (12 * getResources().getDisplayMetrics().density);
+            ivThumb.setPadding(padding, padding, padding, padding);
+        }
+        if (tvName != null) tvName.setText(keyword);
+        if (tvCount != null) tvCount.setText("Tìm kiếm gần đây");
+
+        itemView.setOnClickListener(v -> {
+            saveSearchHistory(keyword);
+            Bundle result = new Bundle();
+            result.putString("selected_destination", keyword);
+            getParentFragmentManager().setFragmentResult("destination_request", result);
+            getParentFragmentManager().popBackStack();
+        });
+
+        container.addView(itemView);
     }
 
     private void displaySearchResults(List<Tour> results, String query) {
@@ -311,6 +391,7 @@ public class SearchDestination extends Fragment {
             if (tvHeaderToursCount != null) tvHeaderToursCount.setText(toursList.size() + " Tours");
 
             headerView.setOnClickListener(v -> {
+                saveSearchHistory(query);
                 Bundle resultBundle = new Bundle();
                 resultBundle.putString("selected_destination", destName);
                 getParentFragmentManager().setFragmentResult("destination_request", resultBundle);
@@ -325,6 +406,7 @@ public class SearchDestination extends Fragment {
                 if (tvTourRowTitle != null) tvTourRowTitle.setText(tour.getTitle());
 
                 tourView.setOnClickListener(v -> {
+                    saveSearchHistory(query);
                     Bundle resultBundle = new Bundle();
                     resultBundle.putString("selected_destination", tour.getTitle());
                     getParentFragmentManager().setFragmentResult("destination_request", resultBundle);
@@ -355,6 +437,7 @@ public class SearchDestination extends Fragment {
 
         // Bấm chọn địa điểm: gửi kết quả và quay lại Home Fragment
         itemView.setOnClickListener(v -> {
+            saveSearchHistory(item.name);
             Bundle result = new Bundle();
             result.putString("selected_destination", item.name);
             getParentFragmentManager().setFragmentResult("destination_request", result);
@@ -369,7 +452,6 @@ public class SearchDestination extends Fragment {
 
         containerRecent.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(getContext());
-
         if (layoutRecentSection != null) layoutRecentSection.setVisibility(View.VISIBLE);
         if (layoutHotHeader != null) layoutHotHeader.setVisibility(View.GONE);
         if (containerHot != null) containerHot.setVisibility(View.GONE);
@@ -395,6 +477,7 @@ public class SearchDestination extends Fragment {
         }
 
         itemView.setOnClickListener(v -> {
+            saveSearchHistory(query);
             Bundle result = new Bundle();
             result.putString("selected_destination", query);
             getParentFragmentManager().setFragmentResult("destination_request", result);
@@ -413,6 +496,8 @@ public class SearchDestination extends Fragment {
                 if (layoutNoResults != null)
                     layoutNoResults.setVisibility(View.GONE);
             } else {
+                if (layoutRecentSection != null)
+                    layoutRecentSection.setVisibility(View.VISIBLE);
                 if (layoutSearchResultsSection != null)
                     layoutSearchResultsSection.setVisibility(View.VISIBLE);
                 if (layoutNoResults != null)
@@ -444,5 +529,42 @@ public class SearchDestination extends Fragment {
                 nav.setVisibility(View.VISIBLE);
             }
         }
+    }
+    private List<String> getSearchHistory() {
+        if (getContext() == null) return new ArrayList<>();
+        android.content.SharedPreferences prefs = getContext()
+                .getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE);
+        String json = prefs.getString(KEY_HISTORY, "");
+        List<String> list = new ArrayList<>();
+        if (!json.isEmpty()) {
+            try {
+                org.json.JSONArray arr = new org.json.JSONArray(json);
+                for (int i = 0; i < arr.length(); i++) {
+                    list.add(arr.getString(i));
+                }
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+        return list;
+    }
+
+    private void saveSearchHistory(String query) {
+        if (getContext() == null || query.trim().isEmpty()) return;
+        List<String> history = getSearchHistory();
+        history.remove(query); // xóa nếu đã có để tránh trùng
+        history.add(0, query); // thêm vào đầu
+        if (history.size() > MAX_HISTORY) {
+            history = history.subList(0, MAX_HISTORY);
+        }
+        try {
+            org.json.JSONArray arr = new org.json.JSONArray(history);
+            getContext().getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
+                    .edit().putString(KEY_HISTORY, arr.toString()).apply();
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void clearSearchHistory() {
+        if (getContext() == null) return;
+        getContext().getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
+                .edit().remove(KEY_HISTORY).apply();
     }
 }
