@@ -9,14 +9,23 @@ import java.util.List;
 public class VoucherHelper {
 
     public static class AppVoucher {
+        @com.google.gson.annotations.SerializedName("code")
         public String code;
+        @com.google.gson.annotations.SerializedName("title")
         public String title;
+        @com.google.gson.annotations.SerializedName("discount_val")
         public String discountVal;
+        @com.google.gson.annotations.SerializedName("discount_label")
         public String discountLabel;
+        @com.google.gson.annotations.SerializedName("description")
         public String desc;
+        @com.google.gson.annotations.SerializedName("expiry")
         public String expiry;
+        @com.google.gson.annotations.SerializedName("status")
         public String status; // e.g., "Còn hiệu lực", "Sắp hết hạn"
+        @com.google.gson.annotations.SerializedName("remaining_count")
         public int remainingCount;
+        @com.google.gson.annotations.SerializedName("color_hex")
         public String colorHex;
 
         public AppVoucher(String code, String title, String discountVal, String discountLabel, String desc, String expiry, String status, int remainingCount, String colorHex) {

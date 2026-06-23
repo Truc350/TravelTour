@@ -147,4 +147,22 @@ class TourItinerary(models.Model):
         db_table = 'tour_itineraries'
 
     def __str__(self):
-        return f"Day {self.day_number}: {self.title}"
+        return f"Day {self.day_number}: {self.title}"
+
+
+class Voucher(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    title = models.CharField(max_length=255)
+    discount_val = models.CharField(max_length=50)
+    discount_label = models.CharField(max_length=50)
+    description = models.TextField()
+    expiry = models.CharField(max_length=100)
+    status = models.CharField(max_length=50, default="Còn hiệu lực")
+    remaining_count = models.IntegerField(default=100)
+    color_hex = models.CharField(max_length=10, default="#319795")
+
+    class Meta:
+        db_table = 'vouchers'
+
+    def __str__(self):
+        return f"{self.title} ({self.code})"

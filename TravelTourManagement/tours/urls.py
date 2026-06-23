@@ -17,6 +17,7 @@ from .views import (
     TourImageRetrieveUpdateDestroyAPIView,
     TourItineraryListCreateAPIView,
     TourItineraryRetrieveUpdateDestroyAPIView,
+    VoucherListAPIView,
 )
 
 urlpatterns = [
@@ -37,4 +38,5 @@ urlpatterns = [
     path('tour-images/<int:pk>/', TourImageRetrieveUpdateDestroyAPIView.as_view(), name='tourimage-detail'),
     path('tour-itineraries/', TourItineraryListCreateAPIView.as_view(), name='touritinerary-list-create'),
     path('tour-itineraries/<int:pk>/', TourItineraryRetrieveUpdateDestroyAPIView.as_view(), name='touritinerary-detail'),
+    path('vouchers/', VoucherListAPIView.as_view(), name='voucher-list'),
 ]
