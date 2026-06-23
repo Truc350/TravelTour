@@ -36,29 +36,6 @@
             android:textSize="17sp"
             android:textStyle="bold" />
 
-        <!-- Bộ đếm trang: 2 / 3 -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="16dp"
-            android:orientation="horizontal">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="2"
-                android:textColor="#00ACC1"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" / 3"
-                android:textColor="#6C757D"
-                android:textSize="14sp" />
-        </LinearLayout>
-
         <!-- Divider bottom -->
         <View
             android:layout_width="match_parent"
@@ -228,7 +205,7 @@
             <EditText
                 android:id="@+id/et_other_requests"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
+                android:layout_height="60dp"
                 android:background="@drawable/bg_edittext_border"
                 android:textColor="#212529"
                 android:textSize="14sp"
@@ -293,26 +270,14 @@
                 android:gravity="center_vertical"
                 android:paddingHorizontal="4dp">
 
-                <TextView
-                    android:layout_width="0dp"
+                <CheckBox
+                    android:id="@+id/cb_request_invoice"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:text="Xuất hóa đơn"
                     android:textColor="#212529"
                     android:textSize="15sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tv_request_invoice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Yêu cầu >"
-                    android:textColor="#6C757D"
-                    android:textSize="14sp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?android:attr/selectableItemBackground"
-                    android:padding="4dp" />
             </LinearLayout>
 
             <View
@@ -366,7 +331,7 @@
             android:layout_height="48dp"
             android:layout_weight="1.5"
             android:background="@drawable/bg_button_orange"
-            android:text="Đặt ngay"
+            android:text="Yêu cầu đặt tour"
             android:textColor="#FFFFFF"
             android:textSize="15sp"
             android:textStyle="bold"

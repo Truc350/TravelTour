@@ -34,6 +34,7 @@ public class PaymentActivity extends AppCompatActivity {
     private int totalGuests = 1;
     private long totalPrice = 0;
     private String orderId = "";
+    private String departureTime = "";
     private boolean isInvoiceRequested = false;
 
     @Override
@@ -59,6 +60,7 @@ public class PaymentActivity extends AppCompatActivity {
             totalGuests = adult + child + infant;
             totalPrice = intent.getLongExtra("total_price", 10980000L);
             isInvoiceRequested = intent.getBooleanExtra("is_invoice_requested", false);
+            departureTime = intent.getStringExtra("departure_time");
         }
 
         // Tạo mã đơn hàng ngẫu nhiên để tăng tính thực tế (hoặc dùng mã mẫu DL0091642)
@@ -130,7 +132,11 @@ public class PaymentActivity extends AppCompatActivity {
         btnConfirmPayment.setText("Xác nhận thanh toán " + formattedPrice);
 
         // Hiển thị số lượng khách
-        tvPassengerCountSummary.setText("Tour Trọn Gói • " + totalGuests + " khách");
+        if (departureTime != null && !departureTime.isEmpty()) {
+            tvPassengerCountSummary.setText("Tour Trọn Gói • " + totalGuests + " khách • " + departureTime);
+        } else {
+            tvPassengerCountSummary.setText("Tour Trọn Gói • " + totalGuests + " khách");
+        }
 
         // Tính và hiển thị thời hạn thanh toán (24 giờ kể từ thời điểm hiện tại)
         Calendar cal = Calendar.getInstance();

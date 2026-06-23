@@ -67,6 +67,7 @@ class Booking(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings')
     departure = models.ForeignKey(TourDeparture, on_delete=models.RESTRICT, related_name='bookings')
     booking_date = models.CharField(max_length=255)
+    departure_hour = models.CharField(max_length=50, blank=True, null=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='PENDING')
     total_price = models.DecimalField(max_digits=12, decimal_places=2)
 

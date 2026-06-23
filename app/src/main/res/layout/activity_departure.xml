@@ -22,6 +22,7 @@
             android:layout_centerVertical="true"
             android:layout_marginStart="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_arrow_left_dark"
             android:contentDescription="Quay lại"
             android:padding="12dp" />
 
@@ -34,17 +35,6 @@
             android:textSize="17sp"
             android:textStyle="bold" />
 
-        <!-- Bộ đếm trang: 1 / 3 -->
-        <TextView
-            android:id="@+id/tv_page_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="16dp"
-            android:text="1 / 3"
-            android:textColor="#6C757D"
-            android:textSize="14sp" />
 
         <!-- Divider bottom -->
         <View
@@ -185,6 +175,34 @@
                         android:layout_marginTop="2dp" />
                 </LinearLayout>
             </LinearLayout>
+            <TextView
+                android:id="@+id/tv_selected_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Chưa chọn ngày khởi hành"
+                android:textColor="#999999"
+                android:textSize="13sp"
+                android:layout_marginBottom="14dp" />
+            <!-- Chọn giờ khởi hành -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Giờ khởi hành:"
+                android:textColor="#212529"
+                android:textSize="14sp"
+                android:layout_marginBottom="10dp" />
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:layout_marginBottom="20dp">
+                <LinearLayout
+                    android:id="@+id/layout_time_chips"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                </LinearLayout>
+            </HorizontalScrollView>
 
             <!-- Divider -->
             <View
@@ -217,7 +235,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="> 10 tuổi"
+                        android:text="Từ 10 tuổi"
                         android:textColor="#6C757D"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -304,11 +322,14 @@
                         android:textSize="12sp" />
                 </LinearLayout>
 
-                <!-- Spacer thay cho giá (trẻ em miễn phí / không hiện) -->
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1" />
+                <TextView
+                    android:id="@+id/tv_child_price"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="x 0đ"
+                    android:textColor="#6C757D"
+                    android:textSize="13sp"
+                    android:layout_marginEnd="12dp" />
 
                 <TextView
                     android:id="@+id/btn_child_minus"
@@ -384,9 +405,10 @@
                     android:id="@+id/tv_infant_price"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="x 5.490.000"
-                    android:textColor="#6C757D"
+                    android:text="Miễn phí"
+                    android:textColor="#4CAF50"
                     android:textSize="13sp"
+                    android:textStyle="bold"
                     android:layout_marginEnd="12dp" />
 
                 <TextView
@@ -431,14 +453,7 @@
                 android:background="#E9ECEF"
                 android:layout_marginBottom="14dp" />
 
-            <!-- Tích lũy điểm iVIVU -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tích lũy thêm 109 điểm iVIVU"
-                android:textColor="#185FA5"
-                android:textSize="13sp"
-                android:layout_marginBottom="10dp" />
+
 
             <!-- Còn nhận chỗ -->
             <LinearLayout

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,7 +24,8 @@ import androidx.annotation.Nullable;
 public class BookingInfoActivity extends AppCompatActivity {
 
     private EditText etFullName, etPhone, etEmail, etOtherRequests;
-    private TextView tvPassengerSummary, tvPriceSummary, tvRequestInvoice;
+    private TextView tvPassengerSummary, tvPriceSummary;
+    private CheckBox cbRequestInvoice;
     private Button btnSubmitBooking;
 
     private String tourTitle = "";
@@ -33,8 +35,8 @@ public class BookingInfoActivity extends AppCompatActivity {
     private long totalPrice = 0;
     private long discountAmount = 0;
 
+    private String departureTime = "";
     private boolean isInvoiceRequested = false;
-    private static final int REQUEST_CODE_EDIT_INVOICE = 1002;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +59,7 @@ public class BookingInfoActivity extends AppCompatActivity {
             childCount = intent.getIntExtra("child_count", 0);
             infantCount = intent.getIntExtra("infant_count", 0);
             totalPrice = intent.getLongExtra("total_price", 5490000L);
+            departureTime = intent.getStringExtra("departure_time");
         }
 
         initViews();
@@ -72,7 +75,7 @@ public class BookingInfoActivity extends AppCompatActivity {
 
         tvPassengerSummary = findViewById(R.id.tv_passenger_summary);
         tvPriceSummary = findViewById(R.id.tv_price_summary);
-        tvRequestInvoice = findViewById(R.id.tv_request_invoice);
+        cbRequestInvoice = findViewById(R.id.cb_request_invoice);
         btnSubmitBooking = findViewById(R.id.btn_submit_booking);
     }
 
@@ -83,13 +86,7 @@ public class BookingInfoActivity extends AppCompatActivity {
         // Nhập mã giảm giá
         findViewById(R.id.row_promo_code).setOnClickListener(v -> showPromoCodeDialog());
 
-        // Yêu cầu xuất hóa đơn
-        tvRequestInvoice.setOnClickListener(v -> {
-            Intent intent = new Intent(this, EditInvoiceActivity.class);
-            startActivityForResult(intent, REQUEST_CODE_EDIT_INVOICE);
-        });
-
-        // Nút Đặt ngay
+        // Nút Yêu cầu đặt tour
         btnSubmitBooking.setOnClickListener(v -> submitBooking());
     }
 
@@ -170,26 +167,35 @@ public class BookingInfoActivity extends AppCompatActivity {
             return;
         }
 
-        // Mở màn hình Chọn phương thức thanh toán (Bước 3/3)
-        long finalPrice = Math.max(0, totalPrice - discountAmount);
-        Intent intent = new Intent(this, PaymentActivity.class);
-        intent.putExtra("tour_title", tourTitle);
-        intent.putExtra("adult_count", adultCount);
-        intent.putExtra("child_count", childCount);
-        intent.putExtra("infant_count", infantCount);
-        intent.putExtra("total_price", finalPrice);
-        intent.putExtra("is_invoice_requested", isInvoiceRequested);
-        startActivity(intent);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_EDIT_INVOICE && resultCode == RESULT_OK) {
-            isInvoiceRequested = true;
-            tvRequestInvoice.setText("Đã yêu cầu ✓");
-            tvRequestInvoice.setTextColor(0xFF4CAF50);
+        // Ghi nhận yêu cầu xuất hóa đơn
+        if (cbRequestInvoice != null) {
+            isInvoiceRequested = cbRequestInvoice.isChecked();
         }
+        // Tạo chuyến đi và đẩy vào Sắp tới (MyTripsFragment)
+        long finalPrice = Math.max(0, totalPrice - discountAmount);
+        String mockDate = "09/09";
+        BookedTripAdapter.TripItem newTrip = new BookedTripAdapter.TripItem(
+                "REQ-" + (System.currentTimeMillis() % 10000),
+                tourTitle,
+                "Chờ duyệt",
+                departureTime != null && !departureTime.isEmpty() ? departureTime : "08:00",
+                "Dự kiến",
+                "Điểm đi",
+                "Điểm đến",
+                adultCount + " người lớn" + (childCount > 0 ? ", " + childCount + " trẻ em" : ""),
+                formatVnd(finalPrice),
+                mockDate,
+                false,
+                "tour"
+        );
+        MyTripsFragment.additionalTrips.add(newTrip);
+        Toast.makeText(this, "Yêu cầu đặt tour thành công, đang chờ duyệt!", Toast.LENGTH_LONG).show();
+        // Chuyển về màn hình chính và mở tab Chuyến đi
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra("navigate_to", "MyTrips");
+        startActivity(intent);
+        finish();
     }
 
     private String formatVnd(long price) {
