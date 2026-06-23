@@ -205,7 +205,12 @@ public class DetailTour extends Fragment {
                     
                     // Lấy ảnh tương ứng từ danh sách ảnh của Tour
                     if (ivDayImage != null && tour.getImages() != null && !tour.getImages().isEmpty()) {
-                        int imgIndex = (itinerary.getDayNumber() - 1) % tour.getImages().size();
+                        int size = tour.getImages().size();
+                        int dayNum = itinerary.getDayNumber();
+                        int imgIndex = (dayNum - 1) % size;
+                        if (imgIndex < 0) {
+                            imgIndex = 0;
+                        }
                         String dayImageUrl = tour.getImages().get(imgIndex).getImageUrl();
                         if (dayImageUrl != null && !dayImageUrl.isEmpty()) {
                             if (dayImageUrl.startsWith("/")) {
