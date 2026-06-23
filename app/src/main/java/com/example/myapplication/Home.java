@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myapplication.data.model.Tour;
+import com.example.myapplication.data.model.VoucherHelper;
 import com.example.myapplication.data.remote.ApiService;
 import com.example.myapplication.data.remote.RetrofitClient;
 
@@ -33,6 +34,7 @@ public class Home extends Fragment {
     private int selectedYear = 2026;
 
     private TourAdapter adapterUuDai, adapterMienBac, adapterMienTrung, adapterMienNam;
+    private HomeVoucherAdapter voucherAdapter;
 
     @Nullable
     @Override
@@ -130,13 +132,62 @@ public class Home extends Fragment {
         setupRecyclerView(rvMienTrung, adapterMienTrung);
         setupRecyclerView(rvMienNam, adapterMienNam);
 
+        // --- Setup Voucher Section ---
+        RecyclerView rvHomeVouchers = view.findViewById(R.id.rvHomeVouchers);
+        android.content.SharedPreferences sessionPrefs = requireContext().getSharedPreferences("UserSession", android.content.Context.MODE_PRIVATE);
+        String currentContact = sessionPrefs.getString("current_user_contact", "");
+        if (currentContact.isEmpty()) {
+            currentContact = new DatabaseHelper(requireContext()).getLastUserContact();
+        }
+        final String finalUserContact = currentContact;
+
+        List<VoucherHelper.AppVoucher> availableVouchers = VoucherHelper.getAvailableVouchers();
+
+        // Build BottomSheet Dialog for all vouchers
+        com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog = new com.google.android.material.bottomsheet.BottomSheetDialog(requireContext());
+        View sheetView = getLayoutInflater().inflate(R.layout.dialog_all_vouchers_bottom_sheet, null);
+        bottomSheetDialog.setContentView(sheetView);
+
+        RecyclerView rvAllVouchers = sheetView.findViewById(R.id.rvAllVouchers);
+        rvAllVouchers.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+
+        // Shared change listener to update both RecyclerViews when a voucher is saved
+        HomeVoucherAdapter.OnVoucherSavedListener voucherSaveListener = new HomeVoucherAdapter.OnVoucherSavedListener() {
+            @Override
+            public void onVoucherSaved(String code) {
+                if (voucherAdapter != null) {
+                    voucherAdapter.notifyDataSetChanged();
+                }
+                if (rvAllVouchers.getAdapter() != null) {
+                    rvAllVouchers.getAdapter().notifyDataSetChanged();
+                }
+            }
+        };
+
+        voucherAdapter = new HomeVoucherAdapter(availableVouchers, finalUserContact, voucherSaveListener);
+        setupRecyclerView(rvHomeVouchers, voucherAdapter);
+
+        DetailVoucherAdapter detailAdapter = new DetailVoucherAdapter(availableVouchers, finalUserContact, voucherSaveListener);
+        rvAllVouchers.setAdapter(detailAdapter);
+
+        sheetView.findViewById(R.id.btnCloseBottomSheet).setOnClickListener(v -> bottomSheetDialog.dismiss());
+
+        View btnAllVouchers = view.findViewById(R.id.btnAllVouchers);
+        if (btnAllVouchers != null) {
+            btnAllVouchers.setOnClickListener(v -> {
+                if (voucherAdapter != null) voucherAdapter.notifyDataSetChanged();
+                detailAdapter.notifyDataSetChanged();
+                bottomSheetDialog.show();
+            });
+        }
+
         // --- Gọi API ---
         loadTours();
 
         return view;
     }
 
-    private void setupRecyclerView(RecyclerView rv, TourAdapter adapter) {
+    private void setupRecyclerView(RecyclerView rv, RecyclerView.Adapter<?> adapter) {
         if (rv == null) return;
         rv.setLayoutManager(new LinearLayoutManager(getContext(),
                 LinearLayoutManager.HORIZONTAL, false));
