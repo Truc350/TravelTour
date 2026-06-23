@@ -6,6 +6,8 @@ import com.example.myapplication.data.model.Tour;
 import com.example.myapplication.data.model.User;
 import com.example.myapplication.data.model.Passenger;
 import com.example.myapplication.data.model.Favorite;
+import com.example.myapplication.data.model.BookingRequest;
+import com.example.myapplication.data.model.BookingResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,13 @@ public interface ApiService {
 
     @GET("api/tours/")
     Call<List<Tour>> getTours();
+
+    // Bookings CRUD
+    @GET("api/bookings/")
+    Call<List<BookingResponse>> getBookings();
+
+    @POST("api/bookings/")
+    Call<BookingResponse> createBooking(@Body BookingRequest bookingRequest);
 
     // User authentication & registration
     @GET("api/users/")

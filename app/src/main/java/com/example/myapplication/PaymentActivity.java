@@ -31,6 +31,8 @@ import android.os.Looper;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import com.bumptech.glide.Glide;
+import com.example.myapplication.data.remote.ApiService;
+import com.example.myapplication.data.remote.RetrofitClient;
 
 /**
  * Activity bước 3/3: Chọn phương thức thanh toán và xác nhận đơn hàng.
@@ -45,6 +47,8 @@ public class PaymentActivity extends AppCompatActivity {
     private RadioButton rbPayQr, rbPayCard, rbPayMomo, rbPayAtm;
 
     private String tourTitle = "";
+    private int tourId = -1;
+    private int departureId = -1;
     private int totalGuests = 1;
     private long totalPrice = 0;
     private String orderId = "";
@@ -75,6 +79,8 @@ public class PaymentActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent != null) {
             tourTitle = intent.getStringExtra("tour_title");
+            tourId = intent.getIntExtra("tour_id", -1);
+            departureId = intent.getIntExtra("departure_id", -1);
             adultCount = intent.getIntExtra("adult_count", 1);
             childCount = intent.getIntExtra("child_count", 0);
             infantCount = intent.getIntExtra("infant_count", 0);
@@ -350,8 +356,39 @@ public class PaymentActivity extends AppCompatActivity {
     }
 
     private void onPaymentSuccess() {
-        // Tạo chuyến đi mới
-        String mockDate = "09/09";
+        // Gọi API tạo Booking mới trên Django Backend
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+        int currentUserId = prefs.getInt("current_user_id", 1); // mặc định user 1 (Ngọc Quyên)
+        int depId = departureId > 0 ? departureId : 1; // mặc định departure 1 nếu chưa được gán chính xác
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
+        String currentDate = sdf.format(new java.util.Date());
+
+        com.example.myapplication.data.model.BookingRequest request = new com.example.myapplication.data.model.BookingRequest(
+                currentUserId,
+                depId,
+                currentDate,
+                departureTime != null && !departureTime.isEmpty() ? departureTime : "08:00",
+                "CONFIRMED", // đã xác nhận/đã thanh toán
+                totalPrice
+        );
+
+        apiService.createBooking(request).enqueue(new retrofit2.Callback<com.example.myapplication.data.model.BookingResponse>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.example.myapplication.data.model.BookingResponse> call, retrofit2.Response<com.example.myapplication.data.model.BookingResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    android.util.Log.d("DJANGO_API", "Tạo booking thành công trên server! ID = " + response.body().id);
+                } else {
+                    android.util.Log.e("DJANGO_API", "Không thể tạo booking trên server! Code = " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.example.myapplication.data.model.BookingResponse> call, Throwable t) {
+                android.util.Log.e("DJANGO_API", "Lỗi kết nối khi tạo booking: " + t.getMessage(), t);
+            }
+        });
+
         BookedTripAdapter.TripItem newTrip = new BookedTripAdapter.TripItem(
                 orderId,
                 tourTitle,
@@ -362,7 +399,7 @@ public class PaymentActivity extends AppCompatActivity {
                 "Điểm đến",
                 adultCount + " người lớn" + (childCount > 0 ? ", " + childCount + " trẻ em" : ""),
                 formatVnd(totalPrice),
-                mockDate,
+                currentDate,
                 false,
                 "tour"
         );
