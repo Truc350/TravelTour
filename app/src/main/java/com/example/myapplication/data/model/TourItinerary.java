@@ -6,13 +6,15 @@ import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import java.io.Serializable;
+
 @Entity(tableName = "tour_itineraries",
         foreignKeys = @ForeignKey(entity = Tour.class,
                 parentColumns = "id",
                 childColumns = "tour_id",
                 onDelete = ForeignKey.CASCADE),
         indices = {@Index("tour_id")})
-public class TourItinerary {
+public class TourItinerary implements Serializable {
 
     @PrimaryKey(autoGenerate = true)
     private int id;
