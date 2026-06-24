@@ -70,6 +70,11 @@ public class Notification extends Fragment {
         containerNotifications = view.findViewById(R.id.containerNotifications);
         layoutNoNotifications = view.findViewById(R.id.layoutNoNotifications);
 
+        // Khởi tạo dữ liệu giả lập (mock database) nếu list đang rỗng
+        if (notificationList.isEmpty()) {
+            initMockNotifications();
+        }
+
         // Thiết lập sự kiện click cho các Tab bộ lọc
         btnTabAll.setOnClickListener(v -> selectTab("ALL"));
         btnTabPromos.setOnClickListener(v -> selectTab("PROMO"));
@@ -80,8 +85,8 @@ public class Notification extends Fragment {
             btnMarkAllRead.setOnClickListener(v -> markAllAsRead());
         }
 
-        // Tải thông báo từ Room Database
-        loadNotificationsFromDb();
+        // Hiển thị danh sách thông báo lần đầu tiên
+        renderNotifications();
 
         return view;
     }
@@ -151,79 +156,6 @@ public class Notification extends Fragment {
         ));
     }
 
-    private void loadNotificationsFromDb() {
-        if (getContext() == null) return;
-        android.content.SharedPreferences prefs = getContext().getSharedPreferences("UserSession", android.content.Context.MODE_PRIVATE);
-        int currentUserId = prefs.getInt("current_user_id", -1);
-        
-        if (currentUserId == -1) {
-            // Hiển thị dữ liệu mẫu nếu chưa đăng nhập
-            if (notificationList.isEmpty()) {
-                initMockNotifications();
-            }
-            renderNotifications();
-            return;
-        }
-
-        com.example.myapplication.data.remote.ApiService apiService = com.example.myapplication.data.remote.RetrofitClient.getClient()
-                .create(com.example.myapplication.data.remote.ApiService.class);
-
-        apiService.getNotifications().enqueue(new retrofit2.Callback<List<com.example.myapplication.data.model.Notification>>() {
-            @Override
-            public void onResponse(retrofit2.Call<List<com.example.myapplication.data.model.Notification>> call, retrofit2.Response<List<com.example.myapplication.data.model.Notification>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    notificationList.clear();
-                    List<com.example.myapplication.data.model.Notification> apiList = response.body();
-                    
-                    for (com.example.myapplication.data.model.Notification item : apiList) {
-                        if (item.getUserId() == currentUserId) {
-                            String colorHex = "#FF8F00"; // Mặc định là Amber
-                            String title = item.getTitle();
-                            if (title.contains("thành công")) {
-                                colorHex = "#4CAF50"; // Green
-                            } else if (title.contains("Ưu đãi") || title.contains("khuyến mãi") || title.contains("Quà tặng")) {
-                                colorHex = "#00B4D8"; // Cyan
-                            } else if (title.contains("Nhắc nhở") || title.contains("khởi hành")) {
-                                colorHex = "#9C27B0"; // Purple
-                            }
-                            
-                            String category = (title.contains("Ưu đãi") || title.contains("khuyến mãi") || title.contains("Quà tặng")) ? "PROMO" : "UPDATE";
-                            boolean isUnread = !item.isRead();
-
-                            notificationList.add(new NotifyItem(
-                                    String.valueOf(item.getId()),
-                                    item.getTitle(),
-                                    item.getMessage(),
-                                    item.getDate(),
-                                    category,
-                                    isUnread,
-                                    colorHex
-                            ));
-                        }
-                    }
-                    
-                    if (notificationList.isEmpty()) {
-                        initMockNotifications();
-                    }
-                    renderNotifications();
-                } else {
-                    if (notificationList.isEmpty()) {
-                        initMockNotifications();
-                    }
-                    renderNotifications();
-                }
-            }
-
-            @Override
-            public void onFailure(retrofit2.Call<List<com.example.myapplication.data.model.Notification>> call, Throwable t) {
-                if (notificationList.isEmpty()) {
-                    initMockNotifications();
-                }
-                renderNotifications();
-            }
-        });
-    }
-
     /**
      * Xử lý chuyển đổi giữa các Tab bộ lọc và cập nhật giao diện tương ứng.
      */
@@ -274,26 +206,6 @@ public class Notification extends Fragment {
         }
 
         if (updated) {
-            com.example.myapplication.data.remote.ApiService apiService = com.example.myapplication.data.remote.RetrofitClient.getClient()
-                    .create(com.example.myapplication.data.remote.ApiService.class);
-
-            for (NotifyItem item : notificationList) {
-                if (!item.isUnread) {
-                    try {
-                        int notificationId = Integer.parseInt(item.id);
-                        java.util.Map<String, Object> fields = new java.util.HashMap<>();
-                        fields.put("is_read", true);
-                        apiService.patchNotification(notificationId, fields).enqueue(new retrofit2.Callback<com.example.myapplication.data.model.Notification>() {
-                            @Override
-                            public void onResponse(retrofit2.Call<com.example.myapplication.data.model.Notification> call, retrofit2.Response<com.example.myapplication.data.model.Notification> response) {}
-                            @Override
-                            public void onFailure(retrofit2.Call<com.example.myapplication.data.model.Notification> call, Throwable t) {}
-                        });
-                    } catch (NumberFormatException e) {
-                        // Bỏ qua với thông báo giả lập
-                    }
-                }
-            }
             Toast.makeText(getContext(), "Đã đánh dấu đọc tất cả thông báo", Toast.LENGTH_SHORT).show();
             renderNotifications();
         } else {
@@ -379,22 +291,6 @@ public class Notification extends Fragment {
                     item.isUnread = false;
                     if (viewDot != null) {
                         viewDot.setVisibility(View.GONE);
-                    }
-                    // Cập nhật trạng thái đọc lên Django Server
-                    try {
-                        int notificationId = Integer.parseInt(item.id);
-                        com.example.myapplication.data.remote.ApiService apiService = com.example.myapplication.data.remote.RetrofitClient.getClient()
-                                .create(com.example.myapplication.data.remote.ApiService.class);
-                        java.util.Map<String, Object> fields = new java.util.HashMap<>();
-                        fields.put("is_read", true);
-                        apiService.patchNotification(notificationId, fields).enqueue(new retrofit2.Callback<com.example.myapplication.data.model.Notification>() {
-                            @Override
-                            public void onResponse(retrofit2.Call<com.example.myapplication.data.model.Notification> call, retrofit2.Response<com.example.myapplication.data.model.Notification> response) {}
-                            @Override
-                            public void onFailure(retrofit2.Call<com.example.myapplication.data.model.Notification> call, Throwable t) {}
-                        });
-                    } catch (NumberFormatException e) {
-                        // Bỏ qua với thông báo giả lập
                     }
                 }
 

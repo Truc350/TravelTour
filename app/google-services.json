@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "766720100662",
+    "project_id": "comic-5e20d",
+    "storage_bucket": "comic-5e20d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:766720100662:android:514fcae4cafe845ff14b97",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcWx4EV-BGZ2gjOzLG3_o0Uwoo1RgUAZ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
