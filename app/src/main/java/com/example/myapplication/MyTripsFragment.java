@@ -54,7 +54,7 @@ public class MyTripsFragment extends Fragment {
 
     // State
     private boolean isHistoryMode = false;
-    private String selectedDate = "09/09"; // Mặc định khớp screenshot
+    private String selectedDate = "ALL"; // Mặc định hiển thị Tất cả chuyến đi
 
     // Cấu trúc ngày cho thanh cuộn ngang
     private static class DateTab {
@@ -115,6 +115,9 @@ public class MyTripsFragment extends Fragment {
         // 1. Dữ liệu các Ngày cho thanh cuộn ngang được tạo động xung quanh ngày hiện tại (2 ngày trước và 4 ngày sau)
         dateTabs.clear();
 
+        // Thêm mục "Tất cả" trước tiên để xem tất cả chuyến đi
+        dateTabs.add(new DateTab("Tất cả", "ALL"));
+
         java.util.Calendar cal = java.util.Calendar.getInstance();
         cal.add(java.util.Calendar.DAY_OF_YEAR, -2); // bắt đầu từ 2 ngày trước
 
@@ -136,11 +139,6 @@ public class MyTripsFragment extends Fragment {
             String label = dayOfWeekStr + "-" + filterVal;
 
             dateTabs.add(new DateTab(label, filterVal));
-
-            // Đặt ngày hôm nay làm mặc định (ngày thứ 3 trong danh sách, tức i = 2)
-            if (i == 2) {
-                selectedDate = filterVal;
-            }
 
             cal.add(java.util.Calendar.DAY_OF_YEAR, 1);
         }
@@ -397,9 +395,9 @@ public class MyTripsFragment extends Fragment {
                 }
             }
         } else {
-            // Lọc các chuyến đi sắp tới theo ngày đang chọn
+            // Lọc các chuyến đi sắp tới theo ngày đang chọn hoặc hiển thị tất cả
             for (BookedTripAdapter.TripItem item : allTrips) {
-                if (!item.isHistory && item.date.equals(selectedDate)) {
+                if (!item.isHistory && ("ALL".equals(selectedDate) || item.date.equals(selectedDate))) {
                     displayedTrips.add(item);
                 }
             }
@@ -418,7 +416,11 @@ public class MyTripsFragment extends Fragment {
                 tvEmptySubtitle.setText("Bạn chưa có chuyến đi nào hoàn thành trong lịch sử.");
             } else {
                 tvEmptyTitle.setText("Không có chuyến đi");
-                tvEmptySubtitle.setText("Bạn không có chuyến đi nào đã đặt vào ngày " + selectedDate + ".");
+                if ("ALL".equals(selectedDate)) {
+                    tvEmptySubtitle.setText("Bạn chưa đặt chuyến đi nào sắp tới.");
+                } else {
+                    tvEmptySubtitle.setText("Bạn không có chuyến đi nào đã đặt vào ngày " + selectedDate + ".");
+                }
             }
         } else {
             layoutNoTrips.setVisibility(View.GONE);
