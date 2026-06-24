@@ -72,6 +72,10 @@ class Booking(models.Model):
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='PENDING')
     total_price = models.DecimalField(max_digits=12, decimal_places=2)
     voucher_code = models.CharField(max_length=50, blank=True, null=True)
+    customer_name = models.CharField(max_length=255, blank=True, null=True)
+    customer_phone = models.CharField(max_length=50, blank=True, null=True)
+    customer_email = models.CharField(max_length=255, blank=True, null=True)
+    is_invoice_requested = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'bookings'

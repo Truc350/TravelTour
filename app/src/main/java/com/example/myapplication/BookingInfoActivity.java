@@ -32,6 +32,7 @@ import com.example.myapplication.data.remote.RetrofitClient;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.example.myapplication.DatabaseHelper;
 
 
 /**
@@ -85,8 +86,32 @@ public class BookingInfoActivity extends AppCompatActivity {
         }
 
         initViews();
+        prefillUserInfo();
         setupListeners();
         displaySummary();
+    }
+
+    private void prefillUserInfo() {
+        android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+        String contact = prefs.getString("current_user_contact", "");
+        if (!contact.isEmpty()) {
+            DatabaseHelper dbHelper = new DatabaseHelper(this);
+            java.util.Map<String, String> userDetails = dbHelper.getUserDetails(contact);
+            if (userDetails != null) {
+                String name = userDetails.get("name");
+                if (name != null && !name.isEmpty()) {
+                    etFullName.setText(name);
+                }
+                if (contact.contains("@")) {
+                    etEmail.setText(contact);
+                } else {
+                    String invEmail = userDetails.get("invoice_email");
+                    if (invEmail != null && !invEmail.isEmpty()) {
+                        etEmail.setText(invEmail);
+                    }
+                }
+            }
+        }
     }
 
     private void initViews() {
