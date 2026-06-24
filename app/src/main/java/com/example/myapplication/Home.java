@@ -219,14 +219,14 @@ public class Home extends Fragment {
                         String title = tour.getTitle();
                         if (title != null) {
                             String lowerTitle = title.toLowerCase();
-                            if (lowerTitle.contains("bắc") || lowerTitle.contains("bac") || 
-                                lowerTitle.contains("sapa") || lowerTitle.contains("hà nội") || lowerTitle.contains("hạ long")) {
+                            if (lowerTitle.contains("bắc") || lowerTitle.contains("bac") ||
+                                    lowerTitle.contains("sapa") || lowerTitle.contains("hà nội") || lowerTitle.contains("hạ long")) {
                                 listMienBac.add(tour);
-                            } else if (lowerTitle.contains("trung") || lowerTitle.contains("đà nẵng") || 
-                                       lowerTitle.contains("nha trang") || lowerTitle.contains("hội an") || lowerTitle.contains("huế")) {
+                            } else if (lowerTitle.contains("trung") || lowerTitle.contains("đà nẵng") ||
+                                    lowerTitle.contains("nha trang") || lowerTitle.contains("hội an") || lowerTitle.contains("huế")) {
                                 listMienTrung.add(tour);
-                            } else if (lowerTitle.contains("nam") || lowerTitle.contains("miền tây") || 
-                                       lowerTitle.contains("phú quốc") || lowerTitle.contains("cần thơ") || lowerTitle.contains("hcm")) {
+                            } else if (lowerTitle.contains("nam") || lowerTitle.contains("miền tây") ||
+                                    lowerTitle.contains("phú quốc") || lowerTitle.contains("cần thơ") || lowerTitle.contains("hcm")) {
                                 listMienNam.add(tour);
                             }
                         }
@@ -249,7 +249,10 @@ public class Home extends Fragment {
     private void openDetail(Tour tour) {
         DetailTour detailFragment = new DetailTour();
         Bundle args = new Bundle();
-        args.putSerializable("tour_object", tour); // truyền đối tượng tour
+        // SỬA: chỉ truyền tour_id (int) qua Bundle, KHÔNG truyền cả object Tour qua Serializable.
+        // DetailTour sẽ tự gọi API lấy tour mới nhất theo id, đảm bảo luôn có đầy đủ
+        // departures / itineraries / images mới nhất từ Django, tránh dữ liệu cũ/thiếu.
+        args.putInt("tour_id", tour.getId());
         detailFragment.setArguments(args);
         if (getParentFragmentManager() != null)
             getParentFragmentManager().beginTransaction()

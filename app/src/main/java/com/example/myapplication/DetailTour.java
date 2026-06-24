@@ -13,6 +13,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.data.model.Tour;
 import com.example.myapplication.data.model.Favorite;
 import com.example.myapplication.data.remote.ApiService;
@@ -26,6 +28,8 @@ public class DetailTour extends Fragment {
 
     private Tour tour;
     private String tourType = "";
+    // SỬA: id tour nhận từ Bundle (thay cho việc nhận cả object Tour qua Serializable)
+    private int tourIdArg = -1;
     private int currentUserId = -1;
     private boolean isFavorite = false;
     private int favoriteId = -1;
@@ -42,7 +46,8 @@ public class DetailTour extends Fragment {
         btnFavorite = view.findViewById(R.id.btnFavorite);
 
         if (getArguments() != null) {
-            tour = (Tour) getArguments().getSerializable("tour_object");
+            // SỬA: chỉ đọc tour_id (int) từ Bundle. Không còn getSerializable("tour_object").
+            tourIdArg = getArguments().getInt("tour_id", -1);
             tourType = getArguments().getString("tour_type", "");
         }
 
@@ -89,10 +94,10 @@ public class DetailTour extends Fragment {
         // Thiết lập sự kiện nút yêu thích
         setupFavoriteButton();
 
-        // Gán dữ liệu tương ứng theo tour đã chọn
-        if (tour != null) {
-            bindTourData(view, inflater);
-        } else if (!tourType.isEmpty()) {
+        // SỬA: luôn nạp dữ liệu demo theo tourType trước (nếu có) để UI không trống trong lúc
+        // chờ API, sau đó tải tour thật (đầy đủ departures/itineraries/images) theo tourIdArg
+        // hoặc tourType, rồi bindTourData() sẽ ghi đè lại với dữ liệu thật.
+        if (!tourType.isEmpty()) {
             if ("taiwan".equals(tourType)) {
                 setupImageSlider(view, null, R.drawable.img_taiwan_tour);
                 if (tvTourTitle != null) tvTourTitle.setText("Tour Đài Loan 5N4Đ: HCM - Cao Hùng - Đài Trung - Đài Bắc - Đảo Hoà Bình");
@@ -160,31 +165,9 @@ public class DetailTour extends Fragment {
             }
         }
 
-        // Tải tour đầy đủ từ database qua API nếu tour hiện tại đang null
-        if (tour == null && !tourType.isEmpty()) {
-            apiService.getTours().enqueue(new Callback<List<Tour>>() {
-                @Override
-                public void onResponse(Call<List<Tour>> call, Response<List<Tour>> response) {
-                    if (getContext() == null || !isAdded()) return;
-                    if (response.isSuccessful() && response.body() != null) {
-                        for (Tour t : response.body()) {
-                            if (tourType.equalsIgnoreCase(getNormalizedTourType(t.getCode(), t.getTitle()))) {
-                                tour = t;
-                                break;
-                            }
-                        }
-                        if (tour != null) {
-                            bindTourData(view, inflater);
-                            checkFavoriteStatus();
-                        }
-                    }
-                }
-                @Override
-                public void onFailure(Call<List<Tour>> call, Throwable t) {}
-            });
-        } else if (currentUserId != -1 && tour != null) {
-            checkFavoriteStatus();
-        }
+        // SỬA: luôn fetch tour mới nhất từ API Django (không dùng object truyền qua Serializable).
+        // Ưu tiên tìm theo tourIdArg; nếu không có id (mở từ tourType demo), tìm theo tourType.
+        loadTourFromApi(view, inflater);
 
         // Sự kiện nút quay lại (Back)
         if (btnBack != null) {
@@ -229,6 +212,55 @@ public class DetailTour extends Fragment {
         }
 
         return view;
+    }
+
+    /**
+     * SỬA (hàm mới): luôn gọi API Django để lấy Tour mới nhất, đầy đủ departures/itineraries/images.
+     * - Nếu có tourIdArg hợp lệ: tìm tour theo id.
+     * - Nếu không (trường hợp mở bằng tourType demo, không có id): tìm theo tourType.
+     */
+    private void loadTourFromApi(View view, LayoutInflater inflater) {
+        apiService.getTours().enqueue(new Callback<List<Tour>>() {
+            @Override
+            public void onResponse(Call<List<Tour>> call, Response<List<Tour>> response) {
+                if (getContext() == null || !isAdded()) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    Tour found = null;
+                    if (tourIdArg > 0) {
+                        for (Tour t : response.body()) {
+                            if (t.getId() == tourIdArg) {
+                                found = t;
+                                break;
+                            }
+                        }
+                    } else if (!tourType.isEmpty()) {
+                        for (Tour t : response.body()) {
+                            if (tourType.equalsIgnoreCase(getNormalizedTourType(t.getCode(), t.getTitle()))) {
+                                found = t;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (found != null) {
+                        tour = found;
+                        bindTourData(view, inflater);
+                        checkFavoriteStatus();
+                        loadRelatedTours(view, tour);
+                    } else if (tourIdArg > 0) {
+                        Toast.makeText(requireContext(), "Không tìm thấy thông tin tour!", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "Không thể tải dữ liệu tour, vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Tour>> call, Throwable t) {
+                if (getContext() == null || !isAdded()) return;
+                Toast.makeText(requireContext(), "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void registerUserOnServer(String contact) {
@@ -407,15 +439,15 @@ public class DetailTour extends Fragment {
         android.widget.LinearLayout itineraryContainer = view.findViewById(R.id.itineraryContainer);
         if (itineraryContainer != null && tour.getItineraries() != null && !tour.getItineraries().isEmpty()) {
             itineraryContainer.removeAllViews();
-            
+
             // Sao chép và sắp xếp danh sách lịch trình theo dayNumber tăng dần
-            java.util.List<com.example.myapplication.data.model.TourItinerary> itineraryList = 
+            java.util.List<com.example.myapplication.data.model.TourItinerary> itineraryList =
                     new java.util.ArrayList<>(tour.getItineraries());
             java.util.Collections.sort(itineraryList, (a, b) -> Integer.compare(a.getDayNumber(), b.getDayNumber()));
 
             for (com.example.myapplication.data.model.TourItinerary itinerary : itineraryList) {
                 View itemItinerary = inflater.inflate(R.layout.item_itinerary, itineraryContainer, false);
-                
+
                 View layoutHeader = itemItinerary.findViewById(R.id.layoutHeader);
                 View layoutDetails = itemItinerary.findViewById(R.id.layoutDetails);
                 TextView tvDayNumber = itemItinerary.findViewById(R.id.tvDayNumber);
@@ -434,7 +466,7 @@ public class DetailTour extends Fragment {
                 if (tvDayDescription != null) {
                     tvDayDescription.setText(itinerary.getDescription());
                 }
-                
+
                 // Lấy ảnh tương ứng từ danh sách ảnh của Tour
                 if (tour.getImages() != null && !tour.getImages().isEmpty()) {
                     int size = tour.getImages().size();
@@ -485,6 +517,82 @@ public class DetailTour extends Fragment {
                 itineraryContainer.addView(itemItinerary);
             }
         }
+
+        // Gán lịch khởi hành động từ database/API
+        android.widget.LinearLayout departureListContainer = view.findViewById(R.id.departureListContainer);
+        if (departureListContainer != null) {
+            departureListContainer.removeAllViews();
+
+            if (tour.getDepartures() != null && !tour.getDepartures().isEmpty()) {
+                // Sắp xếp lịch khởi hành theo ngày
+                java.util.List<com.example.myapplication.data.model.TourDeparture> departureList =
+                        new java.util.ArrayList<>(tour.getDepartures());
+                java.text.SimpleDateFormat sdfSource = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                java.text.SimpleDateFormat sdfDest = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+
+                java.util.Collections.sort(departureList, (a, b) -> {
+                    try {
+                        java.util.Date dateA = sdfSource.parse(a.getDepartureDate());
+                        java.util.Date dateB = sdfSource.parse(b.getDepartureDate());
+                        if (dateA != null && dateB != null) return dateA.compareTo(dateB);
+                    } catch (Exception e) {}
+                    return 0;
+                });
+
+                java.text.NumberFormat formatter = java.text.NumberFormat.getNumberInstance(new java.util.Locale("vi", "VN"));
+
+                for (com.example.myapplication.data.model.TourDeparture departure : departureList) {
+                    View itemDeparture = inflater.inflate(R.layout.item_departure_row, departureListContainer, false);
+
+                    TextView tvDate = itemDeparture.findViewById(R.id.tvDate);
+                    TextView tvStatus = itemDeparture.findViewById(R.id.tvStatus);
+                    TextView tvPrice = itemDeparture.findViewById(R.id.tvPrice);
+
+                    if (tvDate != null) {
+                        try {
+                            java.util.Date d = sdfSource.parse(departure.getDepartureDate());
+                            if (d != null) {
+                                tvDate.setText(sdfDest.format(d));
+                            } else {
+                                tvDate.setText(departure.getDepartureDate());
+                            }
+                        } catch (Exception e) {
+                            tvDate.setText(departure.getDepartureDate());
+                        }
+                    }
+
+                    if (tvStatus != null) {
+                        if (departure.getAvailableSeats() > 0) {
+                            tvStatus.setText("Còn chỗ");
+                            tvStatus.setTextColor(android.graphics.Color.parseColor("#388E3C"));
+                        } else {
+                            tvStatus.setText("Hết chỗ");
+                            tvStatus.setTextColor(android.graphics.Color.parseColor("#C62828"));
+                        }
+                    }
+
+                    if (tvPrice != null) {
+                        tvPrice.setText(formatter.format(departure.getPrice()) + "đ");
+                    }
+
+                    departureListContainer.addView(itemDeparture);
+                }
+            } else {
+                // SỬA: hiển thị thông báo rõ ràng khi tour chưa có lịch khởi hành,
+                // thay vì để bảng trống không rõ nguyên nhân như trước.
+                TextView tvEmpty = new TextView(requireContext());
+                tvEmpty.setText("Chưa có lịch khởi hành cho tour này");
+                tvEmpty.setTextColor(android.graphics.Color.parseColor("#999999"));
+                tvEmpty.setTextSize(14);
+                tvEmpty.setPadding(dp(12), dp(12), dp(12), dp(12));
+                departureListContainer.addView(tvEmpty);
+            }
+        }
+    }
+
+    private int dp(int value) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round(value * density);
     }
 
     private void setupFavoriteButton() {
@@ -610,6 +718,8 @@ public class DetailTour extends Fragment {
             if (t.contains("hạ long") || t.contains("ha long")) return "halong";
             if (t.contains("đà nẵng") || t.contains("da nang")) return "danang";
             if (t.contains("nha trang")) return "nhatrang";
+            if (t.contains("quy nhơn") || t.contains("quy nhon")) return "quynhon";
+            if (t.contains("đà lạt") || t.contains("da lat")) return "dalat";
             if (t.contains("phú quốc") || t.contains("phu quoc")) return "phuquoc";
             if (t.contains("miền tây") || t.contains("mien tay")) return "mientay";
         }
@@ -722,6 +832,284 @@ public class DetailTour extends Fragment {
             if (nav != null) {
                 nav.setVisibility(View.VISIBLE);
             }
+        }
+    }
+
+    private String getTourRegion(String title) {
+        if (title == null) return "";
+        String lowerTitle = title.toLowerCase();
+
+        if (lowerTitle.contains("bắc") || lowerTitle.contains("bac") ||
+                lowerTitle.contains("sapa") || lowerTitle.contains("hà nội") || lowerTitle.contains("hạ long") ||
+                lowerTitle.contains("fansipan") || lowerTitle.contains("cát cát") || lowerTitle.contains("lào cai")) {
+            return "Miền Bắc";
+        } else if (lowerTitle.contains("trung") || lowerTitle.contains("đà nẵng") ||
+                lowerTitle.contains("nha trang") || lowerTitle.contains("hội an") || lowerTitle.contains("huế") ||
+                lowerTitle.contains("quảng bình") || lowerTitle.contains("phong nha") || lowerTitle.contains("quy nhơn") ||
+                lowerTitle.contains("đà lạt")) {
+            return "Miền Trung";
+        } else if (lowerTitle.contains("nam") || lowerTitle.contains("miền tây") ||
+                lowerTitle.contains("phú quốc") || lowerTitle.contains("cần thơ") || lowerTitle.contains("hcm") ||
+                lowerTitle.contains("sài gòn") || lowerTitle.contains("vũng tàu") || lowerTitle.contains("mỹ tho") ||
+                lowerTitle.contains("chợ nổi")) {
+            return "Miền Nam";
+        } else if (lowerTitle.contains("đài loan") || lowerTitle.contains("taiwan") ||
+                lowerTitle.contains("singapore") || lowerTitle.contains("malaysia")) {
+            return "Nước Ngoài";
+        }
+        return "";
+    }
+
+    private String getSpecificDestination(String title) {
+        if (title == null) return "";
+        String lowerTitle = title.toLowerCase();
+
+        if (lowerTitle.contains("hà nội") || lowerTitle.contains("ha noi") || lowerTitle.contains("hn")) {
+            return "hanoi";
+        }
+        if (lowerTitle.contains("sapa") || lowerTitle.contains("sa pa")) {
+            return "sapa";
+        }
+        if (lowerTitle.contains("hạ long") || lowerTitle.contains("ha long")) {
+            return "halong";
+        }
+        if (lowerTitle.contains("ninh bình") || lowerTitle.contains("ninh binh")) {
+            return "ninhbinh";
+        }
+        if (lowerTitle.contains("đà nẵng") || lowerTitle.contains("da nang")) {
+            return "danang";
+        }
+        if (lowerTitle.contains("hội an") || lowerTitle.contains("hoi an")) {
+            return "hoian";
+        }
+        if (lowerTitle.contains("huế") || lowerTitle.contains("hue")) {
+            return "hue";
+        }
+        if (lowerTitle.contains("nha trang")) {
+            return "nhatrang";
+        }
+        if (lowerTitle.contains("quy nhơn") || lowerTitle.contains("quy nhon")) {
+            return "quynhon";
+        }
+        if (lowerTitle.contains("đà lạt") || lowerTitle.contains("da lat")) {
+            return "dalat";
+        }
+        if (lowerTitle.contains("phú quốc") || lowerTitle.contains("phu quoc")) {
+            return "phuquoc";
+        }
+        if (lowerTitle.contains("cần thơ") || lowerTitle.contains("can tho") ||
+                lowerTitle.contains("miền tây") || lowerTitle.contains("mien tay")) {
+            return "mientay";
+        }
+        if (lowerTitle.contains("hồ chí minh") || lowerTitle.contains("ho chi minh") ||
+                lowerTitle.contains("sài gòn") || lowerTitle.contains("sai gon") || lowerTitle.contains("hcm")) {
+            return "hcm";
+        }
+        if (lowerTitle.contains("đài loan") || lowerTitle.contains("taiwan")) {
+            return "taiwan";
+        }
+        if (lowerTitle.contains("singapore")) {
+            return "singapore";
+        }
+        if (lowerTitle.contains("malaysia")) {
+            return "malaysia";
+        }
+        return "";
+    }
+
+    private String parseDuration(String title, int itinerariesCount) {
+        if (title != null) {
+            String upper = title.toUpperCase();
+            if (upper.contains("5N4Đ") || upper.contains("5N4D")) return "5 ngày 4 đêm";
+            if (upper.contains("3N2Đ") || upper.contains("3N2D")) return "3 ngày 2 đêm";
+            if (upper.contains("2N1Đ") || upper.contains("2N1D")) return "2 ngày 1 đêm";
+            if (upper.contains("4N3Đ") || upper.contains("4N3D")) return "4 ngày 3 đêm";
+            if (upper.contains("6N5Đ") || upper.contains("6N5D")) return "6 ngày 5 đêm";
+        }
+        if (itinerariesCount > 0) {
+            return itinerariesCount + " ngày " + (itinerariesCount - 1) + " đêm";
+        }
+        return "3 ngày 2 đêm";
+    }
+
+    private void loadRelatedTours(View view, Tour currentTour) {
+        if (currentTour == null || view == null) return;
+
+        View sectionRelatedTours = view.findViewById(R.id.sectionRelatedTours);
+        View spacerRelatedTours = view.findViewById(R.id.spacerRelatedTours);
+        androidx.recyclerview.widget.RecyclerView rvRelatedTours = view.findViewById(R.id.rvRelatedTours);
+
+        String currentRegion = getTourRegion(currentTour.getTitle());
+        String currentDest = getSpecificDestination(currentTour.getTitle());
+
+        apiService.getTours().enqueue(new Callback<java.util.List<Tour>>() {
+            @Override
+            public void onResponse(Call<java.util.List<Tour>> call, Response<java.util.List<Tour>> response) {
+                if (getContext() == null || !isAdded()) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    java.util.List<Tour> allTours = response.body();
+                    java.util.List<TourScore> candidates = new java.util.ArrayList<>();
+
+                    for (Tour t : allTours) {
+                        // Exclude the current tour
+                        if (t.getId() == currentTour.getId()) {
+                            continue;
+                        }
+
+                        int score = 0;
+                        String tRegion = getTourRegion(t.getTitle());
+                        String tDest = getSpecificDestination(t.getTitle());
+
+                        // Match destination city
+                        if (!currentDest.isEmpty() && currentDest.equals(tDest)) {
+                            score += 20;
+                        }
+                        // Match region
+                        if (!currentRegion.isEmpty() && currentRegion.equals(tRegion)) {
+                            score += 10;
+                        }
+                        // Add rating score as tie-breaker
+                        score += (int) (t.getRatingScore() * 1.0);
+
+                        // Only consider positive score (must match region or city)
+                        if (score > t.getRatingScore()) {
+                            candidates.add(new TourScore(t, score));
+                        }
+                    }
+
+                    // Sort candidates descending by score
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                        candidates.sort((c1, c2) -> Integer.compare(c2.score, c1.score));
+                    } else {
+                        java.util.Collections.sort(candidates, (c1, c2) -> Integer.compare(c2.score, c1.score));
+                    }
+
+                    // Limit to top 5 related tours
+                    java.util.List<Tour> displayList = new java.util.ArrayList<>();
+                    for (int i = 0; i < Math.min(5, candidates.size()); i++) {
+                        displayList.add(candidates.get(i).tour);
+                    }
+
+                    if (displayList.isEmpty()) {
+                        if (sectionRelatedTours != null) sectionRelatedTours.setVisibility(View.GONE);
+                        if (spacerRelatedTours != null) spacerRelatedTours.setVisibility(View.GONE);
+                    } else {
+                        if (sectionRelatedTours != null) sectionRelatedTours.setVisibility(View.VISIBLE);
+                        if (spacerRelatedTours != null) spacerRelatedTours.setVisibility(View.VISIBLE);
+
+                        if (rvRelatedTours != null) {
+                            rvRelatedTours.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(
+                                    getContext(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false));
+                            RelatedTourAdapter adapter = new RelatedTourAdapter(displayList);
+                            rvRelatedTours.setAdapter(adapter);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<java.util.List<Tour>> call, Throwable t) {
+                if (getContext() == null || !isAdded()) return;
+                if (sectionRelatedTours != null) sectionRelatedTours.setVisibility(View.GONE);
+                if (spacerRelatedTours != null) spacerRelatedTours.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private class RelatedTourAdapter extends RecyclerView.Adapter<RelatedTourAdapter.ViewHolder> {
+        private final java.util.List<Tour> list;
+
+        RelatedTourAdapter(java.util.List<Tour> list) {
+            this.list = list;
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_related_tour, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Tour tour = list.get(position);
+            holder.tvTitle.setText(tour.getTitle());
+
+            java.text.NumberFormat formatter = java.text.NumberFormat.getNumberInstance(new java.util.Locale("vi", "VN"));
+            holder.tvPrice.setText(formatter.format(tour.getDiscountPrice()) + "đ");
+
+            int itinerariesCount = tour.getItineraries() != null ? tour.getItineraries().size() : 0;
+            holder.tvDuration.setText(parseDuration(tour.getTitle(), itinerariesCount));
+            holder.tvRating.setText(String.format(java.util.Locale.US, "%.1f", tour.getRatingScore()));
+
+            String imageUrl = null;
+            if (tour.getImages() != null && !tour.getImages().isEmpty()) {
+                imageUrl = tour.getImages().get(0).getImageUrl();
+            }
+            if (imageUrl == null || imageUrl.isEmpty()) {
+                String resolvedType = getNormalizedTourType(tour.getCode(), tour.getTitle());
+                int imageResId = R.drawable.img_taiwan_tour;
+                if ("singapore".equals(resolvedType)) imageResId = R.drawable.img_singapore_tour;
+                else if ("sapa".equals(resolvedType)) imageResId = R.drawable.img_sapa_tour;
+                else if ("halong".equals(resolvedType)) imageResId = R.drawable.img_halong_tour;
+                else if ("danang".equals(resolvedType)) imageResId = R.drawable.img_danang_tour;
+                else if ("nhatrang".equals(resolvedType)) imageResId = R.drawable.img_nhatrang_tour;
+                else if ("phuquoc".equals(resolvedType)) imageResId = R.drawable.img_phuquoc_tour;
+                else if ("mientay".equals(resolvedType)) imageResId = R.drawable.img_mientay_tour;
+                holder.ivImage.setImageResource(imageResId);
+            } else {
+                if (imageUrl.startsWith("/")) {
+                    imageUrl = "http://10.0.2.2:8000" + imageUrl;
+                }
+                com.bumptech.glide.Glide.with(DetailTour.this)
+                        .load(imageUrl)
+                        .placeholder(R.drawable.img_taiwan_tour)
+                        .centerCrop()
+                        .into(holder.ivImage);
+            }
+
+            holder.itemView.setOnClickListener(v -> {
+                // SỬA: mở DetailTour bằng tour_id thay vì putSerializable cả object Tour,
+                // để màn chi tiết của tour liên quan cũng luôn tải dữ liệu mới nhất từ API.
+                DetailTour detailFragment = new DetailTour();
+                Bundle args = new Bundle();
+                args.putInt("tour_id", tour.getId());
+                detailFragment.setArguments(args);
+                if (getParentFragmentManager() != null) {
+                    getParentFragmentManager().beginTransaction()
+                            .replace(R.id.contentFrame, detailFragment)
+                            .addToBackStack(null).commit();
+                }
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return list.size();
+        }
+
+        class ViewHolder extends RecyclerView.ViewHolder {
+            final ImageView ivImage;
+            final TextView tvTitle, tvDuration, tvRating, tvPrice;
+
+            ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                ivImage = itemView.findViewById(R.id.ivRelatedImage);
+                tvTitle = itemView.findViewById(R.id.tvRelatedTitle);
+                tvDuration = itemView.findViewById(R.id.tvRelatedDuration);
+                tvRating = itemView.findViewById(R.id.tvRelatedRating);
+                tvPrice = itemView.findViewById(R.id.tvRelatedPrice);
+            }
+        }
+    }
+
+    private static class TourScore {
+        final Tour tour;
+        final int score;
+
+        TourScore(Tour tour, int score) {
+            this.tour = tour;
+            this.score = score;
         }
     }
 }

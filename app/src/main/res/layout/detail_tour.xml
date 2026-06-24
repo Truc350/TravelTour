@@ -617,143 +617,11 @@
                         android:paddingEnd="12dp" />
                 </LinearLayout>
 
-                <!-- Row 1 -->
                 <LinearLayout
+                    android:id="@+id/departureListContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingVertical="14dp"
-                    android:gravity="center_vertical"
-                    android:background="#FFFFFF">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="28/05/2026"
-                        android:textColor="#212529"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:gravity="start"
-                        android:paddingStart="12dp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1.2"
-                        android:text="Còn chỗ"
-                        android:textColor="#388E3C"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:gravity="center" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="7.990.000đ"
-                        android:textColor="#FF8F00"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:gravity="end"
-                        android:paddingEnd="12dp" />
-                </LinearLayout>
-
-                <!-- Divider giữa các dòng -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="0.5dp"
-                    android:background="#E9ECEF" />
-
-                <!-- Row 2 -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingVertical="14dp"
-                    android:gravity="center_vertical"
-                    android:background="#FFFFFF">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="04/06/2026"
-                        android:textColor="#212529"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:gravity="start"
-                        android:paddingStart="12dp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1.2"
-                        android:text="Còn chỗ"
-                        android:textColor="#388E3C"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:gravity="center" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="8.290.000đ"
-                        android:textColor="#FF8F00"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:gravity="end"
-                        android:paddingEnd="12dp" />
-                </LinearLayout>
-
-                <!-- Divider -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="0.5dp"
-                    android:background="#E9ECEF" />
-
-                <!-- Row 3 -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingVertical="14dp"
-                    android:gravity="center_vertical"
-                    android:background="#FFFFFF">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="11/06/2026"
-                        android:textColor="#212529"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:gravity="start"
-                        android:paddingStart="12dp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1.2"
-                        android:text="Hết chỗ"
-                        android:textColor="#C62828"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:gravity="center" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="7.990.000đ"
-                        android:textColor="#FF8F00"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:gravity="end"
-                        android:paddingEnd="12dp" />
-                </LinearLayout>
+                    android:orientation="vertical" />
 
             </LinearLayout>
 
@@ -1137,12 +1005,14 @@
 
             <!-- Spacer (Light Blue Color #E6F1FB) -->
             <View
+                android:id="@+id/spacerRelatedTours"
                 android:layout_width="match_parent"
                 android:layout_height="8dp"
                 android:background="#E6F1FB" />
 
             <!-- Section 7: Các tour liên quan -->
             <LinearLayout
+                android:id="@+id/sectionRelatedTours"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -1159,232 +1029,12 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="16dp" />
 
-                <HorizontalScrollView
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRelatedTours"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:scrollbars="none">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <!-- Related Card 1: Tour Miền Trung -->
-                        <androidx.cardview.widget.CardView
-                            android:id="@+id/cardRelatedCentral"
-                            android:layout_width="220dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="12dp"
-                            android:layout_marginBottom="8dp"
-                            app:cardCornerRadius="8dp"
-                            app:cardElevation="2dp"
-                            app:cardBackgroundColor="#FFFFFF"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:foreground="?android:attr/selectableItemBackground">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical">
-
-                                <ImageView
-                                    android:id="@+id/ivRelatedImage1"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="120dp"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/img"
-                                    android:contentDescription="Ảnh tour liên quan" />
-
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="vertical"
-                                    android:padding="8dp">
-
-                                    <TextView
-                                        android:id="@+id/tvRelatedTitle1"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:text="Tour Miền Trung 4N3Đ: HCM - Huế - Quảng Bình - Đà Nẵng -..."
-                                        android:textColor="#0F3C7A"
-                                        android:textSize="14sp"
-                                        android:textStyle="bold"
-                                        android:maxLines="2"
-                                        android:ellipsize="end" />
-
-                                    <!-- Duration & Icons -->
-                                    <LinearLayout
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:orientation="horizontal"
-                                        android:gravity="center_vertical"
-                                        android:layout_marginTop="6dp">
-
-                                        <ImageView
-                                            android:layout_width="14dp"
-                                            android:layout_height="14dp"
-                                            android:src="@drawable/ic_clock"
-                                            app:tint="#6C757D" />
-
-                                        <TextView
-                                            android:id="@+id/tvRelatedDuration1"
-                                            android:layout_width="0dp"
-                                            android:layout_height="wrap_content"
-                                            android:layout_weight="1"
-                                            android:layout_marginStart="4dp"
-                                            android:text="4 ngày 3 đêm"
-                                            android:textColor="#6C757D"
-                                            android:textSize="12sp" />
-
-                                        <ImageView
-                                            android:layout_width="14dp"
-                                            android:layout_height="14dp"
-                                            android:src="@drawable/ic_flight"
-                                            app:tint="#6C757D"
-                                            android:layout_marginEnd="4dp" />
-
-                                        <ImageView
-                                            android:layout_width="14dp"
-                                            android:layout_height="14dp"
-                                            android:src="@drawable/ic_bus"
-                                            app:tint="#6C757D" />
-                                    </LinearLayout>
-
-                                    <!-- Price -->
-                                    <TextView
-                                        android:id="@+id/tvRelatedPrice1"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginTop="8dp"
-                                        android:layout_gravity="end"
-                                        android:text="6.990.000đ"
-                                        android:textColor="@color/cyan_active"
-                                        android:textSize="16sp"
-                                        android:textStyle="bold" />
-                                </LinearLayout>
-                            </LinearLayout>
-                        </androidx.cardview.widget.CardView>
-
-                        <!-- Related Card 2: Taiwan or Singapore -->
-                        <androidx.cardview.widget.CardView
-                            android:id="@+id/cardRelatedDynamic"
-                            android:layout_width="220dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="12dp"
-                            android:layout_marginBottom="8dp"
-                            app:cardCornerRadius="8dp"
-                            app:cardElevation="2dp"
-                            app:cardBackgroundColor="#FFFFFF"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:foreground="?android:attr/selectableItemBackground">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical">
-
-                                <ImageView
-                                    android:id="@+id/ivRelatedImage2"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="120dp"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/img_taiwan_tour"
-                                    android:contentDescription="Ảnh tour liên quan" />
-
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="vertical"
-                                    android:padding="8dp">
-
-                                    <TextView
-                                        android:id="@+id/tvRelatedTitle2"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:text="Tour Đài Loan 5N4Đ: HCM - Cao Hùng - Đài Trung - Đài Bắc - Đảo Hoà Bình"
-                                        android:textColor="#0F3C7A"
-                                        android:textSize="14sp"
-                                        android:textStyle="bold"
-                                        android:maxLines="2"
-                                        android:ellipsize="end" />
-
-                                    <!-- Duration & Icons -->
-                                    <LinearLayout
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:orientation="horizontal"
-                                        android:gravity="center_vertical"
-                                        android:layout_marginTop="6dp">
-
-                                        <ImageView
-                                            android:layout_width="14dp"
-                                            android:layout_height="14dp"
-                                            android:src="@drawable/ic_clock"
-                                            app:tint="#6C757D" />
-
-                                        <TextView
-                                            android:id="@+id/tvRelatedDuration2"
-                                            android:layout_width="0dp"
-                                            android:layout_height="wrap_content"
-                                            android:layout_weight="1"
-                                            android:layout_marginStart="4dp"
-                                            android:text="5 ngày 4 đêm"
-                                            android:textColor="#6C757D"
-                                            android:textSize="12sp" />
-
-                                        <ImageView
-                                            android:layout_width="14dp"
-                                            android:layout_height="14dp"
-                                            android:src="@drawable/ic_flight"
-                                            app:tint="#6C757D"
-                                            android:layout_marginEnd="4dp" />
-
-                                        <ImageView
-                                            android:layout_width="14dp"
-                                            android:layout_height="14dp"
-                                            android:src="@drawable/ic_bus"
-                                            app:tint="#6C757D" />
-                                    </LinearLayout>
-
-                                    <!-- Rating Badge & Price -->
-                                    <RelativeLayout
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginTop="8dp">
-
-                                        <TextView
-                                            android:id="@+id/tvRelatedRating2"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:layout_alignParentStart="true"
-                                            android:layout_centerVertical="true"
-                                            android:background="@drawable/bg_score_green"
-                                            android:textColor="#FFFFFF"
-                                            android:text="9,0"
-                                            android:textSize="11sp"
-                                            android:textStyle="bold"
-                                            android:paddingHorizontal="4dp"
-                                            android:paddingVertical="2dp" />
-
-                                        <TextView
-                                            android:id="@+id/tvRelatedPrice2"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:layout_alignParentEnd="true"
-                                            android:layout_centerVertical="true"
-                                            android:text="14.390.000đ"
-                                            android:textColor="@color/cyan_active"
-                                            android:textSize="16sp"
-                                            android:textStyle="bold" />
-                                    </RelativeLayout>
-                                </LinearLayout>
-                            </LinearLayout>
-                        </androidx.cardview.widget.CardView>
-
-                    </LinearLayout>
-                </HorizontalScrollView>
+                    android:clipToPadding="false"
+                    android:paddingEnd="16dp" />
             </LinearLayout>
 
         </LinearLayout>

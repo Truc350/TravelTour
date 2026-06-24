@@ -6,27 +6,35 @@ import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import com.google.gson.annotations.SerializedName;
+import java.io.Serializable;
+
 @Entity(tableName = "tour_departures",
         foreignKeys = @ForeignKey(entity = Tour.class,
                 parentColumns = "id",
                 childColumns = "tour_id",
                 onDelete = ForeignKey.CASCADE),
         indices = {@Index("tour_id")})
-public class TourDeparture {
+public class TourDeparture implements Serializable {
 
     @PrimaryKey(autoGenerate = true)
+    @SerializedName("id")
     private int id;
 
     @ColumnInfo(name = "tour_id")
+    @SerializedName("tour")
     private int tourId;
 
     @ColumnInfo(name = "departure_date")
+    @SerializedName("departure_date")
     private String departureDate; // You can use String for ISO 8601 dates or Long for timestamps
 
     @ColumnInfo(name = "available_seats")
+    @SerializedName("available_seats")
     private int availableSeats;
 
     @ColumnInfo(name = "price")
+    @SerializedName("price")
     private double price;
 
     public TourDeparture(int tourId, String departureDate, int availableSeats, double price) {

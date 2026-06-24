@@ -14,9 +14,16 @@ class TourItinerarySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class SimpleTourDepartureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TourDeparture
+        fields = ['id', 'departure_date', 'available_seats', 'price']
+
+
 class TourSerializer(serializers.ModelSerializer):
     images = TourImageSerializer(many=True, read_only=True)
     itineraries = TourItinerarySerializer(many=True, read_only=True)
+    departures = SimpleTourDepartureSerializer(many=True, read_only=True)
 
     class Meta:
         model = Tour
