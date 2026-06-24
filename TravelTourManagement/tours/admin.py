@@ -133,7 +133,7 @@ class TourItineraryResource(resources.ModelResource):
     tour = Field(
         column_name='tour_id',
         attribute='tour',
-widget=CleanForeignKeyWidget(Tour, 'code')
+        widget=CleanForeignKeyWidget(Tour, 'code')
     )
 
     class Meta:
@@ -145,6 +145,7 @@ widget=CleanForeignKeyWidget(Tour, 'code')
         if 'tour_id' in dataset.headers:
             self.fields['tour'].column_name = 'tour_id'
         elif 'tour' in dataset.headers:
+
             self.fields['tour'].column_name = 'tour'
 
         if 'id' in dataset.headers:
@@ -214,6 +215,7 @@ class PassengerAdmin(ImportExportModelAdmin):
         rows_updated = queryset.update(status='REJECTED')
         self.message_user(request, f"Đã từ chối {rows_updated} hành khách.")
     reject_passengers.short_description = "Từ chối thông tin các hành khách đã chọn"
+
 
 @admin.register(TourImage)
 class TourImageAdmin(ImportExportModelAdmin):
