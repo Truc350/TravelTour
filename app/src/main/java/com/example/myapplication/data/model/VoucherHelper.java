@@ -65,4 +65,28 @@ public class VoucherHelper {
         SharedPreferences prefs = context.getSharedPreferences("SavedVouchers_" + userContact, Context.MODE_PRIVATE);
         prefs.edit().putBoolean(code, true).apply();
     }
+
+    public static List<AppVoucher> getSavedVouchers(Context context, String userContact) {
+        if (userContact == null || userContact.isEmpty()) return new ArrayList<>();
+        SharedPreferences prefs = context.getSharedPreferences("SavedVouchers_" + userContact, Context.MODE_PRIVATE);
+        List<AppVoucher> saved = new ArrayList<>();
+        for (AppVoucher v : AVAILABLE_VOUCHERS) {
+            if (prefs.getBoolean(v.code, false)) {
+                saved.add(v);
+            }
+        }
+        return saved;
+    }
+
+    public static List<AppVoucher> getUsedVouchers(Context context, String userContact) {
+        if (userContact == null || userContact.isEmpty()) return new ArrayList<>();
+        SharedPreferences prefs = context.getSharedPreferences("UsedVouchers_" + userContact, Context.MODE_PRIVATE);
+        List<AppVoucher> used = new ArrayList<>();
+        for (AppVoucher v : AVAILABLE_VOUCHERS) {
+            if (prefs.getBoolean(v.code, false)) {
+                used.add(v);
+            }
+        }
+        return used;
+    }
 }
