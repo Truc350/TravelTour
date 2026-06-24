@@ -462,15 +462,30 @@ public class MyTripsFragment extends Fragment {
             }
         }
 
-        // Sinh QR Code động dựa trên thông tin vé chi tiết
+        // Sinh QR Code động - URL đến trang xác nhận vé trên web
         if (imgQrCode != null) {
-            String qrPayload = "VÉ TOUR ĐIỆN TỬ\n" +
-                    "Mã vé: " + ticketCode + "\n" +
-                    "Tour: " + item.trainName + "\n" +
-                    "Khởi hành: " + item.depTime + " " + item.date + "/2026\n" +
-                    "Hành trình: " + item.depStation + " -> " + item.arrStation + "\n" +
-                    "Thời gian: " + item.duration + "\n" +
-                    "Giá vé: " + item.price;
+            String qrPayload;
+            // Nếu booking từ server (id dạng "DL0xxx"), tạo URL verify trực tiếp
+            int bookingId = -1;
+            try {
+                if (item.id.startsWith("DL0")) {
+                    bookingId = Integer.parseInt(item.id.substring(3));
+                }
+            } catch (Exception ignored) {}
+
+            if (bookingId > 0) {
+                // URL trỏ đến trang web xác nhận vé trên Django
+                qrPayload = RetrofitClient.BASE_URL + "api/ticket-verify/" + bookingId + "/";
+            } else {
+                // Fallback cho chuyến đi local (chưa có server booking ID)
+                qrPayload = "VÉ TOUR ĐIỆN TỬ\n" +
+                        "Mã vé: " + ticketCode + "\n" +
+                        "Tour: " + item.trainName + "\n" +
+                        "Khởi hành: " + item.depTime + " " + item.date + "/2026\n" +
+                        "Hành trình: " + item.depStation + " -> " + item.arrStation + "\n" +
+                        "Thời gian: " + item.duration + "\n" +
+                        "Giá vé: " + item.price;
+            }
             android.graphics.Bitmap qrBitmap = QrCodeGenerator.generateQrCode(qrPayload, 400, 400);
             if (qrBitmap != null) {
                 imgQrCode.setImageBitmap(qrBitmap);
@@ -482,7 +497,12 @@ public class MyTripsFragment extends Fragment {
             
             DetailTour detailFragment = new DetailTour();
             Bundle args = new Bundle();
-            args.putString("tour_type", item.tourType);
+            // Ưu tiên dùng tourId thực từ server; fallback dùng tour_type cho local items
+            if (item.tourId > 0) {
+                args.putInt("tour_id", item.tourId);
+            } else {
+                args.putString("tour_type", item.tourType);
+            }
             detailFragment.setArguments(args);
             
             getParentFragmentManager().beginTransaction()
