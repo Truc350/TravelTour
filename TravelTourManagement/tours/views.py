@@ -1,4 +1,7 @@
 from django.db.models import Q, Case, When, IntegerField
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, status
 from rest_framework.response import Response
 from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review
@@ -232,4 +235,54 @@ class VoucherListAPIView(generics.ListAPIView):
 
 class ReviewListCreateAPIView(generics.ListCreateAPIView):
     queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
+    serializer_class = ReviewSerializer
+
+
+@csrf_exempt
+def ticket_verify_view(request, booking_id):
+    """
+    Hiển thị trang web xác nhận vé tour điện tử.
+    - GET: Hiển thị thông tin vé và mã xác nhận.
+    - POST: Cập nhật trạng thái booking thành COMPLETED (xác nhận chuyến đi).
+    """
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    if request.method == 'POST':
+        booking.status = 'COMPLETED'
+        booking.save()
+        return JsonResponse({'success': True, 'message': 'Chuyến đi đã được xác nhận thành công!', 'status': 'COMPLETED'})
+
+    # Lấy thông tin chi tiết
+    departure = booking.departure
+    tour = departure.tour if departure else None
+    user = booking.user
+
+    # Danh sách hành khách
+    passengers = booking.passengers.all()
+
+    # Mã xác nhận duy nhất
+    confirmation_code = f"CFM-{100000 + booking.id}"
+
+    # Trạng thái hiển thị
+    status_map = {
+        'PENDING': ('Chờ duyệt', '#F59E0B', '#FEF3C7'),
+        'CONFIRMED': ('Đã thanh toán', '#3B82F6', '#DBEAFE'),
+        'COMPLETED': ('Đã hoàn thành', '#10B981', '#D1FAE5'),
+        'CANCELLED': ('Đã hủy', '#EF4444', '#FEE2E2'),
+    }
+    status_label, status_color, status_bg = status_map.get(booking.status, ('Không rõ', '#6B7280', '#F3F4F6'))
+
+    context = {
+        'booking': booking,
+        'departure': departure,
+        'tour': tour,
+        'user': user,
+        'passengers': passengers,
+        'confirmation_code': confirmation_code,
+        'status_label': status_label,
+        'status_color': status_color,
+        'status_bg': status_bg,
+        'is_completed': booking.status == 'COMPLETED',
+    }
+
+    return render(request, 'ticket_verify.html', context)

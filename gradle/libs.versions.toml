@@ -11,6 +11,7 @@ roomCommonJvm = "2.8.4"
 retrofit = "2.9.0"
 googleServicesPlugin = "4.4.2"
 firebaseBom = "33.1.2"
+firebaseMessaging = "25.1.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -30,6 +31,7 @@ retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", ver
 
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+google-firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
