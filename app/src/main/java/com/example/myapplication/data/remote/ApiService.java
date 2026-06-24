@@ -35,6 +35,9 @@ public interface ApiService {
     @POST("api/bookings/")
     Call<BookingResponse> createBooking(@Body BookingRequest bookingRequest);
 
+    @PATCH("api/bookings/{id}/")
+    Call<BookingResponse> patchBooking(@Path("id") int id, @Body java.util.Map<String, Object> fields);
+
     // User authentication & registration
     @GET("api/users/")
     Call<List<User>> getUsers();

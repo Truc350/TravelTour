@@ -191,6 +191,8 @@ public class MyTripsFragment extends Fragment {
                                 statusBadge = "Đã thanh toán";
                             } else if ("CANCELLED".equalsIgnoreCase(b.status)) {
                                 statusBadge = "Đã hủy";
+                            } else if ("COMPLETED".equalsIgnoreCase(b.status)) {
+                                statusBadge = "Đã hoàn thành";
                             }
 
                             String priceFormatted = formatVndPrice((long) b.totalPrice);
@@ -206,7 +208,7 @@ public class MyTripsFragment extends Fragment {
                                     "Trọn gói",
                                     priceFormatted,
                                     b.bookingDate != null ? b.bookingDate : "09/09",
-                                    "CANCELLED".equalsIgnoreCase(b.status), // coi như history nếu đã hủy hoặc completed
+                                    "CANCELLED".equalsIgnoreCase(b.status) || "COMPLETED".equalsIgnoreCase(b.status), // coi như history nếu đã hủy hoặc completed
                                     tourType
                             );
                             allTrips.add(item);
@@ -337,13 +339,8 @@ public class MyTripsFragment extends Fragment {
         rvTickets.setLayoutManager(new LinearLayoutManager(getContext()));
         
         adapter = new BookedTripAdapter(getContext(), displayedTrips, item -> {
-            // Xử lý khi nhấn vào vé tàu hỏa hoặc chuyến đi
-            if (item.isHistory) {
-                Toast.makeText(getContext(), "Đặt lại chuyến " + item.trainName, Toast.LENGTH_SHORT).show();
-            } else {
-                // Hiển thị một vé điện tử giả lập siêu đẹp cho chuyến đi sắp tới!
-                showTicketDialog(item);
-            }
+            // Hiển thị một vé điện tử giả lập cho chuyến đi!
+            showTicketDialog(item);
         });
         rvTickets.setAdapter(adapter);
     }
@@ -409,6 +406,7 @@ public class MyTripsFragment extends Fragment {
         TextView tvDlgSeat = dialogView.findViewById(R.id.tvDlgSeat);
         TextView tvDlgPrice = dialogView.findViewById(R.id.tvDlgPrice);
         TextView tvDlgTicketCode = dialogView.findViewById(R.id.tvDlgTicketCode);
+        TextView tvDlgHeaderSubtitle = dialogView.findViewById(R.id.tvDlgHeaderSubtitle);
 
         if (tvDlgTrainName != null) tvDlgTrainName.setText(item.trainName);
         if (tvDlgDepTime != null) tvDlgDepTime.setText(item.depTime);
@@ -418,6 +416,9 @@ public class MyTripsFragment extends Fragment {
         if (tvDlgArrStation != null) tvDlgArrStation.setText(item.arrStation);
         if (tvDlgDate != null) tvDlgDate.setText(item.date + "/2026");
         if (tvDlgPrice != null) tvDlgPrice.setText(item.price);
+        if (tvDlgHeaderSubtitle != null) {
+            tvDlgHeaderSubtitle.setText(item.isHistory ? "Chuyến đi đã hoàn thành" : "Chuyến đi sắp tới");
+        }
         
         // Mock seat and ticket code based on ID
         if (tvDlgSeat != null) {
@@ -435,6 +436,24 @@ public class MyTripsFragment extends Fragment {
 
         ImageView imgQrCode = dialogView.findViewById(R.id.imgDlgQrCode);
         View btnViewTour = dialogView.findViewById(R.id.btnDlgViewTour);
+        TextView btnDlgAction = dialogView.findViewById(R.id.btnDlgAction);
+
+        if (btnDlgAction != null) {
+            btnDlgAction.setVisibility(View.VISIBLE);
+            if (item.isHistory) {
+                btnDlgAction.setText("ĐÁNH GIÁ TOUR");
+                btnDlgAction.setOnClickListener(v -> {
+                    alertDialog.dismiss();
+                    showRatingDialog(item);
+                });
+            } else {
+                btnDlgAction.setText("XÁC NHẬN CHUYẾN ĐI THÀNH CÔNG");
+                btnDlgAction.setOnClickListener(v -> {
+                    alertDialog.dismiss();
+                    confirmTripSuccess(item);
+                });
+            }
+        }
 
         // Sinh QR Code động dựa trên thông tin vé chi tiết
         if (imgQrCode != null) {
@@ -473,5 +492,127 @@ public class MyTripsFragment extends Fragment {
         }
 
         alertDialog.show();
+    }
+
+    private void confirmTripSuccess(BookedTripAdapter.TripItem item) {
+        // 1. Cập nhật offline cục bộ trong additionalTrips (nếu tồn tại)
+        for (BookedTripAdapter.TripItem localItem : additionalTrips) {
+            if (localItem.id.equals(item.id)) {
+                localItem.isHistory = true;
+                localItem.statusBadge = "Đã hoàn thành";
+                break;
+            }
+        }
+
+        // 2. Trích xuất ID booking để cập nhật trên Django Backend
+        int bookingId = -1;
+        try {
+            if (item.id.startsWith("DL0")) {
+                bookingId = Integer.parseInt(item.id.substring(3));
+            }
+        } catch (Exception ignored) {}
+
+        if (bookingId != -1) {
+            ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+            java.util.Map<String, Object> fields = new java.util.HashMap<>();
+            fields.put("status", "COMPLETED");
+
+            apiService.patchBooking(bookingId, fields).enqueue(new Callback<BookingResponse>() {
+                @Override
+                public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
+                    if (getContext() == null) return;
+                    if (response.isSuccessful()) {
+                        Toast.makeText(getContext(), "Đã cập nhật trạng thái chuyến đi hoàn thành trên Django!", Toast.LENGTH_SHORT).show();
+                        // Nạp lại dữ liệu từ máy chủ để đồng bộ hóa
+                        loadBookingsFromServer();
+                    } else {
+                        Toast.makeText(getContext(), "Lỗi khi cập nhật trạng thái lên Django!", Toast.LENGTH_SHORT).show();
+                        filterAndDisplayTrips();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<BookingResponse> call, Throwable t) {
+                    if (getContext() == null) return;
+                    Toast.makeText(getContext(), "Lỗi kết nối khi cập nhật trạng thái chuyến đi!", Toast.LENGTH_SHORT).show();
+                    filterAndDisplayTrips();
+                }
+            });
+        } else {
+            // Đối với các chuyến đi local, chỉ cần lọc lại và hiển thị
+            filterAndDisplayTrips();
+        }
+    }
+
+    private void showRatingDialog(BookedTripAdapter.TripItem item) {
+        if (getActivity() == null) return;
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_rating, null);
+        builder.setView(dialogView);
+
+        TextView tvRatingTourName = dialogView.findViewById(R.id.tvRatingTourName);
+        if (tvRatingTourName != null) {
+            tvRatingTourName.setText(item.trainName);
+        }
+
+        TextView tvStar1 = dialogView.findViewById(R.id.tvStar1);
+        TextView tvStar2 = dialogView.findViewById(R.id.tvStar2);
+        TextView tvStar3 = dialogView.findViewById(R.id.tvStar3);
+        TextView tvStar4 = dialogView.findViewById(R.id.tvStar4);
+        TextView tvStar5 = dialogView.findViewById(R.id.tvStar5);
+        
+        TextView[] starViews = {tvStar1, tvStar2, tvStar3, tvStar4, tvStar5};
+        final int[] currentRating = {0}; // rating state
+
+        for (int i = 0; i < starViews.length; i++) {
+            final int starIndex = i;
+            if (starViews[i] != null) {
+                starViews[i].setOnClickListener(v -> {
+                    currentRating[0] = starIndex + 1;
+                    for (int j = 0; j < starViews.length; j++) {
+                        if (starViews[j] != null) {
+                            if (j <= starIndex) {
+                                starViews[j].setText("★"); // filled star
+                            } else {
+                                starViews[j].setText("☆"); // empty star
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        android.app.AlertDialog ratingDialog = builder.create();
+
+        View btnCancel = dialogView.findViewById(R.id.btnRatingCancel);
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> ratingDialog.dismiss());
+        }
+
+        View btnSubmit = dialogView.findViewById(R.id.btnRatingSubmit);
+        if (btnSubmit != null) {
+            btnSubmit.setOnClickListener(v -> {
+                if (currentRating[0] == 0) {
+                    Toast.makeText(getContext(), "Vui lòng chọn số sao đánh giá!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                ratingDialog.dismiss();
+                
+                // Hiển thị tiến trình gửi
+                android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(getContext());
+                progressDialog.setMessage("Đang gửi đánh giá của bạn...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(getContext(), "Đã gửi đánh giá thành công! Cảm ơn bạn đã phản hồi.", Toast.LENGTH_LONG).show();
+                }, 1500);
+            });
+        }
+
+        ratingDialog.show();
     }
 }

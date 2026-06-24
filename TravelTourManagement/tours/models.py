@@ -63,6 +63,7 @@ class Booking(models.Model):
         ('PENDING', 'Chờ duyệt'),
         ('CONFIRMED', 'Đã xác nhận'),
         ('CANCELLED', 'Đã hủy'),
+        ('COMPLETED', 'Đã hoàn thành'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings')
     departure = models.ForeignKey(TourDeparture, on_delete=models.RESTRICT, related_name='bookings')
