@@ -254,7 +254,15 @@ public class MyTripsFragment extends Fragment {
                 sb.append('.');
             }
         }
-        return sb + " đ";
+        return sb + " d";
+    }
+
+    /** Bỏ dấu tiếng Việt để QR code chỉ chứa ASCII thuần, tránh lỗi font khi quét */
+    private String removeAccents(String text) {
+        if (text == null) return "";
+        String normalized = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD);
+        return normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                         .replace("đ", "d").replace("Đ", "D");
     }
 
     private void setupTabs() {
@@ -462,35 +470,38 @@ public class MyTripsFragment extends Fragment {
             }
         }
 
-        // Sinh QR Code động - URL đến trang xác nhận vé trên web
+        // Sinh QR Code - nội dung plain text thông tin vé
         if (imgQrCode != null) {
-            String qrPayload;
-            // Nếu booking từ server (id dạng "DL0xxx"), tạo URL verify trực tiếp
-            int bookingId = -1;
+            String confirmCode = "CFM-" + (100000 + Math.abs(item.id.hashCode() % 900000));
             try {
                 if (item.id.startsWith("DL0")) {
-                    bookingId = Integer.parseInt(item.id.substring(3));
+                    int bid = Integer.parseInt(item.id.substring(3));
+                    confirmCode = "CFM-" + (100000 + bid);
                 }
             } catch (Exception ignored) {}
 
-            if (bookingId > 0) {
-                // URL trỏ đến trang web xác nhận vé trên Django
-                qrPayload = RetrofitClient.BASE_URL + "api/ticket-verify/" + bookingId + "/";
-            } else {
-                // Fallback cho chuyến đi local (chưa có server booking ID)
-                qrPayload = "VÉ TOUR ĐIỆN TỬ\n" +
-                        "Mã vé: " + ticketCode + "\n" +
-                        "Tour: " + item.trainName + "\n" +
-                        "Khởi hành: " + item.depTime + " " + item.date + "/2026\n" +
-                        "Hành trình: " + item.depStation + " -> " + item.arrStation + "\n" +
-                        "Thời gian: " + item.duration + "\n" +
-                        "Giá vé: " + item.price;
+            String depDate = item.date + "/2026";
+            if (item.depStation != null && item.depStation.startsWith("Khởi hành: ")) {
+                depDate = item.depStation.substring(11);
             }
+
+            String qrPayload =
+                    "=== VE DIEN TU TRAVELTOUR ===\n" +
+                    "Ma ve: " + item.id + "\n" +
+                    "Ma xac nhan: " + confirmCode + "\n" +
+                    "Tour: " + removeAccents(item.trainName) + "\n" +
+                    "Ngay khoi hanh: " + depDate + "\n" +
+                    "Gio khoi hanh: " + item.depTime + "\n" +
+                    "Gia ve: " + removeAccents(item.price) + "\n" +
+                    "Trang thai: " + removeAccents(item.statusBadge) + "\n" +
+                    "============================";
+
             android.graphics.Bitmap qrBitmap = QrCodeGenerator.generateQrCode(qrPayload, 400, 400);
             if (qrBitmap != null) {
                 imgQrCode.setImageBitmap(qrBitmap);
             }
         }
+
 
         View.OnClickListener openTourDetail = v -> {
             alertDialog.dismiss();
