@@ -73,23 +73,16 @@ public class MyVouchers extends Fragment {
 
     private void initMockVouchers() {
         voucherList.clear();
-        voucherList.add(new VoucherItem("WELCOME50", "50k", "GIẢM GIÁ", "Voucher Chào Mừng", "Áp dụng cho khách hàng mới đăng ký tài khoản. Đơn tối thiểu 200k.", "HSD: 31/12/2026", "ACTIVE", "#6B46C1")); // Tím
-        voucherList.add(new VoucherItem("CHILLTOUR10", "10%", "GIẢM GIÁ", "Khám Phá Hè Rực Rỡ", "Giảm 10% tối đa 200k cho các tour Đà Nẵng, Phú Quốc, Nha Trang.", "HSD: 30/09/2026", "ACTIVE", "#DD6B20")); // Cam
-        voucherList.add(new VoucherItem("HOTEL15", "15%", "VOUCHER", "Khách Sạn Sang Xịn", "Giảm 15% khi đặt phòng khách sạn Vinpearl hoặc Intercontinental qua app.", "HSD: 30/11/2026", "ACTIVE", "#319795")); // Teal/Cyan
         voucherList.add(new VoucherItem("SUMMER50", "50%", "VOUCHER", "Vé Xe Giá Rẻ Hè", "Mã giảm giá 50% vé xe limousine đi các tỉnh miền Bắc.", "Hết hiệu lực", "USED", "#718096")); // Xám
 
         // Load saved vouchers from Home screen
         if (getContext() != null) {
             SharedPreferences sessionPrefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
             String currentContact = sessionPrefs.getString("current_user_contact", "");
-            if (currentContact.isEmpty()) {
-                DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
-                currentContact = dbHelper.getLastUserContact();
-            }
-            
-            List<com.example.myapplication.data.model.VoucherHelper.AppVoucher> availableList = 
+
+            List<com.example.myapplication.data.model.VoucherHelper.AppVoucher> availableList =
                     com.example.myapplication.data.model.VoucherHelper.getAvailableVouchers();
-                    
+
             for (com.example.myapplication.data.model.VoucherHelper.AppVoucher av : availableList) {
                 if (com.example.myapplication.data.model.VoucherHelper.isVoucherSaved(requireContext(), currentContact, av.code)) {
                     boolean alreadyExists = false;
@@ -101,13 +94,13 @@ public class MyVouchers extends Fragment {
                     }
                     if (!alreadyExists) {
                         voucherList.add(new VoucherItem(
-                                av.code, 
-                                av.discountVal, 
-                                av.discountLabel, 
-                                av.title, 
-                                av.desc, 
-                                av.expiry, 
-                                "ACTIVE", 
+                                av.code,
+                                av.discountVal,
+                                av.discountLabel,
+                                av.title,
+                                av.desc,
+                                av.expiry,
+                                "ACTIVE",
                                 av.colorHex
                         ));
                     }
@@ -246,6 +239,13 @@ public class MyVouchers extends Fragment {
                 nav.setVisibility(View.GONE);
             }
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        initMockVouchers();
+        renderVouchers();
     }
 
     @Override
