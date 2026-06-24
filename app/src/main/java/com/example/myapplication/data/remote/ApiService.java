@@ -88,7 +88,16 @@ public interface ApiService {
     );
 
     @GET("api/vouchers/")
-    Call<List<VoucherHelper.AppVoucher>> getVouchers();
+    Call<List<VoucherHelper.AppVoucher>> getVouchers(
+            @Query("user_id") Integer userId,
+            @Query("saved_only") Boolean savedOnly
+    );
+
+    @POST("api/user-vouchers/")
+    Call<Void> saveUserVoucher(@Body java.util.Map<String, Object> body);
+
+    @GET("api/user-vouchers/")
+    Call<List<VoucherHelper.UserVoucherResponse>> getUserVouchers(@Query("user_id") Integer userId);
 
     @GET("api/reviews/")
     Call<List<com.example.myapplication.data.model.Review>> getReviews();

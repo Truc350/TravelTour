@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, status
 from rest_framework.response import Response
-from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review
+from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review, UserVoucher
 from .serializers import (
     TourSerializer,
     UserSerializer,
@@ -17,6 +17,7 @@ from .serializers import (
     TourItinerarySerializer,
     VoucherSerializer,
     ReviewSerializer,
+    UserVoucherSerializer,
 )
 
 
@@ -169,6 +170,26 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+
+        # Mark UserVoucher as used and decrement count
+        user_id = data.get('user')
+        voucher_code = data.get('voucher_code')
+        if user_id and voucher_code:
+            try:
+                voucher = Voucher.objects.filter(code=voucher_code).first()
+                if voucher:
+                    uv = UserVoucher.objects.filter(user_id=user_id, voucher=voucher).first()
+                    if uv:
+                        uv.is_used = True
+                        uv.save()
+                    else:
+                        UserVoucher.objects.create(user_id=user_id, voucher=voucher, is_used=True)
+                    if voucher.remaining_count > 0:
+                        voucher.remaining_count -= 1
+                        voucher.save()
+            except Exception as e:
+                print("Error updating UserVoucher on booking create:", e)
+
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -229,8 +250,45 @@ class TourItineraryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAP
 
 
 class VoucherListAPIView(generics.ListAPIView):
-    queryset = Voucher.objects.all()
     serializer_class = VoucherSerializer
+
+    def get_queryset(self):
+        user_id = self.request.query_params.get('user_id')
+        saved_only = self.request.query_params.get('saved_only')
+        queryset = Voucher.objects.all()
+        if user_id:
+            if saved_only and saved_only.lower() == 'true':
+                saved_voucher_ids = UserVoucher.objects.filter(user_id=user_id, is_used=False).values_list('voucher_id', flat=True)
+                queryset = queryset.filter(id__in=saved_voucher_ids)
+            else:
+                used_voucher_ids = UserVoucher.objects.filter(user_id=user_id, is_used=True).values_list('voucher_id', flat=True)
+                queryset = queryset.exclude(id__in=used_voucher_ids)
+        return queryset
+
+
+class UserVoucherListCreateAPIView(generics.ListCreateAPIView):
+    queryset = UserVoucher.objects.all()
+    serializer_class = UserVoucherSerializer
+
+    def get_queryset(self):
+        user_id = self.request.query_params.get('user_id')
+        queryset = UserVoucher.objects.all()
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
+        return queryset
+
+    def create(self, request, *args, **kwargs):
+        user_id = request.data.get('user')
+        voucher_id = request.data.get('voucher')
+        if not user_id or not voucher_id:
+            return Response({"error": "user and voucher are required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user_voucher, created = UserVoucher.objects.get_or_create(
+            user_id=user_id,
+            voucher_id=voucher_id
+        )
+        serializer = self.get_serializer(user_voucher)
+        return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
 class ReviewListCreateAPIView(generics.ListCreateAPIView):

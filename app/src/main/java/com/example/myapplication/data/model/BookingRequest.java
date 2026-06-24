@@ -27,7 +27,10 @@ public class BookingRequest {
     @SerializedName("tour_id")
     public int tourId;
 
-    public BookingRequest(int user, int departure, String bookingDate, String departureHour, String status, double totalPrice, int tourId) {
+    @SerializedName("voucher_code")
+    public String voucherCode;
+
+    public BookingRequest(int user, int departure, String bookingDate, String departureHour, String status, double totalPrice, int tourId, String voucherCode) {
         this.user = user;
         this.departure = departure;
         this.bookingDate = bookingDate;
@@ -35,5 +38,6 @@ public class BookingRequest {
         this.status = status;
         this.totalPrice = totalPrice;
         this.tourId = tourId;
+        this.voucherCode = voucherCode;
     }
 }

@@ -27,6 +27,9 @@ public class BookingResponse {
     @SerializedName("total_price")
     public double totalPrice;
 
+    @SerializedName("voucher_code")
+    public String voucherCode;
+
     @SerializedName("departure_detail")
     public DepartureDetail departureDetail;
 

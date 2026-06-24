@@ -18,6 +18,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.myapplication.data.remote.ApiService;
+import com.example.myapplication.data.remote.RetrofitClient;
+import com.example.myapplication.data.model.VoucherHelper;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,8 +62,8 @@ public class MyVouchers extends Fragment {
             }
         });
 
-        // Khởi tạo danh sách dữ liệu mock
-        initMockVouchers();
+        // Khởi tạo danh sách dữ liệu từ API
+        loadVouchersFromApi();
 
         // Thiết lập sự kiện chọn tab
         btnTabActive.setOnClickListener(v -> switchTab("ACTIVE"));
@@ -65,48 +72,60 @@ public class MyVouchers extends Fragment {
         // Áp dụng mã
         btnApplyPromo.setOnClickListener(v -> applyPromoCode());
 
-        // Hiển thị danh sách ban đầu
-        renderVouchers();
-
         return view;
     }
 
-    private void initMockVouchers() {
+    private void loadVouchersFromApi() {
+        if (getContext() == null) return;
+        SharedPreferences sessionPrefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+        int currentUserId = sessionPrefs.getInt("current_user_id", -1);
+
         voucherList.clear();
         voucherList.add(new VoucherItem("SUMMER50", "50%", "VOUCHER", "Vé Xe Giá Rẻ Hè", "Mã giảm giá 50% vé xe limousine đi các tỉnh miền Bắc.", "Hết hiệu lực", "USED", "#718096")); // Xám
 
-        // Load saved vouchers from Home screen
-        if (getContext() != null) {
-            SharedPreferences sessionPrefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
-            String currentContact = sessionPrefs.getString("current_user_contact", "");
+        if (currentUserId == -1) {
+            renderVouchers();
+            return;
+        }
 
-            List<com.example.myapplication.data.model.VoucherHelper.AppVoucher> availableList =
-                    com.example.myapplication.data.model.VoucherHelper.getAvailableVouchers();
-
-            for (com.example.myapplication.data.model.VoucherHelper.AppVoucher av : availableList) {
-                if (com.example.myapplication.data.model.VoucherHelper.isVoucherSaved(requireContext(), currentContact, av.code)) {
-                    boolean alreadyExists = false;
-                    for (VoucherItem existing : voucherList) {
-                        if (existing.code.equalsIgnoreCase(av.code)) {
-                            alreadyExists = true;
-                            break;
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        apiService.getUserVouchers(currentUserId).enqueue(new Callback<List<VoucherHelper.UserVoucherResponse>>() {
+            @Override
+            public void onResponse(Call<List<VoucherHelper.UserVoucherResponse>> call, Response<List<VoucherHelper.UserVoucherResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    for (VoucherHelper.UserVoucherResponse uvr : response.body()) {
+                        VoucherHelper.AppVoucher av = uvr.voucherDetail;
+                        if (av != null) {
+                            boolean alreadyExists = false;
+                            for (VoucherItem existing : voucherList) {
+                                if (existing.code.equalsIgnoreCase(av.code)) {
+                                    alreadyExists = true;
+                                    break;
+                                }
+                            }
+                            if (!alreadyExists) {
+                                voucherList.add(new VoucherItem(
+                                        av.code,
+                                        av.discountVal,
+                                        av.discountLabel,
+                                        av.title,
+                                        av.desc,
+                                        av.expiry,
+                                        uvr.isUsed ? "USED" : "ACTIVE",
+                                        av.colorHex
+                                ));
+                            }
                         }
                     }
-                    if (!alreadyExists) {
-                        voucherList.add(new VoucherItem(
-                                av.code,
-                                av.discountVal,
-                                av.discountLabel,
-                                av.title,
-                                av.desc,
-                                av.expiry,
-                                "ACTIVE",
-                                av.colorHex
-                        ));
-                    }
                 }
+                renderVouchers();
             }
-        }
+
+            @Override
+            public void onFailure(Call<List<VoucherHelper.UserVoucherResponse>> call, Throwable t) {
+                renderVouchers();
+            }
+        });
     }
 
     private void switchTab(String tabStatus) {
@@ -244,8 +263,7 @@ public class MyVouchers extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        initMockVouchers();
-        renderVouchers();
+        loadVouchersFromApi();
     }
 
     @Override

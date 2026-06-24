@@ -71,6 +71,7 @@ class Booking(models.Model):
     departure_hour = models.CharField(max_length=50, blank=True, null=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='PENDING')
     total_price = models.DecimalField(max_digits=12, decimal_places=2)
+    voucher_code = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         db_table = 'bookings'
@@ -161,12 +162,28 @@ class Voucher(models.Model):
     status = models.CharField(max_length=50, default="Còn hiệu lực")
     remaining_count = models.IntegerField(default=100)
     color_hex = models.CharField(max_length=10, default="#319795")
+    max_discount = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'vouchers'
 
     def __str__(self):
         return f"{self.title} ({self.code})"
+
+
+class UserVoucher(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_vouchers')
+    voucher = models.ForeignKey(Voucher, on_delete=models.CASCADE, related_name='user_vouchers')
+    is_used = models.BooleanField(default=False)
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'user_vouchers'
+        unique_together = ('user', 'voucher')
+
+    def __str__(self):
+        return f"{self.user.name} - {self.voucher.code} (is_used={self.is_used})"
+
 
 
 class Review(models.Model):
