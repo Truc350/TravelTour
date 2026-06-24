@@ -6,4 +6,6 @@ class ToursConfig(AppConfig):
     name = 'tours'
 
     def ready(self):
-        import tours.signals
+        # import tours.signals
+        pass
+
