@@ -101,7 +101,7 @@
                         android:id="@+id/tv_payment_status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Đang chờ quét mã... (7s)"
+                        android:text="Đang chờ quét mã... (60s)"
                         android:textColor="#E65100"
                         android:textSize="13sp"
                         android:textStyle="bold" />

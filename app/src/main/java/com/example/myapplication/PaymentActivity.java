@@ -285,8 +285,8 @@ public class PaymentActivity extends AppCompatActivity {
         if (btnCopyAmount != null) btnCopyAmount.setOnClickListener(copyListener);
         if (btnCopyInfo != null) btnCopyInfo.setOnClickListener(copyListener);
 
-        // Đếm ngược 7 giây giả lập kiểm tra giao dịch thời gian thực
-        CountDownTimer timer = new CountDownTimer(7000, 1000) {
+        // Đếm ngược 60 giây giả lập kiểm tra giao dịch thời gian thực
+        CountDownTimer timer = new CountDownTimer(60000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
                 long secs = millisUntilFinished / 1000;
@@ -378,14 +378,17 @@ public class PaymentActivity extends AppCompatActivity {
             public void onResponse(retrofit2.Call<com.example.myapplication.data.model.BookingResponse> call, retrofit2.Response<com.example.myapplication.data.model.BookingResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     android.util.Log.d("DJANGO_API", "Tạo booking thành công trên server! ID = " + response.body().id);
+                    Toast.makeText(PaymentActivity.this, "Đã lưu thông tin đặt tour thành công vào Django!", Toast.LENGTH_SHORT).show();
                 } else {
                     android.util.Log.e("DJANGO_API", "Không thể tạo booking trên server! Code = " + response.code());
+                    Toast.makeText(PaymentActivity.this, "Lỗi phản hồi từ Django! Mã lỗi: " + response.code(), Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(retrofit2.Call<com.example.myapplication.data.model.BookingResponse> call, Throwable t) {
                 android.util.Log.e("DJANGO_API", "Lỗi kết nối khi tạo booking: " + t.getMessage(), t);
+                Toast.makeText(PaymentActivity.this, "Không thể kết nối với máy chủ Django!", Toast.LENGTH_LONG).show();
             }
         });
 
