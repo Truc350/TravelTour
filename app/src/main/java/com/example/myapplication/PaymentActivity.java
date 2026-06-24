@@ -359,7 +359,7 @@ public class PaymentActivity extends AppCompatActivity {
         // Gọi API tạo Booking mới trên Django Backend
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
         android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
-        int currentUserId = prefs.getInt("current_user_id", 1); // mặc định user 1 (Ngọc Quyên)
+        int currentUserId = prefs.getInt("current_user_id", -1); // lấy ID user đăng nhập thực tế
         int depId = departureId > 0 ? departureId : 1; // mặc định departure 1 nếu chưa được gán chính xác
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
         String currentDate = sdf.format(new java.util.Date());
@@ -369,6 +369,11 @@ public class PaymentActivity extends AppCompatActivity {
             voucherCode = "";
         }
 
+        String customerName = getIntent().getStringExtra("full_name");
+        String customerPhone = getIntent().getStringExtra("phone");
+        String customerEmail = getIntent().getStringExtra("email");
+        boolean isInvoiceRequested = getIntent().getBooleanExtra("is_invoice_requested", false);
+
         com.example.myapplication.data.model.BookingRequest request = new com.example.myapplication.data.model.BookingRequest(
                 currentUserId,
                 depId,
@@ -377,7 +382,11 @@ public class PaymentActivity extends AppCompatActivity {
                 "CONFIRMED", // đã xác nhận/đã thanh toán
                 totalPrice,
                 tourId,
-                voucherCode
+                voucherCode,
+                customerName,
+                customerPhone,
+                customerEmail,
+                isInvoiceRequested
         );
 
         apiService.createBooking(request).enqueue(new retrofit2.Callback<com.example.myapplication.data.model.BookingResponse>() {
@@ -405,8 +414,8 @@ public class PaymentActivity extends AppCompatActivity {
                 "Đã thanh toán",
                 departureTime != null && !departureTime.isEmpty() ? departureTime : "08:00",
                 "Dự kiến",
-                "Điểm đi",
-                "Điểm đến",
+                "Thời gian đi",
+                "Thời gian đến",
                 adultCount + " người lớn" + (childCount > 0 ? ", " + childCount + " trẻ em" : ""),
                 formatVnd(totalPrice),
                 currentDate,
@@ -414,7 +423,7 @@ public class PaymentActivity extends AppCompatActivity {
                 "tour"
         );
         newTrip.tourId = tourId;
-        newTrip.tourId = tourId;
+        newTrip.userId = currentUserId;
 
 
         // Lưu vào danh sách tĩnh của MyTripsFragment

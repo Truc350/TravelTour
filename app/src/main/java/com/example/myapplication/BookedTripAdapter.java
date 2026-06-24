@@ -41,6 +41,7 @@ public class BookedTripAdapter extends RecyclerView.Adapter<BookedTripAdapter.Tr
         public boolean isHistory; // true nếu là chuyến đi trong lịch sử
         public String tourType; // loại tour (ví dụ "sapa", "taiwan")
         public int tourId = -1;
+        public int userId = -1;
 
 
         public TripItem(String id, String trainName, String statusBadge, String depTime, String arrTime,
