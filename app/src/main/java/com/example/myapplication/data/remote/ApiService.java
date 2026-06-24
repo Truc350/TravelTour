@@ -47,6 +47,10 @@ public interface ApiService {
 
     @POST("api/users/")
     Call<User> registerUser(@Body User user);
+    @GET("api/notifications/")
+    Call<List<com.example.myapplication.data.model.Notification>> getNotifications();
+    @PATCH("api/notifications/{id}/")
+    Call<com.example.myapplication.data.model.Notification> patchNotification(@Path("id") int id, @Body Map<String, Object> fields);
 
     // Passengers CRUD
     @GET("api/passengers/")

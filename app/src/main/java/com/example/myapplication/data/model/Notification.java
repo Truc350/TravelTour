@@ -6,6 +6,8 @@ import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import com.google.gson.annotations.SerializedName;
+
 @Entity(tableName = "notifications",
         foreignKeys = @ForeignKey(entity = User.class,
                 parentColumns = "id",
@@ -18,6 +20,7 @@ public class Notification {
     private int id;
 
     @ColumnInfo(name = "user_id")
+    @SerializedName("user")
     private int userId;
 
     @ColumnInfo(name = "title")
@@ -30,6 +33,7 @@ public class Notification {
     private String date;
 
     @ColumnInfo(name = "is_read")
+    @SerializedName("is_read")
     private boolean isRead;
 
     public Notification(int userId, String title, String message, String date, boolean isRead) {

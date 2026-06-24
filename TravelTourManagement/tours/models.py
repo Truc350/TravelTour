@@ -37,7 +37,7 @@ class User(models.Model):
     contact = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
     avatar_url = models.CharField(max_length=255, blank=True, null=True)
-
+    fcm_token = models.CharField(max_length=255, blank=True, null=True)
     class Meta:
         db_table = 'users'
 
@@ -166,4 +166,4 @@ class Voucher(models.Model):
         db_table = 'vouchers'
 
     def __str__(self):
-        return f"{self.title} ({self.code})"
+        return f"{self.title} ({self.code})"

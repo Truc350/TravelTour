@@ -175,8 +175,13 @@ class BookingAdmin(ImportExportModelAdmin):
     actions = ['confirm_bookings', 'cancel_bookings']
 
     def confirm_bookings(self, request, queryset):
-        rows_updated = queryset.update(status='CONFIRMED')
-        self.message_user(request, f"Đã xác nhận {rows_updated} bookings thành công.")
+        count = 0
+        for booking in queryset:
+            if booking.status != 'CONFIRMED':
+                booking.status = 'CONFIRMED'
+                booking.save()
+                count += 1
+        self.message_user(request, f"Đã xác nhận {count} bookings thành công.")
     confirm_bookings.short_description = "Xác nhận các Booking đã chọn"
 
     def cancel_bookings(self, request, queryset):

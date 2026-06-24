@@ -141,5 +141,68 @@ public class MainActivity extends AppCompatActivity {
                         "Retrofit Error", t);
             }
         });
+
+        // Initialize Firebase Messaging & Sync FCM Token
+        initFirebaseMessaging();
+    }
+
+    private void initFirebaseMessaging() {
+        // 1. Create Notification Channel
+        com.example.myapplication.service.NotificationHelper.createNotificationChannel(this);
+
+        // 2. Request Permission for Android 13+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) 
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                androidx.core.app.ActivityCompat.requestPermissions(
+                        this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101
+                );
+            }
+        }
+
+        // 3. Fetch current FCM token and send to server
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        android.util.Log.w("FCM", "Fetching FCM registration token failed", task.getException());
+                        return;
+                    }
+
+                    // Get new FCM registration token
+                    String token = task.getResult();
+                    android.util.Log.d("FCM", "FCM Token: " + token);
+
+                    // Save token locally
+                    android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+                    prefs.edit().putString("fcm_token", token).apply();
+
+                    // Sync to server if user is logged in
+                    int userId = prefs.getInt("current_user_id", -1);
+                    if (userId != -1) {
+                        syncTokenToServer(userId, token);
+                    }
+                });
+    }
+
+    private void syncTokenToServer(int userId, String token) {
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        java.util.Map<String, Object> fields = new java.util.HashMap<>();
+        fields.put("fcm_token", token);
+
+        apiService.patchUser(userId, fields).enqueue(new retrofit2.Callback<com.example.myapplication.data.model.User>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.example.myapplication.data.model.User> call, retrofit2.Response<com.example.myapplication.data.model.User> response) {
+                if (response.isSuccessful()) {
+                    android.util.Log.d("FCM", "Synced FCM token on MainActivity startup");
+                } else {
+                    android.util.Log.e("FCM", "Failed to sync token. Code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.example.myapplication.data.model.User> call, Throwable t) {
+                android.util.Log.e("FCM", "Error syncing token: " + t.getMessage());
+            }
+        });
     }
 }

@@ -174,6 +174,20 @@ public class LoginActivity extends AppCompatActivity {
                                     .putString("current_user_contact", contact)
                                     .putInt("current_user_id", userId)
                                     .apply();
+
+                            // Proactively sync FCM token if exists
+                            String fcmToken = getSharedPreferences("UserSession", MODE_PRIVATE).getString("fcm_token", null);
+                            if (fcmToken != null) {
+                                java.util.Map<String, Object> fields = new java.util.HashMap<>();
+                                fields.put("fcm_token", fcmToken);
+                                apiService.patchUser(userId, fields).enqueue(new Callback<User>() {
+                                    @Override
+                                    public void onResponse(Call<User> call, Response<User> response) {}
+                                    @Override
+                                    public void onFailure(Call<User> call, Throwable t) {}
+                                });
+                            }
+
                             // Navigate to MainActivity
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             startActivity(intent);
