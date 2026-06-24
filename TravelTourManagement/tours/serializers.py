@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher
+from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review
 
 
 class TourImageSerializer(serializers.ModelSerializer):
@@ -14,16 +14,9 @@ class TourItinerarySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class SimpleTourDepartureSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TourDeparture
-        fields = ['id', 'departure_date', 'available_seats', 'price']
-
-
 class TourSerializer(serializers.ModelSerializer):
     images = TourImageSerializer(many=True, read_only=True)
     itineraries = TourItinerarySerializer(many=True, read_only=True)
-    departures = SimpleTourDepartureSerializer(many=True, read_only=True)
 
     class Meta:
         model = Tour
@@ -74,3 +67,10 @@ class VoucherSerializer(serializers.ModelSerializer):
     class Meta:
         model = Voucher
         fields = '__all__'
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'
+
