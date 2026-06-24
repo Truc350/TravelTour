@@ -554,6 +554,50 @@ public class MyTripsFragment extends Fragment {
     private void showRatingDialog(BookedTripAdapter.TripItem item) {
         if (getActivity() == null) return;
 
+        SharedPreferences prefs = getContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+        int currentUserId = prefs.getInt("current_user_id", 1);
+        int tourId = item.tourId > 0 ? item.tourId : 1;
+
+        // Hiển thị tiến trình kiểm tra
+        android.app.ProgressDialog checkProgress = new android.app.ProgressDialog(getContext());
+        checkProgress.setMessage("Đang kiểm tra lịch sử đánh giá...");
+        checkProgress.setCancelable(false);
+        checkProgress.show();
+
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        apiService.getReviews().enqueue(new Callback<List<com.example.myapplication.data.model.Review>>() {
+            @Override
+            public void onResponse(Call<List<com.example.myapplication.data.model.Review>> call, Response<List<com.example.myapplication.data.model.Review>> response) {
+                checkProgress.dismiss();
+                if (response.isSuccessful() && response.body() != null) {
+                    boolean alreadyRated = false;
+                    for (com.example.myapplication.data.model.Review r : response.body()) {
+                        if (r.getUserId() == currentUserId && r.getTourId() == tourId) {
+                            alreadyRated = true;
+                            break;
+                        }
+                    }
+                    if (alreadyRated) {
+                        Toast.makeText(getContext(), "Bạn đã đánh giá tour này rồi! Không thể đánh giá thêm.", Toast.LENGTH_LONG).show();
+                    } else {
+                        displayRatingDialog(item);
+                    }
+                } else {
+                    displayRatingDialog(item);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<com.example.myapplication.data.model.Review>> call, Throwable t) {
+                checkProgress.dismiss();
+                displayRatingDialog(item);
+            }
+        });
+    }
+
+    private void displayRatingDialog(BookedTripAdapter.TripItem item) {
+        if (getActivity() == null) return;
+
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_rating, null);

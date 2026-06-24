@@ -88,4 +88,8 @@ public interface ApiService {
 
     @POST("api/reviews/")
     Call<Void> createReview(@Body java.util.Map<String, Object> reviewData);
-}
+
+    @GET("api/reviews/")
+    Call<List<com.example.myapplication.data.model.Review>> getReviews();
+}
+
