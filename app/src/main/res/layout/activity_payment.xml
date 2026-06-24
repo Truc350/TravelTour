@@ -265,14 +265,14 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Chuyển khoản QR"
+                            android:text="Chuyển khoản QR VietQR"
                             android:textColor="#212529"
                             android:textSize="14sp"
                             android:textStyle="bold" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Quét mã QR để chuyển khoản • Miễn phí"
+                            android:text="Quét mã QR VietQR để chuyển khoản • Miễn phí"
                             android:textColor="#6C757D"
                             android:textSize="11sp"
                             android:layout_marginTop="2dp" />
@@ -290,6 +290,7 @@
                     android:gravity="center_vertical"
                     android:clickable="true"
                     android:focusable="true"
+                    android:visibility="gone"
                     android:layout_marginBottom="12dp">
 
                     <RadioButton
@@ -345,6 +346,7 @@
                     android:gravity="center_vertical"
                     android:clickable="true"
                     android:focusable="true"
+                    android:visibility="gone"
                     android:layout_marginBottom="12dp">
 
                     <RadioButton
@@ -397,7 +399,8 @@
                     android:padding="14dp"
                     android:gravity="center_vertical"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:visibility="gone">
 
                     <RadioButton
                         android:id="@+id/rb_pay_atm"
