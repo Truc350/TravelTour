@@ -37,7 +37,7 @@ class User(models.Model):
     contact = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
     avatar_url = models.CharField(max_length=255, blank=True, null=True)
-
+    fcm_token = models.CharField(max_length=255, blank=True, null=True)
     class Meta:
         db_table = 'users'
 
@@ -167,45 +167,3 @@ class Voucher(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.code})"
-
-
-class Review(models.Model):
-    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name='reviews')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
-    rating = models.IntegerField()
-    comment = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'reviews'
-
-    def __str__(self):
-        return f"Review for {self.tour.title} by {self.user.name} ({self.rating} stars)"
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        # Update Tour rating_score and reviews_count
-        tour = self.tour
-        reviews = tour.reviews.all()
-        tour.reviews_count = reviews.count()
-        if tour.reviews_count > 0:
-            total_rating = sum(r.rating for r in reviews)
-            tour.rating_score = round(total_rating / tour.reviews_count, 1)
-        else:
-            tour.rating_score = 0
-        tour.save()
-
-    def delete(self, *args, **kwargs):
-        tour = self.tour
-        super().delete(*args, **kwargs)
-        # Update Tour rating_score and reviews_count
-        reviews = tour.reviews.all()
-        tour.reviews_count = reviews.count()
-        if tour.reviews_count > 0:
-            total_rating = sum(r.rating for r in reviews)
-            tour.rating_score = round(total_rating / tour.reviews_count, 1)
-        else:
-            tour.rating_score = 0
-        tour.save()
-
-

@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -57,4 +58,8 @@ dependencies {
 
     // Glide for image loading
     implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    // Firebase Messaging Push Notifications
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 }

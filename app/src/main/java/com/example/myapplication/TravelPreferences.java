@@ -29,47 +29,7 @@ public class TravelPreferences extends Fragment {
     private DatabaseHelper dbHelper;
     private String userContactPrefix = "";
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_travel_preferences, container, false);
 
-        dbHelper = new DatabaseHelper(requireContext());
-        prefStore = requireContext().getSharedPreferences("TravelPreferences", Context.MODE_PRIVATE);
-
-        // Xác định người dùng đang đăng nhập
-        SharedPreferences sessionPrefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
-        String contact = sessionPrefs.getString("current_user_contact", "");
-        if (contact.isEmpty()) {
-            contact = dbHelper.getLastUserContact();
-        }
-        userContactPrefix = contact;
-
-        // Thiết lập nút quay lại
-        View btnBack = view.findViewById(R.id.btnBack);
-        if (btnBack != null) {
-            btnBack.setOnClickListener(v -> {
-                if (getParentFragmentManager() != null) {
-                    getParentFragmentManager().popBackStack();
-                }
-            });
-        }
-
-        // Ánh xạ các nhóm lựa chọn và thiết lập sự kiện chọn tag
-        ViewGroup layoutStars = view.findViewById(R.id.layoutStars);
-        FlowLayout flowStyles = view.findViewById(R.id.flowStyles);
-        FlowLayout flowBrands = view.findViewById(R.id.flowBrands);
-        FlowLayout flowAccommodations = view.findViewById(R.id.flowAccommodations);
-        FlowLayout flowAmenities = view.findViewById(R.id.flowAmenities);
-
-        setupViewGroupSelection(layoutStars, "stars");
-        setupViewGroupSelection(flowStyles, "styles");
-        setupViewGroupSelection(flowBrands, "brands");
-        setupViewGroupSelection(flowAccommodations, "accommodations");
-        setupViewGroupSelection(flowAmenities, "amenities");
-
-        return view;
-    }
 
     private void setupViewGroupSelection(ViewGroup viewGroup, String categoryKey) {
         if (viewGroup == null) return;

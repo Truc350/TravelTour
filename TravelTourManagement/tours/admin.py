@@ -5,8 +5,7 @@ from import_export.fields import Field
 from import_export.widgets import DecimalWidget, ForeignKeyWidget
 import re
 from decimal import Decimal
-from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review
-
+from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher
 
 class PriceWidget(DecimalWidget):
     def clean(self, value, row=None, *args, **kwargs):
@@ -176,8 +175,13 @@ class BookingAdmin(ImportExportModelAdmin):
     actions = ['confirm_bookings', 'cancel_bookings']
 
     def confirm_bookings(self, request, queryset):
-        rows_updated = queryset.update(status='CONFIRMED')
-        self.message_user(request, f"Đã xác nhận {rows_updated} bookings thành công.")
+        count = 0
+        for booking in queryset:
+            if booking.status != 'CONFIRMED':
+                booking.status = 'CONFIRMED'
+                booking.save()
+                count += 1
+        self.message_user(request, f"Đã xác nhận {count} bookings thành công.")
     confirm_bookings.short_description = "Xác nhận các Booking đã chọn"
 
     def cancel_bookings(self, request, queryset):
@@ -225,10 +229,3 @@ class TourItineraryAdmin(ImportExportModelAdmin):
 class VoucherAdmin(ImportExportModelAdmin):
     list_display = ('id', 'code', 'title', 'discount_val', 'discount_label', 'expiry', 'status', 'remaining_count')
     search_fields = ('code', 'title')
-
-
-@admin.register(Review)
-class ReviewAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'tour', 'user', 'rating', 'comment', 'created_at')
-    list_filter = ('rating', 'created_at')
-    search_fields = ('tour__title', 'user__name', 'comment')

@@ -56,13 +56,13 @@ public class Account extends Fragment {
                     .commit();
         });
 
-        view.findViewById(R.id.btnTravelPreferences).setOnClickListener(v -> {
-            // Xử lý khi nhấn "Sở thích du lịch" -> Chuyển sang màn hình TravelPreferences
-            requireActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.contentFrame, new TravelPreferences())
-                    .addToBackStack(null)
-                    .commit();
-        });
+//        view.findViewById(R.id.btnTravelPreferences).setOnClickListener(v -> {
+//            // Xử lý khi nhấn "Sở thích du lịch" -> Chuyển sang màn hình TravelPreferences
+//            requireActivity().getSupportFragmentManager().beginTransaction()
+//                    .replace(R.id.contentFrame, new TravelPreferences())
+//                    .addToBackStack(null)
+//                    .commit();
+//        });
 
         view.findViewById(R.id.btnMyVouchers).setOnClickListener(v -> {
             // Xử lý khi nhấn "Voucher của tôi" -> Chuyển sang màn hình MyVouchers
