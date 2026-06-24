@@ -24,12 +24,16 @@ public class BookingRequest {
     @SerializedName("total_price")
     public double totalPrice;
 
-    public BookingRequest(int user, int departure, String bookingDate, String departureHour, String status, double totalPrice) {
+    @SerializedName("tour_id")
+    public int tourId;
+
+    public BookingRequest(int user, int departure, String bookingDate, String departureHour, String status, double totalPrice, int tourId) {
         this.user = user;
         this.departure = departure;
         this.bookingDate = bookingDate;
         this.departureHour = departureHour;
         this.status = status;
         this.totalPrice = totalPrice;
+        this.tourId = tourId;
     }
 }

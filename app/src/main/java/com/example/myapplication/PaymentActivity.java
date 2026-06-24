@@ -370,7 +370,8 @@ public class PaymentActivity extends AppCompatActivity {
                 currentDate,
                 departureTime != null && !departureTime.isEmpty() ? departureTime : "08:00",
                 "CONFIRMED", // đã xác nhận/đã thanh toán
-                totalPrice
+                totalPrice,
+                tourId
         );
 
         apiService.createBooking(request).enqueue(new retrofit2.Callback<com.example.myapplication.data.model.BookingResponse>() {
