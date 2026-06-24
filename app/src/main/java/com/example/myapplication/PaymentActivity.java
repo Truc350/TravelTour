@@ -408,6 +408,7 @@ public class PaymentActivity extends AppCompatActivity {
                 "tour"
         );
         newTrip.tourId = tourId;
+        newTrip.tourId = tourId;
 
 
         // Lưu vào danh sách tĩnh của MyTripsFragment
