@@ -1,5 +1,6 @@
 from django.db.models import Q, Case, When, IntegerField
-from rest_framework import generics
+from rest_framework import generics, status
+from rest_framework.response import Response
 from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher
 from .serializers import (
     TourSerializer,
@@ -142,6 +143,30 @@ class TourDepartureRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAP
 class BookingListCreateAPIView(generics.ListCreateAPIView):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        tour_id = data.get('tour_id')
+        if tour_id:
+            try:
+                tour = Tour.objects.get(id=tour_id)
+                departure = TourDeparture.objects.filter(tour=tour).first()
+                if not departure:
+                    departure = TourDeparture.objects.create(
+                        tour=tour,
+                        departure_date=data.get('booking_date', '2026-01-01'),
+                        available_seats=14,
+                        price=data.get('total_price', 0)
+                    )
+                data['departure'] = departure.id
+            except Tour.DoesNotExist:
+                pass
+        
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class BookingRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
