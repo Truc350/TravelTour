@@ -17,10 +17,17 @@ class TourItinerarySerializer(serializers.ModelSerializer):
 class TourSerializer(serializers.ModelSerializer):
     images = TourImageSerializer(many=True, read_only=True)
     itineraries = TourItinerarySerializer(many=True, read_only=True)
+    reviews = serializers.SerializerMethodField()
 
     class Meta:
         model = Tour
         fields = '__all__'
+
+    def get_reviews(self, obj):
+        # Sắp xếp các review từ mới nhất lên trên
+        reviews = obj.reviews.all().order_by('-created_at')
+        return ReviewSerializer(reviews, many=True).data
+
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -70,7 +77,10 @@ class VoucherSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.name', read_only=True)
+
     class Meta:
         model = Review
-        fields = '__all__'
+        fields = ['id', 'tour', 'user', 'user_name', 'rating', 'comment', 'created_at']
+
 

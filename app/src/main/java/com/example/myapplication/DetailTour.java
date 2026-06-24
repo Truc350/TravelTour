@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.data.model.Tour;
 import com.example.myapplication.data.model.Favorite;
+import com.example.myapplication.data.model.Review;
+
 import com.example.myapplication.data.remote.ApiService;
 import com.example.myapplication.data.remote.RetrofitClient;
 import java.util.List;
@@ -326,6 +328,54 @@ public class DetailTour extends Fragment {
         if (tvReviewsCount != null) {
             tvReviewsCount.setText(tour.getReviewsCount() + " đánh giá");
         }
+
+        // Render đánh giá động từ CSDL
+        android.widget.LinearLayout reviewsContainer = view.findViewById(R.id.reviewsContainer);
+        android.widget.TextView tvEmptyReviews = view.findViewById(R.id.tvEmptyReviews);
+
+        if (reviewsContainer != null) {
+            reviewsContainer.removeAllViews();
+            java.util.List<Review> reviewsList = tour.getReviews();
+            if (reviewsList != null && !reviewsList.isEmpty()) {
+                if (tvEmptyReviews != null) tvEmptyReviews.setVisibility(View.GONE);
+                
+                // Hiển thị tối đa 3 đánh giá gần đây ở màn hình chi tiết tour
+                int limit = Math.min(3, reviewsList.size());
+                for (int i = 0; i < limit; i++) {
+                    Review r = reviewsList.get(i);
+                    View itemReview = inflater.inflate(R.layout.item_review, reviewsContainer, false);
+                    
+                    TextView tvName = itemReview.findViewById(R.id.tvReviewerName);
+                    TextView tvScore = itemReview.findViewById(R.id.tvReviewScore);
+                    TextView tvStatus = itemReview.findViewById(R.id.tvReviewStatus);
+                    TextView tvDate = itemReview.findViewById(R.id.tvReviewDate);
+                    TextView tvComment = itemReview.findViewById(R.id.tvReviewComment);
+
+                    if (tvName != null) tvName.setText(r.getUserName());
+                    if (tvScore != null) tvScore.setText(String.format(java.util.Locale.US, "%.1f", (double) r.getRating()));
+                    if (tvStatus != null) {
+                        int rating = r.getRating();
+                        if (rating == 5) tvStatus.setText("Xuất sắc");
+                        else if (rating == 4) tvStatus.setText("Tuyệt vời");
+                        else if (rating == 3) tvStatus.setText("Rất tốt");
+                        else tvStatus.setText("Tốt");
+                    }
+                    if (tvDate != null && r.getCreatedAt() != null) {
+                        String dateStr = r.getCreatedAt();
+                        if (dateStr.length() >= 10) {
+                            dateStr = dateStr.substring(0, 10);
+                        }
+                        tvDate.setText(dateStr);
+                    }
+                    if (tvComment != null) tvComment.setText(r.getComment());
+
+                    reviewsContainer.addView(itemReview);
+                }
+            } else {
+                if (tvEmptyReviews != null) tvEmptyReviews.setVisibility(View.VISIBLE);
+            }
+        }
+
         // Xử lý hình ảnh (load bằng Glide vào ViewPager2)
         java.util.List<String> imageUrls = new java.util.ArrayList<>();
         if (tour.getImages() != null) {
