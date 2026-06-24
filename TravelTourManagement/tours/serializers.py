@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review
+from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review, UserVoucher
 
 
 class TourImageSerializer(serializers.ModelSerializer):
@@ -71,8 +71,35 @@ class PassengerSerializer(serializers.ModelSerializer):
 
 
 class VoucherSerializer(serializers.ModelSerializer):
+    is_saved = serializers.SerializerMethodField()
+    is_used = serializers.SerializerMethodField()
+
     class Meta:
         model = Voucher
+        fields = '__all__'
+
+    def get_is_saved(self, obj):
+        request = self.context.get('request')
+        user_id = request.query_params.get('user_id') if request else None
+        if user_id:
+            return UserVoucher.objects.filter(user_id=user_id, voucher=obj).exists()
+        return False
+
+    def get_is_used(self, obj):
+        request = self.context.get('request')
+        user_id = request.query_params.get('user_id') if request else None
+        if user_id:
+            uv = UserVoucher.objects.filter(user_id=user_id, voucher=obj).first()
+            if uv:
+                return uv.is_used
+        return False
+
+
+class UserVoucherSerializer(serializers.ModelSerializer):
+    voucher_detail = VoucherSerializer(source='voucher', read_only=True)
+
+    class Meta:
+        model = UserVoucher
         fields = '__all__'
 
 

@@ -131,9 +131,27 @@ public class LoginActivity extends AppCompatActivity {
             // Ưu tiên kiểm tra trong SQLite nội bộ trước (hỗ trợ các tài khoản offline/test)
             if (dbHelper.checkUserCredentials(contact, password)) {
                 Toast.makeText(LoginActivity.this, R.string.msg_login_success, Toast.LENGTH_LONG).show();
+                int userId = dbHelper.getUserIdByContact(contact);
                 getSharedPreferences("UserSession", MODE_PRIVATE).edit()
                         .putString("current_user_contact", contact)
+                        .putInt("current_user_id", userId)
                         .apply();
+                boolean returnToCaller = getIntent().getBooleanExtra("return_to_caller", false);
+                if (returnToCaller) {
+                    setResult(RESULT_OK);
+                    finish();
+                    return;
+                }
+                boolean redirectToDeparture = getIntent().getBooleanExtra("redirect_to_departure", false);
+                if (redirectToDeparture) {
+                    Intent intent = new Intent(LoginActivity.this, DepartureActivity.class);
+                    intent.putExtra("tour_id", getIntent().getIntExtra("tour_id", -1));
+                    intent.putExtra("tour_title", getIntent().getStringExtra("tour_title"));
+                    intent.putExtra("adult_price", getIntent().getLongExtra("adult_price", 0L));
+                    startActivity(intent);
+                    finish();
+                    return;
+                }
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
@@ -174,6 +192,23 @@ public class LoginActivity extends AppCompatActivity {
                                     .putString("current_user_contact", contact)
                                     .putInt("current_user_id", userId)
                                     .apply();
+                            boolean returnToCaller = getIntent().getBooleanExtra("return_to_caller", false);
+                            if (returnToCaller) {
+                                setResult(RESULT_OK);
+                                finish();
+                                return;
+                            }
+                            boolean redirectToDeparture = getIntent().getBooleanExtra("redirect_to_departure", false);
+                            if (redirectToDeparture) {
+                                Intent intent = new Intent(LoginActivity.this, DepartureActivity.class);
+                                intent.putExtra("tour_id", getIntent().getIntExtra("tour_id", -1));
+                                intent.putExtra("tour_title", getIntent().getStringExtra("tour_title"));
+                                intent.putExtra("adult_price", getIntent().getLongExtra("adult_price", 0L));
+                                startActivity(intent);
+                                finish(); // Close LoginActivity
+                                return;
+                            }
+
 
                             // Proactively sync FCM token if exists
                             String fcmToken = getSharedPreferences("UserSession", MODE_PRIVATE).getString("fcm_token", null);

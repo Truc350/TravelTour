@@ -5,7 +5,7 @@ from import_export.fields import Field
 from import_export.widgets import DecimalWidget, ForeignKeyWidget
 import re
 from decimal import Decimal
-from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review
+from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review, UserVoucher
 
 
 class PriceWidget(DecimalWidget):
@@ -237,3 +237,11 @@ class ReviewAdmin(ImportExportModelAdmin):
     list_display = ('id', 'tour', 'user', 'rating', 'comment', 'created_at')
     list_filter = ('rating', 'created_at')
     search_fields = ('tour__title', 'user__name', 'comment')
+
+
+@admin.register(UserVoucher)
+class UserVoucherAdmin(ImportExportModelAdmin):
+    list_display = ('id', 'user', 'voucher', 'is_used', 'saved_at')
+    list_filter = ('is_used', 'saved_at')
+    search_fields = ('user__name', 'voucher__code')
+

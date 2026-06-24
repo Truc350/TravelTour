@@ -20,6 +20,7 @@ from .views import (
     VoucherListAPIView,
     ReviewListCreateAPIView,
     ticket_verify_view,
+    UserVoucherListCreateAPIView,
 )
 
 urlpatterns = [
@@ -41,6 +42,7 @@ urlpatterns = [
     path('tour-itineraries/', TourItineraryListCreateAPIView.as_view(), name='touritinerary-list-create'),
     path('tour-itineraries/<int:pk>/', TourItineraryRetrieveUpdateDestroyAPIView.as_view(), name='touritinerary-detail'),
     path('vouchers/', VoucherListAPIView.as_view(), name='voucher-list'),
+    path('user-vouchers/', UserVoucherListCreateAPIView.as_view(), name='user-voucher-list-create'),
     path('reviews/', ReviewListCreateAPIView.as_view(), name='review-list-create'),
     path('ticket-verify/<int:booking_id>/', ticket_verify_view, name='ticket-verify'),
 ]

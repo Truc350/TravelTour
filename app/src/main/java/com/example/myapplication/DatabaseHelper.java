@@ -154,6 +154,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return count > 0;
     }
 
+    public int getUserIdByContact(String contact) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_ID},
+                COLUMN_CONTACT + "=?", new String[]{contact},
+                null, null, null);
+        int userId = -1;
+        if (cursor != null && cursor.moveToFirst()) {
+            userId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID));
+        }
+        if (cursor != null) cursor.close();
+        db.close();
+        return userId;
+    }
+
     /**
      * Lấy thông tin chi tiết của người dùng theo contact (email hoặc sđt)
      */

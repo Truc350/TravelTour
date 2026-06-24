@@ -364,6 +364,11 @@ public class PaymentActivity extends AppCompatActivity {
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
         String currentDate = sdf.format(new java.util.Date());
 
+        String voucherCode = getIntent().getStringExtra("voucher_code");
+        if (voucherCode == null) {
+            voucherCode = "";
+        }
+
         com.example.myapplication.data.model.BookingRequest request = new com.example.myapplication.data.model.BookingRequest(
                 currentUserId,
                 depId,
@@ -371,7 +376,8 @@ public class PaymentActivity extends AppCompatActivity {
                 departureTime != null && !departureTime.isEmpty() ? departureTime : "08:00",
                 "CONFIRMED", // đã xác nhận/đã thanh toán
                 totalPrice,
-                tourId
+                tourId,
+                voucherCode
         );
 
         apiService.createBooking(request).enqueue(new retrofit2.Callback<com.example.myapplication.data.model.BookingResponse>() {

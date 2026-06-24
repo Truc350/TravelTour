@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -264,7 +265,9 @@ public class Home extends Fragment {
                               final HomeVoucherAdapter homeAdapter,
                               final DetailVoucherAdapter detailAdapter) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-        apiService.getVouchers().enqueue(new Callback<List<VoucherHelper.AppVoucher>>() {
+        android.content.SharedPreferences prefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+        int currentUserId = prefs.getInt("current_user_id", 1);
+        apiService.getVouchers(currentUserId, null).enqueue(new Callback<List<VoucherHelper.AppVoucher>>() {
             @Override
             public void onResponse(Call<List<VoucherHelper.AppVoucher>> call, Response<List<VoucherHelper.AppVoucher>> response) {
                 if (response.isSuccessful() && response.body() != null) {

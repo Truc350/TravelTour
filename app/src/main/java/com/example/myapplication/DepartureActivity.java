@@ -81,6 +81,7 @@ public class DepartureActivity extends AppCompatActivity {
             long priceFromIntent = getIntent().getLongExtra("adult_price", 0L);
             if (priceFromIntent > 0) adultPrice = priceFromIntent;
         }
+
         if (tourTitle == null) tourTitle = "";
         // Tính giá trẻ em và trẻ nhỏ
         recalcChildInfantPrice();
@@ -244,32 +245,18 @@ public class DepartureActivity extends AppCompatActivity {
                 Toast.makeText(this, "Vui lòng chọn giờ khởi hành!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            long total = calculateTotal();
-            int departureId = -1;
-            for (TourDeparture dep : departureList) {
-                if (dep.getDepartureDate().equals(selectedDateStr)) {
-                    departureId = dep.getId();
-                    break;
-                }
-            }
-            if (departureId == -1 && !departureList.isEmpty()) {
-                departureId = departureList.get(0).getId();
+
+            android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+            int currentUserId = prefs.getInt("current_user_id", -1);
+            if (currentUserId == -1) {
+                Toast.makeText(this, "Vui lòng đăng nhập trước khi tiếp tục!", Toast.LENGTH_SHORT).show();
+                Intent loginIntent = new Intent(this, LoginActivity.class);
+                loginIntent.putExtra("return_to_caller", true);
+                startActivityForResult(loginIntent, 123);
+                return;
             }
 
-            Intent intent = new Intent(this, BookingInfoActivity.class);
-            intent.putExtra("tour_title",    tourTitle);
-            intent.putExtra("tour_id",       tourId);
-            intent.putExtra("departure_id",   departureId);
-            intent.putExtra("departure_date", selectedDateStr);
-            intent.putExtra("departure_time", selectedTime);
-            intent.putExtra("adult_count",   adultCount);
-            intent.putExtra("child_count",   childCount);
-            intent.putExtra("infant_count",  infantCount);
-            intent.putExtra("adult_price",   adultPrice);
-            intent.putExtra("child_price",   childPrice);
-            intent.putExtra("infant_price",  infantPrice);
-            intent.putExtra("total_price",   total);
-            startActivity(intent);
+            proceedToBookingInfo();
         });
     }
     private void loadDepartureDates() {
@@ -579,6 +566,43 @@ public class DepartureActivity extends AppCompatActivity {
         }
         return sb + "đ";
     }
+    private void proceedToBookingInfo() {
+        long total = calculateTotal();
+        int departureId = -1;
+        for (TourDeparture dep : departureList) {
+            if (dep.getDepartureDate().equals(selectedDateStr)) {
+                departureId = dep.getId();
+                break;
+            }
+        }
+        if (departureId == -1 && !departureList.isEmpty()) {
+            departureId = departureList.get(0).getId();
+        }
+
+        Intent intent = new Intent(this, BookingInfoActivity.class);
+        intent.putExtra("tour_title",    tourTitle);
+        intent.putExtra("tour_id",       tourId);
+        intent.putExtra("departure_id",   departureId);
+        intent.putExtra("departure_date", selectedDateStr);
+        intent.putExtra("departure_time", selectedTime);
+        intent.putExtra("adult_count",   adultCount);
+        intent.putExtra("child_count",   childCount);
+        intent.putExtra("infant_count",  infantCount);
+        intent.putExtra("adult_price",   adultPrice);
+        intent.putExtra("child_price",   childPrice);
+        intent.putExtra("infant_price",  infantPrice);
+        intent.putExtra("total_price",   total);
+        startActivity(intent);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @androidx.annotation.Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 123 && resultCode == RESULT_OK) {
+            proceedToBookingInfo();
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
