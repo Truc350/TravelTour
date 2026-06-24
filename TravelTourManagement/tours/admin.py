@@ -5,7 +5,8 @@ from import_export.fields import Field
 from import_export.widgets import DecimalWidget, ForeignKeyWidget
 import re
 from decimal import Decimal
-from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher
+from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review
+
 
 class PriceWidget(DecimalWidget):
     def clean(self, value, row=None, *args, **kwargs):
@@ -22,7 +23,7 @@ class PriceWidget(DecimalWidget):
                 cleaned_value = cleaned_value.replace('.', '')
         elif ',' in cleaned_value:
             cleaned_value = cleaned_value.replace(',', '')
-            
+
         try:
             return Decimal(cleaned_value)
         except Exception:
@@ -58,9 +59,9 @@ class TourResource(resources.ModelResource):
         fields = ('id', 'code', 'title', 'description', 'original_price', 'discount_price', 'provider', 'rating_score', 'reviews_count', 'description_tour_include', 'note')
 
     def before_import(self, dataset, **kwargs):
-        # Chuẩn hóa tiêu đề cột sang chữ thường và loại bỏ khoảng trắng thừa
+# Chuẩn hóa tiêu đề cột sang chữ thường và loại bỏ khoảng trắng thừa
         dataset.headers = [str(h).strip().lower() for h in dataset.headers]
-        
+
         # Kiểm tra tiêu đề nào có sẵn để thiết lập cột định danh code
         if 'tour_id' in dataset.headers:
             self.fields['code'].column_name = 'tour_id'
@@ -68,7 +69,7 @@ class TourResource(resources.ModelResource):
         elif 'code' in dataset.headers:
             self.fields['code'].column_name = 'code'
             self._meta.import_id_fields = ('code',)
-            
+
         if 'id' in dataset.headers:
             self._meta.import_id_fields = ('id',)
 
@@ -97,7 +98,7 @@ class TourDepartureResource(resources.ModelResource):
             self.fields['tour'].column_name = 'tour_id'
         elif 'tour' in dataset.headers:
             self.fields['tour'].column_name = 'tour'
-            
+
         if 'id' in dataset.headers:
             self._meta.import_id_fields = ('id',)
         else:
@@ -121,7 +122,7 @@ class TourImageResource(resources.ModelResource):
             self.fields['tour'].column_name = 'tour_id'
         elif 'tour' in dataset.headers:
             self.fields['tour'].column_name = 'tour'
-            
+
         if 'id' in dataset.headers:
             self._meta.import_id_fields = ('id',)
         else:
@@ -144,8 +145,9 @@ class TourItineraryResource(resources.ModelResource):
         if 'tour_id' in dataset.headers:
             self.fields['tour'].column_name = 'tour_id'
         elif 'tour' in dataset.headers:
+
             self.fields['tour'].column_name = 'tour'
-            
+
         if 'id' in dataset.headers:
             self._meta.import_id_fields = ('id',)
         else:
@@ -175,13 +177,8 @@ class BookingAdmin(ImportExportModelAdmin):
     actions = ['confirm_bookings', 'cancel_bookings']
 
     def confirm_bookings(self, request, queryset):
-        count = 0
-        for booking in queryset:
-            if booking.status != 'CONFIRMED':
-                booking.status = 'CONFIRMED'
-                booking.save()
-                count += 1
-        self.message_user(request, f"Đã xác nhận {count} bookings thành công.")
+        rows_updated = queryset.update(status='CONFIRMED')
+        self.message_user(request, f"Đã xác nhận {rows_updated} bookings thành công.")
     confirm_bookings.short_description = "Xác nhận các Booking đã chọn"
 
     def cancel_bookings(self, request, queryset):
@@ -208,13 +205,17 @@ class PassengerAdmin(ImportExportModelAdmin):
 
     def verify_passengers(self, request, queryset):
         rows_updated = queryset.update(status='VERIFIED')
-        self.message_user(request, f"Đã duyệt {rows_updated} hành khách thành công.")
+        self.message_user(
+            request,
+            f"Đã duyệt {rows_updated} hành khách thành công."
+        )
     verify_passengers.short_description = "Duyệt thông tin các hành khách đã chọn"
 
     def reject_passengers(self, request, queryset):
         rows_updated = queryset.update(status='REJECTED')
         self.message_user(request, f"Đã từ chối {rows_updated} hành khách.")
     reject_passengers.short_description = "Từ chối thông tin các hành khách đã chọn"
+
 
 @admin.register(TourImage)
 class TourImageAdmin(ImportExportModelAdmin):
@@ -229,3 +230,10 @@ class TourItineraryAdmin(ImportExportModelAdmin):
 class VoucherAdmin(ImportExportModelAdmin):
     list_display = ('id', 'code', 'title', 'discount_val', 'discount_label', 'expiry', 'status', 'remaining_count')
     search_fields = ('code', 'title')
+
+
+@admin.register(Review)
+class ReviewAdmin(ImportExportModelAdmin):
+    list_display = ('id', 'tour', 'user', 'rating', 'comment', 'created_at')
+    list_filter = ('rating', 'created_at')
+    search_fields = ('tour__title', 'user__name', 'comment')
