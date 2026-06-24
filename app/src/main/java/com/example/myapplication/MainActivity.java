@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -92,6 +93,13 @@ public class MainActivity extends AppCompatActivity {
                         .replace(R.id.contentFrame, new Notification())
                         .commit();
             } else if (itemId == R.id.nav_account) {
+                android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+                int currentUserId = prefs.getInt("current_user_id", -1);
+                if (currentUserId == -1) {
+                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                    startActivity(intent);
+                    return false;
+                }
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.contentFrame, new Account())
                         .commit();

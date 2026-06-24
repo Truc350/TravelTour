@@ -117,8 +117,8 @@ public class Account extends Fragment {
                                 .edit()
                                 .clear()
                                 .apply();
-                        // Chuyển sang LoginActivity và xóa toàn bộ back stack
-                        Intent intent = new Intent(requireActivity(), LoginActivity.class);
+                        // Chuyển sang MainActivity (về trạng thái khách) và xóa toàn bộ back stack
+                        Intent intent = new Intent(requireActivity(), MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
                     })

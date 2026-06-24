@@ -137,9 +137,6 @@ public class Home extends Fragment {
         RecyclerView rvHomeVouchers = view.findViewById(R.id.rvHomeVouchers);
         android.content.SharedPreferences sessionPrefs = requireContext().getSharedPreferences("UserSession", android.content.Context.MODE_PRIVATE);
         String currentContact = sessionPrefs.getString("current_user_contact", "");
-        if (currentContact.isEmpty()) {
-            currentContact = new DatabaseHelper(requireContext()).getLastUserContact();
-        }
         final String finalUserContact = currentContact;
         final List<VoucherHelper.AppVoucher> availableVouchers = new ArrayList<>(VoucherHelper.getAvailableVouchers());
 
@@ -266,8 +263,9 @@ public class Home extends Fragment {
                               final DetailVoucherAdapter detailAdapter) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
         android.content.SharedPreferences prefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
-        int currentUserId = prefs.getInt("current_user_id", 1);
-        apiService.getVouchers(currentUserId, null).enqueue(new Callback<List<VoucherHelper.AppVoucher>>() {
+        int currentUserId = prefs.getInt("current_user_id", -1);
+        Integer userIdParam = (currentUserId == -1) ? null : currentUserId;
+        apiService.getVouchers(userIdParam, null).enqueue(new Callback<List<VoucherHelper.AppVoucher>>() {
             @Override
             public void onResponse(Call<List<VoucherHelper.AppVoucher>> call, Response<List<VoucherHelper.AppVoucher>> response) {
                 if (response.isSuccessful() && response.body() != null) {

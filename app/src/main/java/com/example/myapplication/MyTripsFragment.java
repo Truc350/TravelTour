@@ -153,7 +153,20 @@ public class MyTripsFragment extends Fragment {
         if (getContext() == null) return;
 
         SharedPreferences prefs = getContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
-        int currentUserId = prefs.getInt("current_user_id", 1); // default user 1
+        int currentUserId = prefs.getInt("current_user_id", -1); // default to -1 if guest
+
+        if (currentUserId == -1) {
+            allTrips.clear();
+            displayedTrips.clear();
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
+            layoutNoTrips.setVisibility(View.VISIBLE);
+            rvTickets.setVisibility(View.GONE);
+            tvEmptyTitle.setText("Chưa đăng nhập");
+            tvEmptySubtitle.setText("Vui lòng đăng nhập để xem thông tin chuyến đi của bạn.");
+            return;
+        }
 
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
         apiService.getBookings().enqueue(new Callback<List<BookingResponse>>() {
@@ -163,8 +176,12 @@ public class MyTripsFragment extends Fragment {
                     List<BookingResponse> bookings = response.body();
                     allTrips.clear();
 
-                    // Thêm additionalTrips local trước
-                    allTrips.addAll(additionalTrips);
+                    // Thêm additionalTrips local trước (lọc theo user đăng nhập)
+                    for (BookedTripAdapter.TripItem localItem : additionalTrips) {
+                        if (localItem.userId == currentUserId) {
+                            allTrips.add(localItem);
+                        }
+                    }
 
                     for (BookingResponse b : bookings) {
                         // Lọc chỉ lấy booking của user hiện tại
@@ -172,8 +189,8 @@ public class MyTripsFragment extends Fragment {
                             String code = "DL0" + b.id;
                             String trainName = "Tour Du Lịch";
                             String tourType = "tour";
-                            String depStation = "Hồ Chí Minh";
-                            String arrStation = "Điểm đến";
+                            String depStation = "Thời gian đi";
+                            String arrStation = "Thời gian đến";
                             
                             if (b.departureDetail != null) {
                                 if (b.departureDetail.tourDetail != null) {
@@ -218,6 +235,7 @@ public class MyTripsFragment extends Fragment {
                                     item.tourId = b.departureDetail.tour;
                                 }
                             }
+                            item.userId = currentUserId;
                             allTrips.add(item);
                         }
                     }
@@ -227,7 +245,11 @@ public class MyTripsFragment extends Fragment {
                     Toast.makeText(getContext(), "Lỗi tải dữ liệu chuyến đi từ máy chủ!", Toast.LENGTH_SHORT).show();
                     // Fallback to local additionalTrips
                     allTrips.clear();
-                    allTrips.addAll(additionalTrips);
+                    for (BookedTripAdapter.TripItem localItem : additionalTrips) {
+                        if (localItem.userId == currentUserId) {
+                            allTrips.add(localItem);
+                        }
+                    }
                     filterAndDisplayTrips();
                 }
             }
@@ -237,7 +259,11 @@ public class MyTripsFragment extends Fragment {
                 Toast.makeText(getContext(), "Không thể kết nối máy chủ để tải chuyến đi!", Toast.LENGTH_SHORT).show();
                 // Fallback to local additionalTrips
                 allTrips.clear();
-                allTrips.addAll(additionalTrips);
+                for (BookedTripAdapter.TripItem localItem : additionalTrips) {
+                    if (localItem.userId == currentUserId) {
+                        allTrips.add(localItem);
+                    }
+                }
                 filterAndDisplayTrips();
             }
         });
@@ -726,5 +752,11 @@ public class MyTripsFragment extends Fragment {
         }
 
         ratingDialog.show();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadBookingsFromServer();
     }
 }

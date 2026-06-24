@@ -654,6 +654,9 @@ public class DetailTour extends Fragment {
         btnFavorite.setOnClickListener(v -> {
             if (currentUserId == -1) {
                 Toast.makeText(requireContext(), "Vui lòng đăng nhập để sử dụng tính năng này!", Toast.LENGTH_SHORT).show();
+                android.content.Intent intent = new android.content.Intent(requireContext(), LoginActivity.class);
+                intent.putExtra("return_to_caller", true);
+                startActivity(intent);
                 return;
             }
             if (tour == null) {
@@ -1160,6 +1163,16 @@ public class DetailTour extends Fragment {
         TourScore(Tour tour, int score) {
             this.tour = tour;
             this.score = score;
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getContext() != null) {
+            SharedPreferences prefs = getContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+            currentUserId = prefs.getInt("current_user_id", -1);
+            checkFavoriteStatus();
         }
     }
 }
