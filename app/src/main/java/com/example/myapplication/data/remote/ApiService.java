@@ -85,4 +85,7 @@ public interface ApiService {
 
     @GET("api/vouchers/")
     Call<List<VoucherHelper.AppVoucher>> getVouchers();
-}
+
+    @POST("api/reviews/")
+    Call<Void> createReview(@Body java.util.Map<String, Object> reviewData);
+}

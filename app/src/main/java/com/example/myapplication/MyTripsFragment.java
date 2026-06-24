@@ -211,6 +211,13 @@ public class MyTripsFragment extends Fragment {
                                     "CANCELLED".equalsIgnoreCase(b.status) || "COMPLETED".equalsIgnoreCase(b.status), // coi như history nếu đã hủy hoặc completed
                                     tourType
                             );
+                            if (b.departureDetail != null) {
+                                if (b.departureDetail.tourDetail != null) {
+                                    item.tourId = b.departureDetail.tourDetail.getId();
+                                } else {
+                                    item.tourId = b.departureDetail.tour;
+                                }
+                            }
                             allTrips.add(item);
                         }
                     }
@@ -584,6 +591,8 @@ public class MyTripsFragment extends Fragment {
             }
         }
 
+        android.widget.EditText etRatingComment = dialogView.findViewById(R.id.etRatingComment);
+
         android.app.AlertDialog ratingDialog = builder.create();
 
         View btnCancel = dialogView.findViewById(R.id.btnRatingCancel);
@@ -598,6 +607,10 @@ public class MyTripsFragment extends Fragment {
                     Toast.makeText(getContext(), "Vui lòng chọn số sao đánh giá!", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                String comment = "";
+                if (etRatingComment != null) {
+                    comment = etRatingComment.getText().toString().trim();
+                }
                 ratingDialog.dismiss();
                 
                 // Hiển thị tiến trình gửi
@@ -606,10 +619,34 @@ public class MyTripsFragment extends Fragment {
                 progressDialog.setCancelable(false);
                 progressDialog.show();
 
-                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                    progressDialog.dismiss();
-                    Toast.makeText(getContext(), "Đã gửi đánh giá thành công! Cảm ơn bạn đã phản hồi.", Toast.LENGTH_LONG).show();
-                }, 1500);
+                SharedPreferences prefs = getContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+                int currentUserId = prefs.getInt("current_user_id", 1);
+                int tourId = item.tourId > 0 ? item.tourId : 1;
+
+                java.util.Map<String, Object> reviewData = new java.util.HashMap<>();
+                reviewData.put("tour", tourId);
+                reviewData.put("user", currentUserId);
+                reviewData.put("rating", currentRating[0]);
+                reviewData.put("comment", comment);
+
+                ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+                apiService.createReview(reviewData).enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        progressDialog.dismiss();
+                        if (response.isSuccessful()) {
+                            Toast.makeText(getContext(), "Đã gửi đánh giá thành công! Cảm ơn bạn đã phản hồi.", Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(getContext(), "Gửi đánh giá thất bại! Mã lỗi: " + response.code(), Toast.LENGTH_LONG).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        progressDialog.dismiss();
+                        Toast.makeText(getContext(), "Lỗi kết nối khi gửi đánh giá!", Toast.LENGTH_LONG).show();
+                    }
+                });
             });
         }
 

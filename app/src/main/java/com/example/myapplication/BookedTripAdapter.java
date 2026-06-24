@@ -40,6 +40,8 @@ public class BookedTripAdapter extends RecyclerView.Adapter<BookedTripAdapter.Tr
         public String date; // định dạng "dd/MM" ví dụ "09/09"
         public boolean isHistory; // true nếu là chuyến đi trong lịch sử
         public String tourType; // loại tour (ví dụ "sapa", "taiwan")
+        public int tourId; // ID of the tour
+
 
         public TripItem(String id, String trainName, String statusBadge, String depTime, String arrTime,
                         String depStation, String arrStation, String duration, String price, String date, boolean isHistory, String tourType) {

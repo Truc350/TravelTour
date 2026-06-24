@@ -1,7 +1,7 @@
 from django.db.models import Q, Case, When, IntegerField
 from rest_framework import generics, status
 from rest_framework.response import Response
-from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher
+from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review
 from .serializers import (
     TourSerializer,
     UserSerializer,
@@ -13,6 +13,7 @@ from .serializers import (
     TourImageSerializer,
     TourItinerarySerializer,
     VoucherSerializer,
+    ReviewSerializer,
 )
 
 
@@ -227,3 +228,8 @@ class TourItineraryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAP
 class VoucherListAPIView(generics.ListAPIView):
     queryset = Voucher.objects.all()
     serializer_class = VoucherSerializer
+
+
+class ReviewListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
