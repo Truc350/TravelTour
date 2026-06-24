@@ -407,6 +407,8 @@ public class PaymentActivity extends AppCompatActivity {
                 false,
                 "tour"
         );
+        newTrip.tourId = tourId;
+
 
         // Lưu vào danh sách tĩnh của MyTripsFragment
         MyTripsFragment.additionalTrips.add(0, newTrip);

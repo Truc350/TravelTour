@@ -65,6 +65,11 @@ public class Tour implements Serializable {
     @androidx.room.Ignore
     private java.util.List<TourItinerary> itineraries;
 
+    @SerializedName("reviews")
+    @androidx.room.Ignore
+    private java.util.List<Review> reviews;
+
+
     @SerializedName("departures")
     @androidx.room.Ignore
     private java.util.List<TourDeparture> departures;
@@ -124,6 +129,10 @@ public class Tour implements Serializable {
 
     public java.util.List<TourItinerary> getItineraries() { return itineraries; }
     public void setItineraries(java.util.List<TourItinerary> itineraries) { this.itineraries = itineraries; }
+
+    public java.util.List<Review> getReviews() { return reviews; }
+    public void setReviews(java.util.List<Review> reviews) { this.reviews = reviews; }
+
 
     public java.util.List<TourDeparture> getDepartures() { return departures; }
     public void setDepartures(java.util.List<TourDeparture> departures) { this.departures = departures; }
