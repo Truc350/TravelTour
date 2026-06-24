@@ -1,6 +1,13 @@
 from rest_framework import serializers
 from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review, UserVoucher
 
+class ReviewSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.name', read_only=True)
+
+    class Meta:
+        model = Review
+        fields = ['id', 'tour', 'user', 'user_name', 'rating', 'comment', 'created_at']
+
 
 class TourImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,10 +20,15 @@ class TourItinerarySerializer(serializers.ModelSerializer):
         model = TourItinerary
         fields = '__all__'
 
+class TourDepartureSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TourDeparture
+        fields = '__all__'
 
 class TourSerializer(serializers.ModelSerializer):
     images = TourImageSerializer(many=True, read_only=True)
     itineraries = TourItinerarySerializer(many=True, read_only=True)
+    departures = TourDepartureSimpleSerializer(many=True, read_only=True)
     reviews = serializers.SerializerMethodField()
 
     class Meta:
