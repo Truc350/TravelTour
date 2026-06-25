@@ -32,7 +32,7 @@ import com.example.myapplication.data.model.User;
         Passenger.class,
         Favorite.class,
         Notification.class
-}, version = 3, exportSchema = false)
+}, version = 4, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;

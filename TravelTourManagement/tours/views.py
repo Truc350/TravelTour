@@ -136,8 +136,14 @@ class UserRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class TourDepartureListCreateAPIView(generics.ListCreateAPIView):
-    queryset = TourDeparture.objects.all()
     serializer_class = TourDepartureSerializer
+
+    def get_queryset(self):
+        queryset = TourDeparture.objects.all()
+        tour_id = self.request.query_params.get('tour_id')
+        if tour_id:
+            queryset = queryset.filter(tour_id=tour_id)
+        return queryset
 
 
 class TourDepartureRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -192,6 +198,7 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
 
         # Send invoice email if requested
         booking = serializer.instance
+        print(f"[EMAIL DEBUG] Booking #{booking.id} created. is_invoice_requested={booking.is_invoice_requested}, customer_email='{booking.customer_email}'")
         if booking.is_invoice_requested and booking.customer_email:
             try:
                 import qrcode
@@ -251,9 +258,9 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
                         passenger_rows += f"""
                         <tr style="background:{'#F8FAFF' if idx % 2 == 0 else 'white'};">
                             <td style="padding:8px 12px;border-bottom:1px solid #E2E8F0;">{idx}</td>
-                            <td style="padding:8px 12px;border-bottom:1px solid #E2E8F0;">{p.full_name or ''}</td>
-                            <td style="padding:8px 12px;border-bottom:1px solid #E2E8F0;">{p.age or ''}</td>
-                            <td style="padding:8px 12px;border-bottom:1px solid #E2E8F0;">{p.gender or ''}</td>
+                            <td style="padding:8px 12px;border-bottom:1px solid #E2E8F0;">{p.fullname or ''}</td>
+                            <td style="padding:8px 12px;border-bottom:1px solid #E2E8F0;">{p.birthdate or ''}</td>
+                            <td style="padding:8px 12px;border-bottom:1px solid #E2E8F0;">{p.salutation or ''}</td>
                         </tr>"""
                 else:
                     passenger_rows = '<tr><td colspan="4" style="padding:12px;text-align:center;color:#718096;">Không có thông tin hành khách</td></tr>'
@@ -290,7 +297,7 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
       <!-- Header -->
       <tr>
         <td style="background:linear-gradient(135deg,#185FA5 0%,#00B4D8 100%);padding:32px 40px;text-align:center;">
-          <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:1px;">✈ Chill Tour</div>
+          <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:1px;">Chill Tour</div>
           <div style="color:#BEE3F8;font-size:14px;margin-top:6px;">Hóa Đơn Điện Tử Đặt Tour</div>
         </td>
       </tr>
@@ -313,7 +320,7 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
         <td style="padding:16px 40px;">
           <div style="display:inline-block;background:#D1FAE5;color:#065F46;font-weight:700;font-size:13px;
                       padding:6px 18px;border-radius:20px;border:1px solid #6EE7B7;">
-            ✓ ĐÃ THANH TOÁN THÀNH CÔNG
+            ĐÃ THANH TOÁN THÀNH CÔNG
           </div>
         </td>
       </tr>
@@ -325,7 +332,7 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
                  style="background:#F8FAFF;border-radius:12px;border:1px solid #BEE3F8;overflow:hidden;">
             <tr>
               <td colspan="2" style="background:#185FA5;padding:12px 20px;">
-                <span style="color:#fff;font-weight:700;font-size:15px;">📋 THÔNG TIN ĐẶT TOUR</span>
+                <span style="color:#fff;font-weight:700;font-size:15px;">THÔNG TIN ĐẶT TOUR</span>
               </td>
             </tr>
             <tr>
@@ -342,11 +349,11 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
             </tr>
             <tr>
               <td style="padding:12px 20px;color:#718096;font-size:13px;border-bottom:1px solid #E2E8F0;background:#fff;">Ngày khởi hành</td>
-              <td style="padding:12px 20px;color:#2D3748;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;background:#fff;">📅 {dep_date}</td>
+              <td style="padding:12px 20px;color:#2D3748;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;background:#fff;">{dep_date}</td>
             </tr>
             <tr>
               <td style="padding:12px 20px;color:#718096;font-size:13px;border-bottom:1px solid #E2E8F0;">Giờ khởi hành</td>
-              <td style="padding:12px 20px;color:#2D3748;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;">🕗 {dep_hour}</td>
+              <td style="padding:12px 20px;color:#2D3748;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;">{dep_hour}</td>
             </tr>
           </table>
         </td>
@@ -359,7 +366,7 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
                  style="background:#F8FAFF;border-radius:12px;border:1px solid #BEE3F8;overflow:hidden;">
             <tr>
               <td colspan="2" style="background:#185FA5;padding:12px 20px;">
-                <span style="color:#fff;font-weight:700;font-size:15px;">👤 THÔNG TIN KHÁCH HÀNG</span>
+                <span style="color:#fff;font-weight:700;font-size:15px;">THÔNG TIN KHÁCH HÀNG</span>
               </td>
             </tr>
             <tr>
@@ -385,7 +392,7 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
                  style="border-radius:12px;border:1px solid #BEE3F8;overflow:hidden;">
             <tr>
               <td colspan="4" style="background:#185FA5;padding:12px 20px;">
-                <span style="color:#fff;font-weight:700;font-size:15px;">🧳 DANH SÁCH HÀNH KHÁCH</span>
+                <span style="color:#fff;font-weight:700;font-size:15px;">DANH SÁCH HÀNH KHÁCH</span>
               </td>
             </tr>
             <tr style="background:#EBF4FF;">
@@ -418,7 +425,7 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
       <tr>
         <td style="padding:0 40px 32px;text-align:center;">
           <div style="background:#F8FAFF;border-radius:16px;border:2px dashed #BEE3F8;padding:24px;display:inline-block;">
-            <div style="font-size:14px;color:#185FA5;font-weight:700;margin-bottom:12px;">🔲 Mã QR Vé Điện Tử</div>
+            <div style="font-size:14px;color:#185FA5;font-weight:700;margin-bottom:12px;">Mã QR Vé Điện Tử</div>
             <img src="cid:qr_code_image" width="200" height="200" alt="QR Code vé điện tử"
                  style="display:block;margin:0 auto;border-radius:8px;"/>
             <div style="font-size:11px;color:#A0AEC0;margin-top:10px;">Quét mã QR để xem thông tin vé</div>
@@ -437,7 +444,7 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
             Nếu cần hỗ trợ, vui lòng liên hệ: <a href="mailto:skydronevn.web@gmail.com" style="color:#185FA5;">skydronevn.web@gmail.com</a>
           </p>
           <p style="font-size:12px;color:#A0AEC0;margin:12px 0 0;">
-            Chúc bạn có một chuyến đi vui vẻ và ý nghĩa! 🌟
+            Chúc bạn có một chuyến đi vui vẻ và ý nghĩa.
           </p>
         </td>
       </tr>

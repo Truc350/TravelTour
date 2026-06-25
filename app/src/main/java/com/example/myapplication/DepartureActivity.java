@@ -51,9 +51,8 @@ public class DepartureActivity extends AppCompatActivity {
     private TextView tvSelectedDate;
     private TextView tvSeatsLeft;
 
-    // Chip containers (tối đa 3 ngày từ DB + "Tất cả")
-    private LinearLayout chipDate1, chipDate2, chipDate3, chipDateAll;
-    private TextView tvChipDate1, tvChipDate2, tvChipDate3, tvChipDateAll;
+    // Date chips container
+    private LinearLayout layoutDateChips;
     // Danh sách ngày khởi hành lấy từ DB
     private final List<String> departureDates = new ArrayList<>(); // "yyyy-MM-dd"
     private final List<TourDeparture> departureList = new ArrayList<>();
@@ -103,26 +102,7 @@ public class DepartureActivity extends AppCompatActivity {
             TextView tvTourName = findViewById(R.id.tv_tour_name);
             if (tvTourName != null) tvTourName.setText(tourTitle);
         }
-        // Lắng nghe kết quả từ CalendarBottomSheet khi người dùng chọn ngày "Tất cả"
-        getSupportFragmentManager().setFragmentResultListener(
-                "date_request", this,
-                (requestKey, result) -> {
-                    int day   = result.getInt("day");
-                    int month = result.getInt("month");
-                    int year  = result.getInt("year");
-                    // Tạo chuỗi ngày được chọn
-                    Calendar cal = Calendar.getInstance();
-                    cal.set(year, month, day);
-                    selectedDateStr = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, day);
-                    String display  = DISP_FORMAT.format(cal.getTime());
-                    // Bỏ chọn chip cố định
-                    selectedChipIndex = 3; // vẫn là chip "Tất cả" nhưng hiển thị ngày đã chọn
-                    tvChipDateAll.setText(display);
-                    populateTimeChips(CUSTOM_TIMES);
-                    clampPassengerCount();
-                    refreshChipUI();
-                    updateCounterUI();
-                });
+        // Dynamic date chips will be loaded from DB/API and set up in bindDepartureChips
         // Load ngày khởi hành từ Room DB
         loadDepartureDates();
     }
@@ -147,15 +127,7 @@ public class DepartureActivity extends AppCompatActivity {
         btnInfantMinus = findViewById(R.id.btn_infant_minus);
         btnInfantPlus  = findViewById(R.id.btn_infant_plus);
 
-        chipDate1   = findViewById(R.id.chip_date_1);
-        chipDate2   = findViewById(R.id.chip_date_2);
-        chipDate3   = findViewById(R.id.chip_date_3);
-        chipDateAll = findViewById(R.id.chip_date_all);
-
-        tvChipDate1   = findViewById(R.id.tv_chip_date_1);
-        tvChipDate2   = findViewById(R.id.tv_chip_date_2);
-        tvChipDate3   = findViewById(R.id.tv_chip_date_3);
-        tvChipDateAll = findViewById(R.id.tv_chip_date_all);
+        layoutDateChips = findViewById(R.id.layout_date_chips);
     }
 
     // ===== Gắn sự kiện click =====
@@ -206,20 +178,7 @@ public class DepartureActivity extends AppCompatActivity {
             updateCounterUI();
         });
 
-        // Chips chọn ngày
-        chipDate1.setOnClickListener(v -> selectChip(0));
-        chipDate2.setOnClickListener(v -> selectChip(1));
-        chipDate3.setOnClickListener(v -> selectChip(2));
-        // Chip "Tất cả" mở CalendarBottomSheet
-        chipDateAll.setOnClickListener(v -> {
-            Calendar today = Calendar.getInstance();
-            CalendarBottomSheet sheet = CalendarBottomSheet.newInstance(
-                    today.get(Calendar.DAY_OF_MONTH),
-                    today.get(Calendar.MONTH),
-                    today.get(Calendar.YEAR)
-            );
-            sheet.show(getSupportFragmentManager(), "CalendarSheet");
-        });
+        // Dynamic date chips click listeners are set dynamically in populateDateChips()
 
         // Nút Liên hệ tư vấn – mở Zalo ChillTour
         findViewById(R.id.btn_contact).setOnClickListener(v -> {
@@ -260,6 +219,43 @@ public class DepartureActivity extends AppCompatActivity {
         });
     }
     private void loadDepartureDates() {
+        if (tourId <= 0) return;
+
+        com.example.myapplication.data.remote.ApiService apiService =
+                com.example.myapplication.data.remote.RetrofitClient.getClient().create(com.example.myapplication.data.remote.ApiService.class);
+        apiService.getTourDepartures(tourId).enqueue(new retrofit2.Callback<List<TourDeparture>>() {
+            @Override
+            public void onResponse(retrofit2.Call<List<TourDeparture>> call, retrofit2.Response<List<TourDeparture>> response) {
+                List<TourDeparture> departures = new ArrayList<>();
+                if (response.isSuccessful() && response.body() != null) {
+                    Date today = new Date();
+                    for (TourDeparture dep : response.body()) {
+                        try {
+                            String depDateStr = dep.getDepartureDate();
+                            String dateOnly = depDateStr.split(" ")[0];
+                            Date depDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateOnly);
+                            if (depDate != null && !depDate.before(today)) {
+                                departures.add(dep);
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                }
+
+                if (departures.isEmpty()) {
+                    loadDepartureDatesFromLocalDb();
+                } else {
+                    bindDepartureChips(departures);
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<List<TourDeparture>> call, Throwable t) {
+                loadDepartureDatesFromLocalDb();
+            }
+        });
+    }
+
+    private void loadDepartureDatesFromLocalDb() {
         executor.execute(() -> {
             List<TourDeparture> departures = new ArrayList<>();
             if (tourId > 0) {
@@ -269,7 +265,8 @@ public class DepartureActivity extends AppCompatActivity {
                     Date today = new Date();
                     for (TourDeparture dep : allDeps) {
                         try {
-                            Date depDate = DB_FORMAT.parse(dep.getDepartureDate());
+                            String dateOnly = dep.getDepartureDate().split(" ")[0];
+                            Date depDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateOnly);
                             if (depDate != null && !depDate.before(today)) {
                                 departures.add(dep);
                             }
@@ -285,34 +282,31 @@ public class DepartureActivity extends AppCompatActivity {
                     cal.add(Calendar.DAY_OF_MONTH, 7);
                 }
             }
-            // Giới hạn chỉ hiện tối đa 3 ngày trên chip
-            while (departures.size() > 3) departures.remove(departures.size() - 1);
             mainHandler.post(() -> bindDepartureChips(departures));
         });
     }
+
     private void bindDepartureChips(List<TourDeparture> departures) {
         departureList.clear();
         departureList.addAll(departures);
         departureDates.clear();
         for (TourDeparture dep : departures) {
-            departureDates.add(dep.getDepartureDate());
-        }
-        LinearLayout[] chips     = {chipDate1, chipDate2, chipDate3};
-        TextView[]     chipTexts = {tvChipDate1, tvChipDate2, tvChipDate3};
-        for (int i = 0; i < chips.length; i++) {
-            if (i < departureDates.size()) {
-                chips[i].setVisibility(android.view.View.VISIBLE);
-                String formatted = formatDateForChip(departureDates.get(i));
-                chipTexts[i].setText(formatted);
-            } else {
-                chips[i].setVisibility(android.view.View.GONE);
+            String fullDate = dep.getDepartureDate();
+            String dateOnly = fullDate.split(" ")[0];
+            if (!departureDates.contains(dateOnly)) {
+                departureDates.add(dateOnly);
             }
         }
+        
+        // Populate the dynamic date chips
+        populateDateChips();
+
         // Mặc định chọn chip đầu tiên nếu có
         if (!departureDates.isEmpty()) {
             selectChip(0);
         }
     }
+
     private String formatDateForChip(String dbDate) {
         try {
             Date d = DB_FORMAT.parse(dbDate);
@@ -320,6 +314,7 @@ public class DepartureActivity extends AppCompatActivity {
         } catch (ParseException ignored) {}
         return dbDate;
     }
+
     private int getAvailableSeatsForSelectedDate() {
         if (selectedDateStr.isEmpty()) return 0;
         String normalizedDate = selectedDateStr;
@@ -333,12 +328,14 @@ public class DepartureActivity extends AppCompatActivity {
             } catch (ParseException ignored) {}
         }
         for (TourDeparture dep : departureList) {
-            if (dep.getDepartureDate().equals(normalizedDate)) {
+            String depDateOnly = dep.getDepartureDate().split(" ")[0];
+            if (depDateOnly.equals(normalizedDate)) {
                 return dep.getAvailableSeats();
             }
         }
         return 14;
     }
+
     private void clampPassengerCount() {
         int baseSeats = getAvailableSeatsForSelectedDate();
         int totalSelected = adultCount + childCount;
@@ -356,12 +353,35 @@ public class DepartureActivity extends AppCompatActivity {
             Toast.makeText(this, "Số chỗ trống tối đa cho ngày này là: " + baseSeats + " chỗ", Toast.LENGTH_SHORT).show();
         }
     }
+
     private void selectChip(int index) {
         if (index >= 0 && index < departureDates.size()) {
             selectedChipIndex = index;
             selectedDateStr   = departureDates.get(index);
             updateSelectedDateLabel();
-            populateTimeChips(PROPOSED_TIMES);
+
+            // Build dynamic hour chips from DB departures
+            List<String> timesForDate = new ArrayList<>();
+            for (TourDeparture dep : departureList) {
+                String fullDate = dep.getDepartureDate();
+                String dateOnly = fullDate.split(" ")[0];
+                if (dateOnly.equals(selectedDateStr)) {
+                    String hourDep = dep.getHourDeparture();
+                    if (hourDep != null && !hourDep.trim().isEmpty()) {
+                        String[] hourParts = hourDep.split(",");
+                        for (String hp : hourParts) {
+                            String cleanHour = hp.trim();
+                            if (!timesForDate.contains(cleanHour)) {
+                                timesForDate.add(cleanHour);
+                            }
+                        }
+                    }
+                }
+            }
+            if (timesForDate.isEmpty()) {
+                timesForDate.add("08:00");
+            }
+            populateTimeChips(timesForDate.toArray(new String[0]));
         }
         clampPassengerCount();
         refreshChipUI();
@@ -468,20 +488,57 @@ public class DepartureActivity extends AppCompatActivity {
         return Math.round((float) dp * density);
     }
     private void refreshChipUI() {
-        LinearLayout[] chips     = {chipDate1, chipDate2, chipDate3, chipDateAll};
-        TextView[]     chipTexts = {tvChipDate1, tvChipDate2, tvChipDate3, tvChipDateAll};
+        if (layoutDateChips == null) return;
+        for (int i = 0; i < layoutDateChips.getChildCount(); i++) {
+            android.view.View childView = layoutDateChips.getChildAt(i);
+            if (childView instanceof TextView) {
+                TextView child = (TextView) childView;
+                boolean isSelected = (i == selectedChipIndex);
+                child.setBackgroundResource(isSelected
+                        ? R.drawable.bg_chip_selected
+                        : R.drawable.bg_chip_unselected);
+                child.setTextColor(isSelected ? 0xFF185FA5 : 0xFF777777);
+                child.setTypeface(null, isSelected ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+            }
+        }
+    }
 
-        for (int i = 0; i < chips.length; i++) {
-            boolean isSelected = (i == selectedChipIndex);
-            chips[i].setBackgroundResource(isSelected
+    private void populateDateChips() {
+        if (layoutDateChips == null) return;
+        layoutDateChips.removeAllViews();
+
+        for (int i = 0; i < departureDates.size(); i++) {
+            final int index = i;
+            final String dateStr = departureDates.get(i);
+            final TextView tvChip = new TextView(this);
+            
+            String formattedDate = formatDateForChip(dateStr);
+            
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    dpToPx(48)
+            );
+            params.setMargins(0, 0, dpToPx(8), 0);
+            tvChip.setLayoutParams(params);
+            tvChip.setGravity(android.view.Gravity.CENTER);
+            tvChip.setPadding(dpToPx(16), 0, dpToPx(16), 0);
+            tvChip.setText(formattedDate);
+            tvChip.setTextSize(13);
+            
+            boolean isSelected = (index == selectedChipIndex);
+            tvChip.setBackgroundResource(isSelected
                     ? R.drawable.bg_chip_selected
                     : R.drawable.bg_chip_unselected);
-            chipTexts[i].setTextColor(isSelected
-                    ? 0xFF185FA5
-                    : 0xFF777777);
-            chipTexts[i].setTypeface(null, isSelected
-                    ? android.graphics.Typeface.BOLD
-                    : android.graphics.Typeface.NORMAL);
+            tvChip.setTextColor(isSelected ? 0xFF185FA5 : 0xFF777777);
+            tvChip.setTypeface(null, isSelected ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+            tvChip.setClickable(true);
+            tvChip.setFocusable(true);
+            
+            tvChip.setOnClickListener(v -> {
+                selectChip(index);
+            });
+            
+            layoutDateChips.addView(tvChip);
         }
     }
     private void updateSelectedDateLabel() {
@@ -570,9 +627,34 @@ public class DepartureActivity extends AppCompatActivity {
         long total = calculateTotal();
         int departureId = -1;
         for (TourDeparture dep : departureList) {
-            if (dep.getDepartureDate().equals(selectedDateStr)) {
-                departureId = dep.getId();
-                break;
+            String fullDate = dep.getDepartureDate();
+            String dateOnly = fullDate.split(" ")[0];
+            if (dateOnly.equals(selectedDateStr)) {
+                String hourDep = dep.getHourDeparture();
+                if (hourDep != null && !hourDep.trim().isEmpty()) {
+                    String[] hourParts = hourDep.split(",");
+                    boolean matchesHour = false;
+                    for (String hp : hourParts) {
+                        if (hp.trim().equals(selectedTime)) {
+                            matchesHour = true;
+                            break;
+                        }
+                    }
+                    if (matchesHour) {
+                        departureId = dep.getId();
+                        break;
+                    }
+                }
+            }
+        }
+        if (departureId == -1) {
+            // fallback: check date only
+            for (TourDeparture dep : departureList) {
+                String dateOnly = dep.getDepartureDate().split(" ")[0];
+                if (dateOnly.equals(selectedDateStr)) {
+                    departureId = dep.getId();
+                    break;
+                }
             }
         }
         if (departureId == -1 && !departureList.isEmpty()) {
