@@ -692,11 +692,20 @@ class VisualSearchAPIView(generics.GenericAPIView):
             query_image_file = request.FILES['image']
             query_img = Image.open(query_image_file)
             
+            # Khởi tạo danh sách tour fallback (các tour nổi bật) phòng trường hợp chưa cài torch hoặc chưa chạy precompute
+            fallback_tours = Tour.objects.all().order_by('-rating_score')[:8]
+            
             query_features = extract_features(query_img)
             if query_features is None:
-                return Response({"error": "Could not extract features from the image"}, status=status.HTTP_400_BAD_REQUEST)
+                print("[Visual Search] Fallback to HOT tours (failed to extract features, likely PyTorch is not installed).")
+                serializer = self.get_serializer(fallback_tours, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             
             features_qs = TourImageFeature.objects.select_related('tour_image__tour').all()
+            if not features_qs.exists():
+                print("[Visual Search] Fallback to HOT tours (empty features database, please run compute_image_features).")
+                serializer = self.get_serializer(fallback_tours, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             
             tour_similarities = {}
             for feat in features_qs:
@@ -717,6 +726,10 @@ class VisualSearchAPIView(generics.GenericAPIView):
             tours = {tour.id: tour for tour in Tour.objects.filter(id__in=top_tour_ids)}
             ordered_tours = [tours[tid] for tid in top_tour_ids if tid in tours]
             
+            # Nếu kết quả rỗng (ví dụ do lọc lỗi), dùng fallback
+            if not ordered_tours:
+                ordered_tours = list(fallback_tours)
+
             serializer = self.get_serializer(ordered_tours, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
             
