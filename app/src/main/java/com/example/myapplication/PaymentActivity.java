@@ -53,6 +53,7 @@ public class PaymentActivity extends AppCompatActivity {
     private long totalPrice = 0;
     private String orderId = "";
     private String departureTime = "";
+    private String departureDate = "";
     private boolean isInvoiceRequested = false;
 
     private String fullName = "";
@@ -88,6 +89,7 @@ public class PaymentActivity extends AppCompatActivity {
             totalPrice = intent.getLongExtra("total_price", 10980000L);
             isInvoiceRequested = intent.getBooleanExtra("is_invoice_requested", false);
             departureTime = intent.getStringExtra("departure_time");
+            departureDate = intent.getStringExtra("departure_date");
             fullName = intent.getStringExtra("full_name");
             phone = intent.getStringExtra("phone");
             email = intent.getStringExtra("email");
@@ -383,6 +385,27 @@ public class PaymentActivity extends AppCompatActivity {
             }
         });
 
+        String formattedDepDate = currentDate;
+        if (departureDate != null && !departureDate.isEmpty()) {
+            try {
+                java.text.SimpleDateFormat dbFmt = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                java.util.Date d = dbFmt.parse(departureDate);
+                if (d != null) {
+                    java.text.SimpleDateFormat tabFmt = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
+                    formattedDepDate = tabFmt.format(d);
+                }
+            } catch (Exception e) {
+                try {
+                    java.text.SimpleDateFormat dbFmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+                    java.util.Date d = dbFmt.parse(departureDate);
+                    if (d != null) {
+                        java.text.SimpleDateFormat tabFmt = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
+                        formattedDepDate = tabFmt.format(d);
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+
         BookedTripAdapter.TripItem newTrip = new BookedTripAdapter.TripItem(
                 orderId,
                 tourTitle,
@@ -393,7 +416,7 @@ public class PaymentActivity extends AppCompatActivity {
                 "Thời gian đến",
                 adultCount + " người lớn" + (childCount > 0 ? ", " + childCount + " trẻ em" : ""),
                 formatVnd(totalPrice),
-                currentDate,
+                formattedDepDate,
                 false,
                 "tour"
         );
