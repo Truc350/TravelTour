@@ -236,6 +236,7 @@ public class SearchResult extends Fragment {
                 Bundle args = new Bundle();
                 args.putSerializable("tour_object", tour);
                 args.putString("tour_type", tour.getCode());
+                args.putInt("tour_id", tour.getId());
                 detailFragment.setArguments(args);
 
                 if (getParentFragmentManager() != null) {

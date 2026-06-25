@@ -22,9 +22,11 @@ from .views import (
     ticket_verify_view,
     UserVoucherListCreateAPIView,
     UserBehaviorListCreateAPIView,
+    VisualSearchAPIView,
 )
 
 urlpatterns = [
+    path('tours/visual-search/', VisualSearchAPIView.as_view(), name='tour-visual-search'),
     path('tours/', TourListAPIView.as_view(), name='tour-list'),
     path('users/', UserListCreateAPIView.as_view(), name='user-list-create'),
     path('users/<int:pk>/', UserRetrieveUpdateDestroyAPIView.as_view(), name='user-detail'),
