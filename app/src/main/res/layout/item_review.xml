@@ -52,16 +52,6 @@
             android:paddingVertical="2dp" />
 
         <TextView
-            android:id="@+id/tvReviewStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Xuất sắc"
-            android:textColor="@color/cyan_active"
-            android:textSize="13sp"
-            android:textStyle="bold" />
-
-        <TextView
             android:id="@+id/tvReviewDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -69,6 +59,19 @@
             android:text="24-06-2026"
             android:textColor="#9E9E9E"
             android:textSize="13sp" />
+            
+        <TextView
+            android:id="@+id/tvSentiment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_badge_dark"
+            android:textColor="#FFFFFF"
+            android:text="Tích cực"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp" />
     </LinearLayout>
 
     <!-- Comment Text -->
