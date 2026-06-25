@@ -430,10 +430,15 @@ public class SearchDestination extends Fragment {
 
                 tourView.setOnClickListener(v -> {
                     saveSearchHistory(query);
-                    Bundle resultBundle = new Bundle();
-                    resultBundle.putString("selected_destination", tour.getTitle());
-                    getParentFragmentManager().setFragmentResult("destination_request", resultBundle);
-                    getParentFragmentManager().popBackStack();
+                    DetailTour detailFragment = new DetailTour();
+                    Bundle args = new Bundle();
+                    args.putInt("tour_id", tour.getId());
+                    detailFragment.setArguments(args);
+                    if (getParentFragmentManager() != null) {
+                        getParentFragmentManager().beginTransaction()
+                                .replace(R.id.contentFrame, detailFragment)
+                                .addToBackStack(null).commit();
+                    }
                 });
 
                 containerSearchResults.addView(tourView);
@@ -557,16 +562,43 @@ public class SearchDestination extends Fragment {
                 return;
             }
 
-            // Copy file ra cache để gửi multipart
+            // Giải mã ảnh sang Bitmap để tiến hành nén và resize
+            android.graphics.Bitmap originalBitmap = android.graphics.BitmapFactory.decodeStream(inputStream);
+            inputStream.close();
+
+            if (originalBitmap == null) {
+                Toast.makeText(getContext(), "Không thể giải mã tệp ảnh!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Đặt kích thước ảnh tối đa 800px để tối ưu hóa tốc độ upload và dung lượng truyền tải
+            int maxDimension = 800;
+            int width = originalBitmap.getWidth();
+            int height = originalBitmap.getHeight();
+            android.graphics.Bitmap resizedBitmap = originalBitmap;
+            if (width > maxDimension || height > maxDimension) {
+                float aspectRatio = (float) width / (float) height;
+                int newWidth = maxDimension;
+                int newHeight = maxDimension;
+                if (aspectRatio > 1) {
+                    newHeight = (int) (maxDimension / aspectRatio);
+                } else {
+                    newWidth = (int) (maxDimension * aspectRatio);
+                }
+                resizedBitmap = android.graphics.Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true);
+            }
+
             File tempFile = new File(getContext().getCacheDir(), "search_temp_image.jpg");
             try (FileOutputStream outputStream = new FileOutputStream(tempFile)) {
-                byte[] buffer = new byte[1024];
-                int read;
-                while ((read = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, read);
-                }
+                // Nén ảnh chất lượng JPEG 75% (giảm dung lượng file từ vài MB xuống còn 80-150KB)
+                resizedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 75, outputStream);
             }
-            inputStream.close();
+
+            // Giải phóng bộ nhớ RAM
+            if (resizedBitmap != originalBitmap) {
+                resizedBitmap.recycle();
+            }
+            originalBitmap.recycle();
 
             RequestBody requestFile = RequestBody.create(
                     MediaType.parse("image/*"),
@@ -596,8 +628,8 @@ public class SearchDestination extends Fragment {
                 @Override
                 public void onFailure(Call<List<Tour>> call, Throwable t) {
                     if (tempFile.exists()) tempFile.delete();
-                    Log.e("SEARCH_DEST", "Lỗi visual search: " + t.getMessage());
-                    Toast.makeText(getContext(), "Lỗi kết nối máy chủ", Toast.LENGTH_SHORT).show();
+                    Log.e("SEARCH_DEST", "Lỗi visual search: " + t.getMessage(), t);
+                    Toast.makeText(getContext(), "Lỗi kết nối máy chủ: " + t.getMessage(), Toast.LENGTH_LONG).show();
                 }
             });
 
