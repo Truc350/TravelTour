@@ -594,7 +594,10 @@ public class MyTripsFragment extends Fragment {
     }
 
     private void confirmTripSuccess(BookedTripAdapter.TripItem item) {
-        // 1. Cập nhật offline cục bộ trong additionalTrips (nếu tồn tại)
+        // 1. Cập nhật trạng thái local ngay lập tức
+        item.isHistory = true;
+        item.statusBadge = "Đã hoàn thành";
+
         for (BookedTripAdapter.TripItem localItem : additionalTrips) {
             if (localItem.id.equals(item.id)) {
                 localItem.isHistory = true;
@@ -603,7 +606,20 @@ public class MyTripsFragment extends Fragment {
             }
         }
 
-        // 2. Trích xuất ID booking để cập nhật trên Django Backend
+        // Cập nhật trong allTrips
+        for (BookedTripAdapter.TripItem t : allTrips) {
+            if (t.id.equals(item.id)) {
+                t.isHistory = true;
+                t.statusBadge = "Đã hoàn thành";
+                break;
+            }
+        }
+
+        // 2. Hiển thị toast xanh lá thành công ngay cho người dùng
+        showCustomToast("Đã cập nhật trạng thái chuyến đi thành công!", false);
+        filterAndDisplayTrips();
+
+        // 3. Đồng bộ lên Django Backend âm thầm (không hiện toast lỗi)
         int bookingId = -1;
         try {
             if (item.id.startsWith("DL0")) {
@@ -619,27 +635,18 @@ public class MyTripsFragment extends Fragment {
             apiService.patchBooking(bookingId, fields).enqueue(new Callback<BookingResponse>() {
                 @Override
                 public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
-                    if (getContext() == null) return;
-                    if (response.isSuccessful()) {
-                        showCustomToast("Đã cập nhật trạng thái chuyến đi thành công!", false);
-                        // Nạp lại dữ liệu từ máy chủ để đồng bộ hóa
+                    // Reload silently nếu thành công để đồng bộ dữ liệu mới nhất
+                    if (getContext() != null && response.isSuccessful()) {
                         loadBookingsFromServer();
-                    } else {
-                        showCustomToast("Không thể đồng bộ trạng thái lên máy chủ!", true);
-                        filterAndDisplayTrips();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<BookingResponse> call, Throwable t) {
-                    if (getContext() == null) return;
-                    showCustomToast("Lỗi kết nối máy chủ!", true);
-                    filterAndDisplayTrips();
+                    // Không hiện lỗi - trạng thái local đã được cập nhật
+                    android.util.Log.e("MyTrips", "Lỗi đồng bộ trạng thái: " + t.getMessage());
                 }
             });
-        } else {
-            // Đối với các chuyến đi local, chỉ cần lọc lại và hiển thị
-            filterAndDisplayTrips();
         }
     }
 
