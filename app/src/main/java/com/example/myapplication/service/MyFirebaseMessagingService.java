@@ -35,20 +35,42 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         super.onMessageReceived(remoteMessage);
         Log.d(TAG, "From: " + remoteMessage.getFrom());
 
-        // Check if message contains a notification payload.
+        String title = null;
+        String body = null;
+        String action = null;
+        String voucherCode = null;
+
+        // Check if message contains data payload
+        if (remoteMessage.getData().size() > 0) {
+            action = remoteMessage.getData().get("action");
+            voucherCode = remoteMessage.getData().get("voucher_code");
+            title = remoteMessage.getData().get("title");
+            body = remoteMessage.getData().get("message");
+        }
+
+        // Fallback to notification payload
         if (remoteMessage.getNotification() != null) {
-            String title = remoteMessage.getNotification().getTitle();
-            String body = remoteMessage.getNotification().getBody();
-            Log.d(TAG, "Message Notification Body: " + body);
-            sendNotification(title, body);
+            if (title == null) title = remoteMessage.getNotification().getTitle();
+            if (body == null) body = remoteMessage.getNotification().getBody();
+        }
+
+        if (body != null) {
+            sendNotification(title, body, action, voucherCode);
         }
     }
 
-    private void sendNotification(String messageTitle, String messageBody) {
+    private void sendNotification(String messageTitle, String messageBody, String action, String voucherCode) {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        if (action != null) {
+            intent.putExtra("action", action);
+        }
+        if (voucherCode != null) {
+            intent.putExtra("voucher_code", voucherCode);
+        }
+        
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
-                PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+                PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_MUTABLE);
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder =
@@ -56,6 +78,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         .setSmallIcon(R.mipmap.ic_launcher)
                         .setContentTitle(messageTitle != null ? messageTitle : "Tour Notification")
                         .setContentText(messageBody)
+                        .setStyle(new NotificationCompat.BigTextStyle().bigText(messageBody))
                         .setAutoCancel(true)
                         .setSound(defaultSoundUri)
                         .setContentIntent(pendingIntent);

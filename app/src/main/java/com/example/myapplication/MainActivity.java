@@ -69,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigation.setSelectedItemId(R.id.nav_home);
         }
 
+        // Xử lý deep link khi mở ứng dụng từ thông báo
+        handleDeepLink(getIntent());
+
         // Lắng nghe sự kiện khi người dùng bấm vào từng tab điều hướng
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -212,5 +215,24 @@ public class MainActivity extends AppCompatActivity {
                 android.util.Log.e("FCM", "Error syncing token: " + t.getMessage());
             }
         });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleDeepLink(intent);
+    }
+
+    private void handleDeepLink(Intent intent) {
+        if (intent == null) return;
+        String action = intent.getStringExtra("action");
+        if ("open_voucher".equals(action)) {
+            android.util.Log.d("MainActivity", "Deep link matching: open_voucher");
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.contentFrame, new MyVouchers())
+                    .addToBackStack(null)
+                    .commit();
+        }
     }
 }

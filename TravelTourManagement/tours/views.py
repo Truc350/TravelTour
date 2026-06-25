@@ -2,9 +2,11 @@ from django.db.models import Q, Case, When, IntegerField
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+import threading
+from .ai_engine import AIRecommendationEngine
 from rest_framework import generics, status
 from rest_framework.response import Response
-from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review, UserVoucher
+from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review, UserVoucher, UserBehavior
 from .serializers import (
     TourSerializer,
     UserSerializer,
@@ -18,6 +20,7 @@ from .serializers import (
     VoucherSerializer,
     ReviewSerializer,
     UserVoucherSerializer,
+    UserBehaviorSerializer,
 )
 
 
@@ -474,6 +477,21 @@ class FavoriteListCreateAPIView(generics.ListCreateAPIView):
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
 
+    def perform_create(self, serializer):
+        favorite = serializer.save()
+        user_id = favorite.user_id
+        tour_id = favorite.tour_id
+        
+        # Chạy AI Engine bất đồng bộ để tránh block client Android
+        def run_ai():
+            try:
+                engine = AIRecommendationEngine()
+                engine.process_recommendation_flow(user_id, tour_id)
+            except Exception as e:
+                print(f"[AI Engine Thread Error]: {e}")
+                
+        threading.Thread(target=run_ai).start()
+
 
 class FavoriteRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Favorite.objects.all()
@@ -614,4 +632,16 @@ def ticket_verify_view(request, booking_id):
         'is_completed': booking.status == 'COMPLETED',
     }
 
-    return render(request, 'ticket_verify.html', context)
+    return render(request, 'ticket_verify.html', context)
+
+
+class UserBehaviorListCreateAPIView(generics.ListCreateAPIView):
+    """API để ghi nhận hành vi người dùng (VIEW, SEARCH, CLICK, ...)"""
+    serializer_class = UserBehaviorSerializer
+
+    def get_queryset(self):
+        queryset = UserBehavior.objects.all()
+        user_id = self.request.query_params.get('user_id')
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
+        return queryset.order_by('-timestamp')
