@@ -16,6 +16,18 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.myapplication.data.AppDatabase;
 import com.example.myapplication.data.model.TourDeparture;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import android.graphics.Color;
+import android.view.View;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import com.example.myapplication.data.remote.ApiService;
+import com.example.myapplication.data.remote.RetrofitClient;
+import com.example.myapplication.data.model.VoucherHelper;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -25,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 public class DepartureActivity extends AppCompatActivity {
 
     // ===== Số lượng mặc định =====
@@ -57,6 +70,16 @@ public class DepartureActivity extends AppCompatActivity {
     private final List<String> departureDates = new ArrayList<>(); // "yyyy-MM-dd"
     private final List<TourDeparture> departureList = new ArrayList<>();
     private int selectedChipIndex = -1;
+
+    // Voucher fields
+    private String selectedVoucherCode = "";
+    private long discountAmount = 0;
+    private VoucherHelper.AppVoucher selectedVoucher = null;
+    private LinearLayout rowPromoCode;
+    private TextView tvVoucherLabel;
+    private android.widget.ImageView ivClearVoucher;
+    private android.widget.ImageView ivChevron;
+    private android.widget.ImageView ivVoucherIcon;
     private String selectedTime = "";
     private LinearLayout layoutTimeChips;
     private static final String[] PROPOSED_TIMES = {"07:30", "09:00", "13:30", "15:00"};
@@ -128,6 +151,11 @@ public class DepartureActivity extends AppCompatActivity {
         btnInfantPlus  = findViewById(R.id.btn_infant_plus);
 
         layoutDateChips = findViewById(R.id.layout_date_chips);
+        rowPromoCode = findViewById(R.id.row_promo_code);
+        tvVoucherLabel = findViewById(R.id.tv_voucher_label);
+        ivClearVoucher = findViewById(R.id.iv_clear_voucher);
+        ivChevron = findViewById(R.id.iv_chevron);
+        ivVoucherIcon = findViewById(R.id.iv_voucher_icon);
     }
 
     // ===== Gắn sự kiện click =====
@@ -179,6 +207,17 @@ public class DepartureActivity extends AppCompatActivity {
         });
 
         // Dynamic date chips click listeners are set dynamically in populateDateChips()
+        if (rowPromoCode != null) {
+            rowPromoCode.setOnClickListener(v -> showPromoCodeDialog());
+        }
+        if (ivClearVoucher != null) {
+            ivClearVoucher.setOnClickListener(v -> {
+                selectedVoucherCode = "";
+                selectedVoucher = null;
+                discountAmount = 0;
+                updateCounterUI();
+            });
+        }
 
         // Nút Liên hệ tư vấn – mở Zalo ChillTour
         findViewById(R.id.btn_contact).setOnClickListener(v -> {
@@ -287,6 +326,13 @@ public class DepartureActivity extends AppCompatActivity {
     }
 
     private void bindDepartureChips(List<TourDeparture> departures) {
+        // Sắp xếp danh sách ngày khởi hành tăng dần theo thời gian (từ trái qua phải)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION.SDK_INT) {
+            departures.sort((d1, d2) -> d1.getDepartureDate().compareTo(d2.getDepartureDate()));
+        } else {
+            java.util.Collections.sort(departures, (d1, d2) -> d1.getDepartureDate().compareTo(d2.getDepartureDate()));
+        }
+
         departureList.clear();
         departureList.addAll(departures);
         departureDates.clear();
@@ -583,8 +629,45 @@ public class DepartureActivity extends AppCompatActivity {
         setMinusActive(btnChildMinus,  childCount  > 0);
         setMinusActive(btnInfantMinus, infantCount > 0);
 
-        // Tính và hiển thị tổng tiền real-time
-        tvTotalPrice.setText(formatVnd(calculateTotal()));
+        // Tính và hiển thị tổng tiền real-time (áp dụng giảm giá)
+        long baseTotal = calculateTotal();
+        if (selectedVoucher != null) {
+            List<VoucherHelper.AppVoucher> vList = new ArrayList<>();
+            vList.add(selectedVoucher);
+            List<Long> discList = computeDiscounts(vList, baseTotal);
+            discountAmount = discList.get(0);
+            if (tvVoucherLabel != null) {
+                tvVoucherLabel.setText("Đã áp dụng: " + selectedVoucherCode + " (Giảm " + formatVnd(discountAmount) + ")");
+                tvVoucherLabel.setTextColor(0xFF388E3C);
+            }
+            if (ivVoucherIcon != null) {
+                ivVoucherIcon.setImageTintList(android.content.res.ColorStateList.valueOf(0xFF388E3C));
+            }
+            if (ivClearVoucher != null) {
+                ivClearVoucher.setVisibility(View.VISIBLE);
+            }
+            if (ivChevron != null) {
+                ivChevron.setVisibility(View.GONE);
+            }
+        } else {
+            discountAmount = 0;
+            if (tvVoucherLabel != null) {
+                tvVoucherLabel.setText("Chọn voucher");
+                tvVoucherLabel.setTextColor(0xFF185FA5);
+            }
+            if (ivVoucherIcon != null) {
+                ivVoucherIcon.setImageTintList(android.content.res.ColorStateList.valueOf(0xFF185FA5));
+            }
+            if (ivClearVoucher != null) {
+                ivClearVoucher.setVisibility(View.GONE);
+            }
+            if (ivChevron != null) {
+                ivChevron.setVisibility(View.VISIBLE);
+            }
+        }
+        long finalTotal = Math.max(0, baseTotal - discountAmount);
+        tvTotalPrice.setText(formatVnd(finalTotal));
+
         // Cập nhật nhãn ngày đang chọn
         updateSelectedDateLabel();
         // Hiển thị số chỗ còn nhận tương ứng sau khi giảm theo số khách đã chọn (không trừ trẻ nhỏ <5t)
@@ -674,7 +757,153 @@ public class DepartureActivity extends AppCompatActivity {
         intent.putExtra("child_price",   childPrice);
         intent.putExtra("infant_price",  infantPrice);
         intent.putExtra("total_price",   total);
+        intent.putExtra("voucher_code",   selectedVoucherCode);
+        intent.putExtra("discount_amount", discountAmount);
         startActivity(intent);
+    }
+
+    private void showPromoCodeDialog() {
+        android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+        int currentUserId = prefs.getInt("current_user_id", -1);
+
+        android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);
+        progressDialog.setMessage("Đang tải voucher...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        apiService.getVouchers(currentUserId, true).enqueue(new Callback<List<VoucherHelper.AppVoucher>>() {
+            @Override
+            public void onResponse(Call<List<VoucherHelper.AppVoucher>> call, Response<List<VoucherHelper.AppVoucher>> response) {
+                progressDialog.dismiss();
+                List<VoucherHelper.AppVoucher> list = new ArrayList<>();
+                if (response.isSuccessful() && response.body() != null) {
+                    for (VoucherHelper.AppVoucher av : response.body()) {
+                        if (av.status != null && av.status.equalsIgnoreCase("Đã hết hạn")) continue;
+                        if (av.code != null && av.code.equals(selectedVoucherCode)) continue;
+                        if (av.isUsed) continue;
+                        list.add(av);
+                    }
+                }
+                if (list.isEmpty()) {
+                    Toast.makeText(DepartureActivity.this, "Không có voucher nào khả dụng!", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                showVouchersBottomSheet(sortVouchersByDiscount(list));
+            }
+
+            @Override
+            public void onFailure(Call<List<VoucherHelper.AppVoucher>> call, Throwable t) {
+                progressDialog.dismiss();
+                // Fallback: dùng dữ liệu local
+                List<VoucherHelper.AppVoucher> list = new ArrayList<>();
+                for (VoucherHelper.AppVoucher av : VoucherHelper.getAvailableVouchers()) {
+                    if (av.status != null && av.status.equalsIgnoreCase("Đã hết hạn")) continue;
+                    if (av.code != null && av.code.equals(selectedVoucherCode)) continue;
+                    if (av.isUsed) continue;
+                    list.add(av);
+                }
+                if (!list.isEmpty()) showVouchersBottomSheet(sortVouchersByDiscount(list));
+                else Toast.makeText(DepartureActivity.this, "Không thể tải voucher. Kiểm tra kết nối!", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private List<VoucherHelper.AppVoucher> sortVouchersByDiscount(List<VoucherHelper.AppVoucher> list) {
+        List<Long> discounts = computeDiscounts(list, calculateTotal());
+
+        class VoucherPair {
+            VoucherHelper.AppVoucher voucher;
+            long discount;
+            VoucherPair(VoucherHelper.AppVoucher v, long d) {
+                this.voucher = v;
+                this.discount = d;
+            }
+        }
+
+        List<VoucherPair> pairs = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            pairs.add(new VoucherPair(list.get(i), discounts.get(i)));
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION.SDK_INT) {
+            pairs.sort((p1, p2) -> Long.compare(p2.discount, p1.discount));
+        } else {
+            java.util.Collections.sort(pairs, (p1, p2) -> Long.compare(p2.discount, p1.discount));
+        }
+
+        List<VoucherHelper.AppVoucher> sorted = new ArrayList<>();
+        for (VoucherPair pair : pairs) {
+            sorted.add(pair.voucher);
+        }
+        return sorted;
+    }
+
+    private void showVouchersBottomSheet(List<VoucherHelper.AppVoucher> vouchers) {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        android.view.View sheetView = getLayoutInflater().inflate(R.layout.dialog_booking_vouchers, null);
+        bottomSheetDialog.setContentView(sheetView);
+
+        RecyclerView rv = sheetView.findViewById(R.id.rvBookingVouchers);
+        rv.setLayoutManager(new LinearLayoutManager(this));
+
+        List<Long> computedDiscounts = computeDiscounts(vouchers, calculateTotal());
+        BookingVoucherAdapter adapter = new BookingVoucherAdapter(vouchers, computedDiscounts, (voucher, computedDiscount) -> {
+            selectedVoucherCode = voucher.code;
+            selectedVoucher = voucher;
+            discountAmount = computedDiscount;
+
+            updateCounterUI();
+            bottomSheetDialog.dismiss();
+        });
+
+        rv.setAdapter(adapter);
+
+        sheetView.findViewById(R.id.btnCloseBottomSheet).setOnClickListener(v -> bottomSheetDialog.dismiss());
+        sheetView.findViewById(R.id.row_clear_voucher).setOnClickListener(v -> {
+            selectedVoucherCode = "";
+            selectedVoucher = null;
+            discountAmount = 0;
+
+            updateCounterUI();
+            bottomSheetDialog.dismiss();
+        });
+
+        bottomSheetDialog.show();
+    }
+
+    private List<Long> computeDiscounts(List<VoucherHelper.AppVoucher> vouchers, long total) {
+        List<Long> discounts = new ArrayList<>();
+        for (VoucherHelper.AppVoucher v : vouchers) {
+            long discount = 0;
+            String val = v.discountVal;
+            if (val.endsWith("%")) {
+                try {
+                    int percent = Integer.parseInt(val.replace("%", "").trim());
+                    discount = (total * percent) / 100;
+                    if (v.maxDiscount > 0 && discount > v.maxDiscount) {
+                        discount = v.maxDiscount;
+                    }
+                } catch (Exception e) {
+                    discount = 0;
+                }
+            } else if (val.toLowerCase().endsWith("k")) {
+                try {
+                    long amount = Long.parseLong(val.toLowerCase().replace("k", "").trim()) * 1000;
+                    discount = amount;
+                } catch (Exception e) {
+                    discount = 0;
+                }
+            } else {
+                try {
+                    discount = Long.parseLong(val.trim());
+                } catch (Exception e) {
+                    discount = 0;
+                }
+            }
+            discounts.add(discount);
+        }
+        return discounts;
     }
 
     @Override

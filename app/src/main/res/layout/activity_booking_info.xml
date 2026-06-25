@@ -216,44 +216,7 @@
                 android:layout_marginBottom="24dp"
                 android:importantForAutofill="no" />
 
-            <!-- Section 3: Nhập mã giảm giá -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E9ECEF" />
 
-            <LinearLayout
-                android:id="@+id/row_promo_code"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:paddingHorizontal="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Chọn voucher"
-                    android:textColor="#333333"
-                    android:textSize="14sp" />
-
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_chevron_right"
-                    app:tint="#6C757D"
-                    android:contentDescription="Next" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E9ECEF" />
 
             <!-- Section 4: Xuất hóa đơn -->
             <LinearLayout
@@ -306,6 +269,16 @@
                 android:text="1 người lớn"
                 android:textColor="#6C757D"
                 android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tv_discount_summary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Giảm 150.000đ"
+                android:textColor="#388E3C"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/tv_price_summary"
