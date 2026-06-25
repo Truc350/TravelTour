@@ -75,8 +75,8 @@ public class BookingVoucherAdapter extends RecyclerView.Adapter<BookingVoucherAd
             holder.tvLeftRecommended.setVisibility(View.GONE);
         }
 
-        // Hiển thị mức giảm giá tính toán thực tế
-        holder.tvComputedDiscount.setText("Giảm " + formatVnd(discount));
+        // Ẩn dòng hiển thị số tiền giảm tính toán
+        holder.tvComputedDiscount.setVisibility(View.GONE);
 
         // Trạng thái chọn
         boolean isSelected = (position == selectedPosition);

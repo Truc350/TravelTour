@@ -59,9 +59,9 @@ public class VoucherHelper {
     private static final List<AppVoucher> AVAILABLE_VOUCHERS = new ArrayList<>();
 
     static {
-        AVAILABLE_VOUCHERS.add(new AppVoucher("VIVUMUAHAN", "Khuyến Mãi Mùa Hè 2026", "15%", "VOUCHER", "Giảm 15% tối đa 150k cho các tour du lịch miền Nam.", "HSD: 31/08/2026", "Còn hiệu lực", 120, "#319795", 150000L));
+        AVAILABLE_VOUCHERS.add(new AppVoucher("VIVUMUAHAN", "Khuyến Mãi Mùa Hè 2026", "15%", "VOUCHER", "Giảm 15% cho các tour du lịch miền Nam.", "HSD: 31/08/2026", "Còn hiệu lực", 120, "#319795", 150000L));
         AVAILABLE_VOUCHERS.add(new AppVoucher("VIVU50K", "Vi Vu Mọi Nơi", "50k", "GIẢM GIÁ", "Giảm trực tiếp 50k cho đơn hàng từ 1.000k trở lên.", "HSD: 31/12/2026", "Còn hiệu lực", 45, "#E53E3E", 0L));
-        AVAILABLE_VOUCHERS.add(new AppVoucher("CHILLTOUR20", "Chill Cùng Bạn Bè", "20%", "VOUCHER", "Giảm 20% tối đa 300k cho nhóm từ 4 người trở lên.", "HSD: 31/10/2026", "Còn hiệu lực", 80, "#DD6B20", 300000L));
+        AVAILABLE_VOUCHERS.add(new AppVoucher("CHILLTOUR20", "Chill Cùng Bạn Bè", "20%", "VOUCHER", "Giảm 20% cho nhóm từ 4 người trở lên.", "HSD: 31/10/2026", "Còn hiệu lực", 80, "#DD6B20", 300000L));
         AVAILABLE_VOUCHERS.add(new AppVoucher("FIRSTTRIP", "Hành Trình Đầu Tiên", "100k", "GIẢM GIÁ", "Áp dụng cho booking đầu tiên trên ứng dụng Chill Tour.", "HSD: 30/06/2026", "Sắp hết hạn", 12, "#6B46C1", 0L));
     }
 
