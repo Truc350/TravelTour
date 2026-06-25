@@ -133,4 +133,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'tourt7396@gmail.com'
 EMAIL_HOST_PASSWORD = 'lixl rhhw sfjx kfdi'
 
+# Cấu hình Gemini API Key
+GEMINI_API_KEY = "AQ.Ab8RN6LlCfwg7uUryFcWKZJY2caWALNTPWPj3Q_cNU5NRWsF-Q"
+
 

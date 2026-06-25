@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -369,7 +370,69 @@
                 android:background="#E9ECEF"
                 android:layout_marginBottom="14dp" />
 
+            <!-- Chọn voucher row -->
+            <LinearLayout
+                android:id="@+id/row_promo_code"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_voucher_row"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingVertical="8dp"
+                android:paddingHorizontal="12dp"
+                android:layout_marginBottom="12dp">
 
+                <!-- Ticket Icon -->
+                <ImageView
+                    android:id="@+id/iv_voucher_icon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_voucher"
+                    app:tint="#185FA5"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="Voucher" />
+
+                <TextView
+                    android:id="@+id/tv_voucher_label"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Chọn voucher"
+                    android:textColor="#185FA5"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/iv_clear_voucher"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_close"
+                    app:tint="#E53935"
+                    android:padding="5dp"
+                    android:visibility="gone"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="Bỏ chọn"
+                    android:layout_marginEnd="2dp" />
+
+                <ImageView
+                    android:id="@+id/iv_chevron"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="#185FA5"
+                    android:contentDescription="Chevron" />
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E9ECEF"
+                android:layout_marginBottom="14dp" />
 
             <!-- Còn nhận chỗ -->
             <LinearLayout
@@ -406,13 +469,6 @@
                     android:textColor="#E53935"
                     android:textStyle="bold" />
             </LinearLayout>
-
-            <!-- Divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E9ECEF"
-                android:layout_marginBottom="14dp" />
 
             <!-- Tổng cộng -->
             <LinearLayout

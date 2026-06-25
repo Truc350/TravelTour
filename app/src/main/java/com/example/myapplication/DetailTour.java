@@ -249,6 +249,7 @@ public class DetailTour extends Fragment {
                         bindTourData(view, inflater);
                         checkFavoriteStatus();
                         loadRelatedTours(view, tour);
+                        logUserBehavior(currentUserId, tour.getId(), "VIEW");
                     } else if (tourIdArg > 0) {
                         Toast.makeText(requireContext(), "Không tìm thấy thông tin tour!", Toast.LENGTH_SHORT).show();
                     }
@@ -709,6 +710,30 @@ public class DetailTour extends Fragment {
                         Toast.makeText(requireContext(), "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
+            }
+        });
+    }
+
+    private void logUserBehavior(int userId, int tourId, String behaviorType) {
+        if (userId == -1 || tourId == -1) return;
+        java.util.HashMap<String, Object> body = new java.util.HashMap<>();
+        body.put("user", userId);
+        body.put("tour", tourId);
+        body.put("behavior_type", behaviorType);
+
+        apiService.logBehavior(body).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    android.util.Log.d("BEHAVIOR", "Logged " + behaviorType + " successfully for tour " + tourId);
+                } else {
+                    android.util.Log.e("BEHAVIOR", "Failed to log behavior. Code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                android.util.Log.e("BEHAVIOR", "Error logging behavior: " + t.getMessage());
             }
         });
     }
