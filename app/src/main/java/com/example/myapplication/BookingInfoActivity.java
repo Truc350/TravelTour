@@ -57,6 +57,7 @@ public class BookingInfoActivity extends AppCompatActivity {
     private long discountAmount = 0;
 
     private String departureTime = "";
+    private String departureDate = "";
     private boolean isInvoiceRequested = false;
 
     @Override
@@ -83,6 +84,7 @@ public class BookingInfoActivity extends AppCompatActivity {
             infantCount = intent.getIntExtra("infant_count", 0);
             totalPrice = intent.getLongExtra("total_price", 5490000L);
             departureTime = intent.getStringExtra("departure_time");
+            departureDate = intent.getStringExtra("departure_date");
             selectedVoucherCode = intent.getStringExtra("voucher_code");
             if (selectedVoucherCode == null) {
                 selectedVoucherCode = "";
@@ -261,6 +263,7 @@ public class BookingInfoActivity extends AppCompatActivity {
         intent.putExtra("total_price", finalPrice);
         intent.putExtra("is_invoice_requested", isInvoiceRequested);
         intent.putExtra("departure_time", departureTime);
+        intent.putExtra("departure_date", departureDate);
         intent.putExtra("full_name", fullName);
         intent.putExtra("phone", phone);
         intent.putExtra("email", email);

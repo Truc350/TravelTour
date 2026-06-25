@@ -212,6 +212,13 @@ public class MyTripsFragment extends Fragment {
 
                             String priceFormatted = formatVndPrice((long) b.totalPrice);
 
+                            String depDateForTab = "09/09";
+                            if (b.departureDetail != null && b.departureDetail.departureDate != null) {
+                                depDateForTab = formatDepartureDateToDdMm(b.departureDetail.departureDate);
+                            } else if (b.bookingDate != null) {
+                                depDateForTab = formatDepartureDateToDdMm(b.bookingDate);
+                            }
+
                             BookedTripAdapter.TripItem item = new BookedTripAdapter.TripItem(
                                     code,
                                     trainName,
@@ -222,7 +229,7 @@ public class MyTripsFragment extends Fragment {
                                     arrStation,
                                     "Trọn gói",
                                     priceFormatted,
-                                    b.bookingDate != null ? b.bookingDate : "09/09",
+                                    depDateForTab,
                                     "CANCELLED".equalsIgnoreCase(b.status) || "COMPLETED".equalsIgnoreCase(b.status), // coi như history nếu đã hủy hoặc completed
                                     tourType
                             );
@@ -287,6 +294,32 @@ public class MyTripsFragment extends Fragment {
         String normalized = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD);
         return normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
                          .replace("đ", "d").replace("Đ", "D");
+    }
+
+    private String formatDepartureDateToDdMm(String departureDateStr) {
+        if (departureDateStr == null) return "09/09";
+        try {
+            java.text.SimpleDateFormat fromServerFmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+            java.util.Date date = fromServerFmt.parse(departureDateStr);
+            java.text.SimpleDateFormat toTabFmt = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
+            return toTabFmt.format(date);
+        } catch (Exception e) {
+            try {
+                java.text.SimpleDateFormat fromServerFmt = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                java.util.Date date = fromServerFmt.parse(departureDateStr);
+                java.text.SimpleDateFormat toTabFmt = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
+                return toTabFmt.format(date);
+            } catch (Exception ex) {
+                // Nếu là định dạng dd/MM/yyyy hoặc tương tự thì thử tìm cách parse
+                if (departureDateStr.contains("/")) {
+                    String[] parts = departureDateStr.split("/");
+                    if (parts.length >= 2) {
+                        return parts[0] + "/" + parts[1];
+                    }
+                }
+                return departureDateStr;
+            }
+        }
     }
 
     private void setupTabs() {
