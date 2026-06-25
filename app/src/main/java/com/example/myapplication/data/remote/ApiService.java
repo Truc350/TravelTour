@@ -3,6 +3,7 @@ package com.example.myapplication.data.remote;
 import android.app.DownloadManager;
 
 import com.example.myapplication.data.model.Tour;
+import com.example.myapplication.data.model.TourDeparture;
 import com.example.myapplication.data.model.User;
 import com.example.myapplication.data.model.Passenger;
 import com.example.myapplication.data.model.Favorite;
@@ -27,6 +28,9 @@ public interface ApiService {
 
     @GET("api/tours/")
     Call<List<Tour>> getTours();
+
+    @GET("api/tour-departures/")
+    Call<List<TourDeparture>> getTourDepartures(@Query("tour_id") int tourId);
 
     // Bookings CRUD
     @GET("api/bookings/")

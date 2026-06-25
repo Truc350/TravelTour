@@ -90,7 +90,7 @@ class TourDepartureResource(resources.ModelResource):
 
     class Meta:
         model = TourDeparture
-        fields = ('id', 'tour', 'departure_date', 'available_seats', 'price')
+        fields = ('id', 'tour', 'departure_date', 'hour_departure', 'available_seats', 'price')
 
     def before_import(self, dataset, **kwargs):
         dataset.headers = [str(h).strip().lower() for h in dataset.headers]
@@ -167,6 +167,7 @@ class UserAdmin(ImportExportModelAdmin):
 @admin.register(TourDeparture)
 class TourDepartureAdmin(ImportExportModelAdmin):
     resource_classes = [TourDepartureResource]
+    list_display = ('id', 'tour', 'departure_date', 'hour_departure', 'available_seats', 'price')
 
 @admin.register(Booking)
 class BookingAdmin(ImportExportModelAdmin):

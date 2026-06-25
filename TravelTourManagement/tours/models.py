@@ -50,6 +50,7 @@ class TourDeparture(models.Model):
     departure_date = models.CharField(max_length=255)
     available_seats = models.IntegerField()
     price = models.DecimalField(max_digits=12, decimal_places=2)
+    hour_departure = models.CharField(max_length=255, default="07:00, 17:00")
 
     class Meta:
         db_table = 'tour_departures'

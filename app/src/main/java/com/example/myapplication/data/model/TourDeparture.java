@@ -37,11 +37,16 @@ public class TourDeparture implements Serializable {
     @SerializedName("price")
     private double price;
 
+    @ColumnInfo(name = "hour_departure")
+    @SerializedName("hour_departure")
+    private String hourDeparture;
+
     public TourDeparture(int tourId, String departureDate, int availableSeats, double price) {
         this.tourId = tourId;
         this.departureDate = departureDate;
         this.availableSeats = availableSeats;
         this.price = price;
+        this.hourDeparture = "07:00, 17:00"; // default
     }
 
     public int getId() { return id; }
@@ -58,4 +63,7 @@ public class TourDeparture implements Serializable {
 
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
+
+    public String getHourDeparture() { return hourDeparture; }
+    public void setHourDeparture(String hourDeparture) { this.hourDeparture = hourDeparture; }
 }
