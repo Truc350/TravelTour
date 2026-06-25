@@ -345,22 +345,16 @@ public class DetailTour extends Fragment {
                 for (int i = 0; i < limit; i++) {
                     Review r = reviewsList.get(i);
                     View itemReview = inflater.inflate(R.layout.item_review, reviewsContainer, false);
-                    
+
                     TextView tvName = itemReview.findViewById(R.id.tvReviewerName);
                     TextView tvScore = itemReview.findViewById(R.id.tvReviewScore);
-                    TextView tvStatus = itemReview.findViewById(R.id.tvReviewStatus);
                     TextView tvDate = itemReview.findViewById(R.id.tvReviewDate);
                     TextView tvComment = itemReview.findViewById(R.id.tvReviewComment);
+                    TextView tvSentiment = itemReview.findViewById(R.id.tvSentiment);
 
                     if (tvName != null) tvName.setText(r.getUserName());
-                    if (tvScore != null) tvScore.setText(String.format(java.util.Locale.US, "%.1f", (double) r.getRating()));
-                    if (tvStatus != null) {
-                        int rating = r.getRating();
-                        if (rating == 5) tvStatus.setText("Xuất sắc");
-                        else if (rating == 4) tvStatus.setText("Tuyệt vời");
-                        else if (rating == 3) tvStatus.setText("Rất tốt");
-                        else tvStatus.setText("Tốt");
-                    }
+                    if (tvScore != null)
+                        tvScore.setText(String.format(java.util.Locale.US, "%.1f", (double) r.getRating()));
                     if (tvDate != null && r.getCreatedAt() != null) {
                         String dateStr = r.getCreatedAt();
                         if (dateStr.length() >= 10) {
@@ -370,12 +364,26 @@ public class DetailTour extends Fragment {
                     }
                     if (tvComment != null) tvComment.setText(r.getComment());
 
+                    if (tvSentiment != null) {
+                        String commentText = r.getComment() != null ? r.getComment() : "";
+                        String sentiment = analyzeSentiment(commentText, r.getRating());
+                        tvSentiment.setText(sentiment);
+                        if ("Tích cực".equals(sentiment)) {
+                            tvSentiment.setBackgroundResource(R.drawable.bg_score_green);
+                        } else if ("Tiêu cực".equals(sentiment)) {
+                            tvSentiment.setBackgroundResource(R.drawable.bg_badge_red);
+                        } else {
+                            tvSentiment.setBackgroundResource(R.drawable.bg_badge_dark);
+                        }
+                    }
+
                     reviewsContainer.addView(itemReview);
                 }
             } else {
                 if (tvEmptyReviews != null) tvEmptyReviews.setVisibility(View.VISIBLE);
             }
         }
+
 
         // Xử lý hình ảnh (load bằng Glide vào ViewPager2)
         java.util.List<String> imageUrls = new java.util.ArrayList<>();
@@ -1200,4 +1208,37 @@ public class DetailTour extends Fragment {
             checkFavoriteStatus();
         }
     }
+
+    private String analyzeSentiment(String text, int rating) {
+        if (text == null || text.trim().isEmpty()) {
+            if (rating >= 4) return "Tích cực";
+            if (rating <= 2) return "Tiêu cực";
+            return "Trung lập";
+        }
+        String lowerText = text.toLowerCase();
+
+        String[] positiveWords = {"tuyệt", "tốt", "hay", "đẹp", "xuất sắc", "thích", "ngon", "ok", "hài lòng", "đỉnh", "10 điểm", "chất lượng", "vui", "tuyet", "tot", "dep", "xuat sac", "thich", "hai long", "dinh", "chat luong"};
+        String[] negativeWords = {"tệ", "chán", "kém", "buồn", "thất vọng", "xấu", "dở", "đắt", "không tốt", "không hay", "lừa đảo", "te", "chan", "kem", "buon", "that vong", "xau", "do", "dat", "khong tot", "khong hay", "lua dao", "đắt đỏ", "dịch vụ kém"};
+
+        int posScore = 0;
+        int negScore = 0;
+
+        for (String word : positiveWords) {
+            if (lowerText.contains(word)) posScore++;
+        }
+        for (String word : negativeWords) {
+            if (lowerText.contains(word)) negScore++;
+        }
+
+        if (posScore > negScore) {
+            return "Tích cực";
+        } else if (negScore > posScore) {
+            return "Tiêu cực";
+        } else {
+            if (rating >= 4) return "Tích cực";
+            if (rating <= 2) return "Tiêu cực";
+            return "Trung lập";
+        }
+    }
+
 }
