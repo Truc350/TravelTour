@@ -56,6 +56,11 @@
             android:name=".EditInvoiceActivity"
             android:exported="false" />
 
+        <!-- Màn hình Danh sách hoá đơn điện tử -->
+        <activity
+            android:name=".InvoiceListActivity"
+            android:exported="false" />
+
         <!-- Màn hình Thông tin khách đặt tour (Bước 2/3) -->
         <activity
             android:name=".BookingInfoActivity"

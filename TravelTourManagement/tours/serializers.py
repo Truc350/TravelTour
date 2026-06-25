@@ -36,8 +36,8 @@ class TourSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_reviews(self, obj):
-        # Sắp xếp các review từ mới nhất lên trên
-        reviews = obj.reviews.all().order_by('-created_at')
+        # Sắp xếp các review từ mới nhất lên trên bằng Python để giữ cache prefetch
+        reviews = sorted(obj.reviews.all(), key=lambda r: r.created_at, reverse=True)
         return ReviewSerializer(reviews, many=True).data
 
 

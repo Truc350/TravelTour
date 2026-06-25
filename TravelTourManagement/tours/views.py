@@ -46,7 +46,12 @@ class TourListAPIView(generics.ListAPIView):
     serializer_class = TourSerializer
 
     def get_queryset(self):
-        queryset = Tour.objects.all()
+        queryset = Tour.objects.all().prefetch_related(
+            'images',
+            'itineraries',
+            'departures',
+            'reviews__user'
+        )
 
         destination = self.request.query_params.get('destination', '').strip()
         origin = self.request.query_params.get('origin', '').strip()
@@ -54,6 +59,10 @@ class TourListAPIView(generics.ListAPIView):
         day_str = self.request.query_params.get('day', '').strip()
         month_str = self.request.query_params.get('month', '').strip()
         year_str = self.request.query_params.get('year', '').strip()
+
+        # Tối ưu: Nếu không có tham số tìm kiếm nào, bỏ qua hoàn toàn vòng lặp Python lọc thủ công
+        if not destination and not origin and not day_str and not month_str and not year_str:
+            return queryset
 
         has_date_filter = False
         possible_dates = []
