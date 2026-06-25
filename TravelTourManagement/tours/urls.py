@@ -21,6 +21,7 @@ from .views import (
     ReviewListCreateAPIView,
     ticket_verify_view,
     UserVoucherListCreateAPIView,
+    UserBehaviorListCreateAPIView,
 )
 
 urlpatterns = [
@@ -45,4 +46,5 @@ urlpatterns = [
     path('user-vouchers/', UserVoucherListCreateAPIView.as_view(), name='user-voucher-list-create'),
     path('reviews/', ReviewListCreateAPIView.as_view(), name='review-list-create'),
     path('ticket-verify/<int:booking_id>/', ticket_verify_view, name='ticket-verify'),
+    path('behaviors/', UserBehaviorListCreateAPIView.as_view(), name='behavior-list-create'),
 ]

@@ -82,6 +82,10 @@ public interface ApiService {
     @DELETE("api/favorites/{id}/")
     Call<Void> removeFavorite(@Path("id") int id);
 
+    @POST("api/behaviors/")
+    Call<Void> logBehavior(@Body java.util.Map<String, Object> behavior);
+
+
     @GET("api/tours/")
     Call<List<Tour>> searchTours(
             @Query("destination") String destination,

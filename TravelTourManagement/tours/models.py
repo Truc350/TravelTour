@@ -230,3 +230,23 @@ class Review(models.Model):
             tour.rating_score = 0
         tour.save()
 
+
+class UserBehavior(models.Model):
+    BEHAVIOR_CHOICES = [
+        ('VIEW', 'Xem Tour'),
+        ('SEARCH', 'Tìm kiếm'),
+        ('FAVORITE', 'Yêu thích'),
+        ('BOOK', 'Đặt Tour'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='behaviors')
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name='behaviors')
+    behavior_type = models.CharField(max_length=50, choices=BEHAVIOR_CHOICES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'user_behaviors'
+
+    def __str__(self):
+        return f"{self.user.name} - {self.behavior_type} - {self.tour.title}"
+
+
