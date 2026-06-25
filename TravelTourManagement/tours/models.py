@@ -144,6 +144,18 @@ class TourImage(models.Model):
         return f"Image for {self.tour.title}"
 
 
+class TourImageFeature(models.Model):
+    tour_image = models.OneToOneField(TourImage, on_delete=models.CASCADE, related_name='feature')
+    feature_data = models.TextField()  # JSON representation of feature dict
+
+    class Meta:
+        db_table = 'tour_image_features'
+
+    def __str__(self):
+        return f"Feature for TourImage #{self.tour_image.id}"
+
+
+
 class TourItinerary(models.Model):
     tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name='itineraries')
     day_number = models.IntegerField()
@@ -229,4 +241,12 @@ class Review(models.Model):
         else:
             tour.rating_score = 0
         tour.save()
+
+
+
+
+
+
+
+
 
