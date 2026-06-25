@@ -158,6 +158,8 @@ class TourItineraryResource(resources.ModelResource):
 @admin.register(Tour)
 class TourAdmin(ImportExportModelAdmin):
     resource_classes = [TourResource]
+    list_display = ('id', 'code', 'title', 'provider', 'views', 'original_price', 'discount_price', 'rating_score', 'reviews_count')
+    search_fields = ('code', 'title', 'provider')
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin):

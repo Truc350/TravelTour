@@ -27,6 +27,7 @@ class Tour(models.Model):
     description_tour_include = models.TextField(blank=True, null=True)
 
     note = models.TextField(blank=True, null=True)
+    views = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title
@@ -250,7 +251,7 @@ class UserBehavior(models.Model):
         ('FAVORITE', 'Yêu thích'),
         ('BOOK', 'Đặt Tour'),
     ]
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='behaviors')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='behaviors', null=True, blank=True)
     tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name='behaviors')
     behavior_type = models.CharField(max_length=50, choices=BEHAVIOR_CHOICES)
     timestamp = models.DateTimeField(auto_now_add=True)

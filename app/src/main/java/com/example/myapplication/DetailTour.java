@@ -715,7 +715,7 @@ public class DetailTour extends Fragment {
     }
 
     private void logUserBehavior(int userId, int tourId, String behaviorType) {
-        if (userId == -1 || tourId == -1) return;
+        if (tourId == -1) return;
         java.util.HashMap<String, Object> body = new java.util.HashMap<>();
         body.put("user", userId);
         body.put("tour", tourId);

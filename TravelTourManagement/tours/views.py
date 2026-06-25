@@ -6,6 +6,7 @@ import threading
 from .ai_engine import AIRecommendationEngine
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review, UserVoucher, UserBehavior
 from .serializers import (
     TourSerializer,
@@ -644,4 +645,81 @@ class UserBehaviorListCreateAPIView(generics.ListCreateAPIView):
         user_id = self.request.query_params.get('user_id')
         if user_id:
             queryset = queryset.filter(user_id=user_id)
-        return queryset.order_by('-timestamp')
+        return queryset.order_by('-timestamp')
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        # If user id is -1, empty or null, set it to None for anonymous behaviors
+        if 'user' in data and (data['user'] == -1 or data['user'] == '-1' or not data['user']):
+            data['user'] = None
+        
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        
+        # Increment tour views if behavior is VIEW
+        behavior_type = data.get('behavior_type')
+        tour_id = data.get('tour')
+        if behavior_type == 'VIEW' and tour_id:
+            try:
+                tour = Tour.objects.filter(id=tour_id).first()
+                if tour:
+                    tour.views += 1
+                    tour.save()
+            except Exception as e:
+                print("Error incrementing tour view count:", e)
+                
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class VisualSearchAPIView(generics.GenericAPIView):
+    """API để tìm kiếm tour du lịch bằng hình ảnh trực quan"""
+    serializer_class = TourSerializer
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request, *args, **kwargs):
+        if 'image' not in request.FILES:
+            return Response({"error": "No image provided"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            import json
+            from PIL import Image
+            from rest_framework.parsers import MultiPartParser, FormParser
+            from .utils import extract_features, calculate_similarity
+            from .models import TourImageFeature
+
+            query_image_file = request.FILES['image']
+            query_img = Image.open(query_image_file)
+            
+            query_features = extract_features(query_img)
+            if query_features is None:
+                return Response({"error": "Could not extract features from the image"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            features_qs = TourImageFeature.objects.select_related('tour_image__tour').all()
+            
+            tour_similarities = {}
+            for feat in features_qs:
+                tour = feat.tour_image.tour
+                try:
+                    feat_vector = json.loads(feat.feature_data)
+                except Exception:
+                    continue
+                
+                similarity = calculate_similarity(query_features, feat_vector)
+                
+                if tour.id not in tour_similarities or similarity > tour_similarities[tour.id]:
+                    tour_similarities[tour.id] = similarity
+            
+            sorted_tour_ids = sorted(tour_similarities.keys(), key=lambda x: tour_similarities[x], reverse=True)
+            top_tour_ids = sorted_tour_ids[:10]
+            
+            tours = {tour.id: tour for tour in Tour.objects.filter(id__in=top_tour_ids)}
+            ordered_tours = [tours[tid] for tid in top_tour_ids if tid in tours]
+            
+            serializer = self.get_serializer(ordered_tours, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

@@ -34,7 +34,7 @@ public class Home extends Fragment {
     private int selectedMonth = java.util.Calendar.MAY;
     private int selectedYear = 2026;
 
-    private TourAdapter adapterUuDai, adapterMienBac, adapterMienTrung, adapterMienNam;
+    private TourAdapter adapterUuDai, adapterMienBac, adapterMienTrung, adapterMienNam, adapterRecommendations;
     private HomeVoucherAdapter voucherAdapter;
 
     @Nullable
@@ -119,16 +119,19 @@ public class Home extends Fragment {
 
         // --- Setup RecyclerViews ---
         RecyclerView rvUuDai = view.findViewById(R.id.rvTourUuDai);
+        RecyclerView rvRecommendations = view.findViewById(R.id.rvTourRecommendations);
         RecyclerView rvMienBac = view.findViewById(R.id.rvTourMienBac);
         RecyclerView rvMienTrung = view.findViewById(R.id.rvTourMienTrung);
         RecyclerView rvMienNam = view.findViewById(R.id.rvTourMienNam);
 
         adapterUuDai = new TourAdapter(new ArrayList<>(), this::openDetail);
+        adapterRecommendations = new TourAdapter(new ArrayList<>(), this::openDetail);
         adapterMienBac = new TourAdapter(new ArrayList<>(), this::openDetail);
         adapterMienTrung = new TourAdapter(new ArrayList<>(), this::openDetail);
         adapterMienNam = new TourAdapter(new ArrayList<>(), this::openDetail);
 
         setupRecyclerView(rvUuDai, adapterUuDai);
+        setupRecyclerView(rvRecommendations, adapterRecommendations);
         setupRecyclerView(rvMienBac, adapterMienBac);
         setupRecyclerView(rvMienTrung, adapterMienTrung);
         setupRecyclerView(rvMienNam, adapterMienNam);
@@ -230,7 +233,17 @@ public class Home extends Fragment {
                         }
                     }
 
+                    // Gợi ý cho bạn: sắp xếp danh sách tất cả các tour theo views giảm dần
+                    List<Tour> listRecommend = new ArrayList<>(all);
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION.SDK_INT) {
+                        listRecommend.sort((t1, t2) -> Integer.compare(t2.getViews(), t1.getViews()));
+                    } else {
+                        java.util.Collections.sort(listRecommend, (t1, t2) -> Integer.compare(t2.getViews(), t1.getViews()));
+                    }
+                    List<Tour> topRecommend = listRecommend.stream().limit(6).collect(Collectors.toList());
+
                     adapterUuDai.updateData(listUuDai);
+                    adapterRecommendations.updateData(topRecommend);
                     adapterMienBac.updateData(listMienBac);
                     adapterMienTrung.updateData(listMienTrung);
                     adapterMienNam.updateData(listMienNam);

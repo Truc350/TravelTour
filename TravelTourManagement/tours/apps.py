@@ -9,7 +9,7 @@ class ToursConfig(AppConfig):
         try:
             from django.core.management import call_command
             call_command('migrate', interactive=False)
-            print("[ToursConfig] Đã tự động cập nhật Database (Migration) thành công!")
+            print("[ToursConfig] Database migration completed successfully.")
         except Exception as e:
-            print("[ToursConfig] Lỗi khi tự động chạy migrate:", e)
+            print("[ToursConfig] Error running automatic migrations: ", e)
 
