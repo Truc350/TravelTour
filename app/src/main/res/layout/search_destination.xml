@@ -63,6 +63,19 @@
                 android:imeOptions="actionSearch"
                 android:inputType="text" />
 
+            <!-- Camera Search Icon -->
+            <ImageView
+                android:id="@+id/btnCameraSearch"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="6dp"
+                android:src="@android:drawable/ic_menu_camera"
+                android:contentDescription="Search by image"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                app:tint="#888888" />
+
             <!-- Clear Icon (Visible only when text is entered) -->
             <ImageView
                 android:id="@+id/btnClearSearch"

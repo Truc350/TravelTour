@@ -144,6 +144,18 @@ class TourImage(models.Model):
         return f"Image for {self.tour.title}"
 
 
+class TourImageFeature(models.Model):
+    tour_image = models.OneToOneField(TourImage, on_delete=models.CASCADE, related_name='feature')
+    feature_data = models.TextField()  # JSON representation of feature dict
+
+    class Meta:
+        db_table = 'tour_image_features'
+
+    def __str__(self):
+        return f"Feature for TourImage #{self.tour_image.id}"
+
+
+
 class TourItinerary(models.Model):
     tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name='itineraries')
     day_number = models.IntegerField()
@@ -231,22 +243,10 @@ class Review(models.Model):
         tour.save()
 
 
-class UserBehavior(models.Model):
-    BEHAVIOR_CHOICES = [
-        ('VIEW', 'Xem Tour'),
-        ('SEARCH', 'Tìm kiếm'),
-        ('FAVORITE', 'Yêu thích'),
-        ('BOOK', 'Đặt Tour'),
-    ]
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='behaviors')
-    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name='behaviors')
-    behavior_type = models.CharField(max_length=50, choices=BEHAVIOR_CHOICES)
-    timestamp = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        db_table = 'user_behaviors'
 
-    def __str__(self):
-        return f"{self.user.name} - {self.behavior_type} - {self.tour.title}"
+
+
+
 
 
