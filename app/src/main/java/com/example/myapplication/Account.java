@@ -48,6 +48,10 @@ public class Account extends Fragment {
             startActivity(new Intent(requireContext(), ProfileActivity.class));
         });
 
+        view.findViewById(R.id.btnMyInvoices).setOnClickListener(v -> {
+            startActivity(new Intent(requireContext(), InvoiceListActivity.class));
+        });
+
         view.findViewById(R.id.btnPassengerInfo).setOnClickListener(v -> {
             // Xử lý khi nhấn "Thông tin hành khách" -> Chuyển sang màn hình PassengerList
             requireActivity().getSupportFragmentManager().beginTransaction()

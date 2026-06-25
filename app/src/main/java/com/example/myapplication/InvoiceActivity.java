@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.widget.ImageView;
 
@@ -32,6 +33,17 @@ public class InvoiceActivity extends AppCompatActivity {
         String tourTitle = getIntent().getStringExtra("tour_title");
         long totalPrice = getIntent().getLongExtra("total_price", 0);
         boolean isInvoiceRequested = getIntent().getBooleanExtra("is_invoice_requested", false);
+        int bookingId = getIntent().getIntExtra("booking_id", 0);
+        String departureDate = getIntent().getStringExtra("departure_date");
+        String departureTime = getIntent().getStringExtra("departure_time");
+        String tourImageUrl = getIntent().getStringExtra("tour_image_url");
+
+        if (departureTime == null || departureTime.isEmpty()) {
+            departureTime = "08:00";
+        }
+        if (departureDate == null || departureDate.isEmpty()) {
+            departureDate = "Chưa rõ";
+        }
 
         android.widget.TextView tvTourTitle = findViewById(R.id.tv_invoice_tour_title);
         android.widget.TextView tvTotalPrice = findViewById(R.id.tv_invoice_total_price);
@@ -42,6 +54,50 @@ public class InvoiceActivity extends AppCompatActivity {
 
         if (tvTotalPrice != null && totalPrice > 0) {
             tvTotalPrice.setText("Tổng tiền: " + formatVnd(totalPrice));
+        }
+
+        // --- Tạo mã QR Code chuyến đi ---
+        String bookingCode = "DL0" + bookingId;
+        String confirmationCode = "CFM-" + (100000 + bookingId);
+        String normalizedTitle = removeAccents(tourTitle != null ? tourTitle : "Tour Du Lich");
+        String qrPayload = "=== VE DIEN TU TRAVELTOUR ===\n" +
+                "Ma ve: " + bookingCode + "\n" +
+                "Ma xac nhan: " + confirmationCode + "\n" +
+                "Tour: " + normalizedTitle + "\n" +
+                "Ngay khoi hanh: " + departureDate + "\n" +
+                "Gio khoi hanh: " + departureTime + "\n" +
+                "Gia ve: " + formatVnd(totalPrice) + "\n" +
+                "Trang thai: Da thanh toan\n" +
+                "============================";
+
+        ImageView ivQrCode = findViewById(R.id.iv_invoice_qr);
+        if (ivQrCode != null) {
+            Bitmap qrBitmap = QrCodeGenerator.generateQrCode(qrPayload, 500, 500);
+            if (qrBitmap != null) {
+                ivQrCode.setImageBitmap(qrBitmap);
+            }
+        }
+
+        android.widget.TextView tvInvoiceCode = findViewById(R.id.tv_invoice_code);
+        if (tvInvoiceCode != null) {
+            tvInvoiceCode.setText(bookingCode);
+        }
+
+        // --- Tải hình ảnh của Tour bằng Glide ---
+        ImageView ivTourImage = findViewById(R.id.iv_invoice_tour_image);
+        if (ivTourImage != null) {
+            if (tourImageUrl != null && !tourImageUrl.isEmpty()) {
+                if (tourImageUrl.startsWith("/")) {
+                    tourImageUrl = "http://10.0.2.2:8000" + tourImageUrl;
+                }
+                com.bumptech.glide.Glide.with(this)
+                        .load(tourImageUrl)
+                        .placeholder(R.drawable.img)
+                        .centerCrop()
+                        .into(ivTourImage);
+            } else {
+                ivTourImage.setImageResource(R.drawable.img);
+            }
         }
 
         // Xử lý hiển thị thông tin hóa đơn điện tử
@@ -99,5 +155,13 @@ public class InvoiceActivity extends AppCompatActivity {
             }
         }
         return sb + "đ";
+    }
+
+    private String removeAccents(String text) {
+        if (text == null) return "";
+        String normalized = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD);
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        String temp = pattern.matcher(normalized).replaceAll("");
+        return temp.replaceAll("đ", "d").replaceAll("Đ", "D");
     }
 }

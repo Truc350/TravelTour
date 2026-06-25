@@ -33,6 +33,18 @@ public class BookingResponse {
     @SerializedName("departure_detail")
     public DepartureDetail departureDetail;
 
+    @SerializedName("is_invoice_requested")
+    public boolean isInvoiceRequested;
+
+    @SerializedName("customer_name")
+    public String customerName;
+
+    @SerializedName("customer_phone")
+    public String customerPhone;
+
+    @SerializedName("customer_email")
+    public String customerEmail;
+
     public static class DepartureDetail {
         @SerializedName("id")
         public int id;
