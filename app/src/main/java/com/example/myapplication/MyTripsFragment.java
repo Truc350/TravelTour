@@ -621,11 +621,11 @@ public class MyTripsFragment extends Fragment {
                 public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
                     if (getContext() == null) return;
                     if (response.isSuccessful()) {
-                        Toast.makeText(getContext(), "Đã cập nhật trạng thái chuyến đi hoàn thành trên Django!", Toast.LENGTH_SHORT).show();
+                        showCustomToast("Đã cập nhật trạng thái chuyến đi thành công!", false);
                         // Nạp lại dữ liệu từ máy chủ để đồng bộ hóa
                         loadBookingsFromServer();
                     } else {
-                        Toast.makeText(getContext(), "Lỗi khi cập nhật trạng thái lên Django!", Toast.LENGTH_SHORT).show();
+                        showCustomToast("Không thể đồng bộ trạng thái lên máy chủ!", true);
                         filterAndDisplayTrips();
                     }
                 }
@@ -633,7 +633,7 @@ public class MyTripsFragment extends Fragment {
                 @Override
                 public void onFailure(Call<BookingResponse> call, Throwable t) {
                     if (getContext() == null) return;
-                    Toast.makeText(getContext(), "Lỗi kết nối khi cập nhật trạng thái chuyến đi!", Toast.LENGTH_SHORT).show();
+                    showCustomToast("Lỗi kết nối máy chủ!", true);
                     filterAndDisplayTrips();
                 }
             });
@@ -771,16 +771,16 @@ public class MyTripsFragment extends Fragment {
                     public void onResponse(Call<Void> call, Response<Void> response) {
                         progressDialog.dismiss();
                         if (response.isSuccessful()) {
-                            Toast.makeText(getContext(), "Đã gửi đánh giá thành công! Cảm ơn bạn đã phản hồi.", Toast.LENGTH_LONG).show();
+                            showCustomToast("Đã gửi đánh giá thành công! Cảm ơn bạn.", false);
                         } else {
-                            Toast.makeText(getContext(), "Gửi đánh giá thất bại! Mã lỗi: " + response.code(), Toast.LENGTH_LONG).show();
+                            showCustomToast("Gửi đánh giá thất bại!", true);
                         }
                     }
 
                     @Override
                     public void onFailure(Call<Void> call, Throwable t) {
                         progressDialog.dismiss();
-                        Toast.makeText(getContext(), "Lỗi kết nối khi gửi đánh giá!", Toast.LENGTH_LONG).show();
+                        showCustomToast("Lỗi kết nối khi gửi đánh giá!", true);
                     }
                 });
             });
@@ -793,5 +793,65 @@ public class MyTripsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         loadBookingsFromServer();
+    }
+
+    private void showCustomToast(String message, boolean isError) {
+        if (getContext() == null) return;
+        
+        android.widget.Toast toast = new android.widget.Toast(getContext());
+        toast.setDuration(android.widget.Toast.LENGTH_SHORT);
+        
+        LinearLayout toastLayout = new LinearLayout(getContext());
+        toastLayout.setOrientation(LinearLayout.HORIZONTAL);
+        toastLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        int paddingDpHorizontal = 20;
+        int paddingDpVertical = 12;
+        float density = getResources().getDisplayMetrics().density;
+        toastLayout.setPadding(
+            (int)(paddingDpHorizontal * density), 
+            (int)(paddingDpVertical * density), 
+            (int)(paddingDpHorizontal * density), 
+            (int)(paddingDpVertical * density)
+        );
+        
+        android.graphics.drawable.GradientDrawable drawable = new android.graphics.drawable.GradientDrawable();
+        drawable.setCornerRadius(24 * density); // Bo góc đẹp
+        if (isError) {
+            drawable.setColor(Color.parseColor("#FEE2E2")); // Red pastel
+            drawable.setStroke((int)(1 * density), Color.parseColor("#FCA5A5"));
+        } else {
+            drawable.setColor(Color.parseColor("#DCFCE7")); // Green pastel
+            drawable.setStroke((int)(1 * density), Color.parseColor("#86EFAC"));
+        }
+        toastLayout.setBackground(drawable);
+        
+        // Icon
+        ImageView icon = new ImageView(getContext());
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
+            (int)(18 * density), 
+            (int)(18 * density)
+        );
+        iconParams.rightMargin = (int)(8 * density);
+        icon.setLayoutParams(iconParams);
+        if (isError) {
+            icon.setImageResource(android.R.drawable.ic_dialog_alert);
+            icon.setImageTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#EF4444")));
+        } else {
+            icon.setImageResource(android.R.drawable.checkbox_on_background);
+            icon.setImageTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#22C55E")));
+        }
+        toastLayout.addView(icon);
+        
+        // Text
+        TextView text = new TextView(getContext());
+        text.setText(message);
+        text.setTextColor(Color.parseColor(isError ? "#991B1B" : "#166534"));
+        text.setTextSize(14f);
+        text.setTypeface(null, Typeface.BOLD);
+        toastLayout.addView(text);
+        
+        toast.setView(toastLayout);
+        toast.setGravity(android.view.Gravity.BOTTOM | android.view.Gravity.CENTER_HORIZONTAL, 0, (int)(100 * density));
+        toast.show();
     }
 }
