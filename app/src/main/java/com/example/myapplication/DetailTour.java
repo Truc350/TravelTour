@@ -305,6 +305,7 @@ public class DetailTour extends Fragment {
         TextView tvRatingScore = view.findViewById(R.id.tvRatingScore);
         TextView tvRatingStatus = view.findViewById(R.id.tvRatingStatus);
         TextView tvReviewsCount = view.findViewById(R.id.tvReviewsCount);
+        TextView tvDepartureDateSticky = view.findViewById(R.id.tvDepartureDateSticky);
 
         if (tvTourTitle != null) {
             tvTourTitle.setText(tour.getTitle());
@@ -312,6 +313,37 @@ public class DetailTour extends Fragment {
         if (tvTourPrice != null) {
             java.text.NumberFormat formatter = java.text.NumberFormat.getNumberInstance(new java.util.Locale("vi", "VN"));
             tvTourPrice.setText(formatter.format(tour.getDiscountPrice()) + "đ");
+        }
+        if (tvDepartureDateSticky != null) {
+            if (tour.getDepartures() != null && !tour.getDepartures().isEmpty()) {
+                com.example.myapplication.data.model.TourDeparture closestDeparture = null;
+                double minDiff = Double.MAX_VALUE;
+                double mainPrice = tour.getDiscountPrice();
+                for (com.example.myapplication.data.model.TourDeparture departure : tour.getDepartures()) {
+                    double diff = Math.abs(departure.getPrice() - mainPrice);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestDeparture = departure;
+                    }
+                }
+
+                if (closestDeparture != null) {
+                    try {
+                        java.text.SimpleDateFormat sdfSource = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                        java.text.SimpleDateFormat sdfDayMonth = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
+                        java.util.Date d = sdfSource.parse(closestDeparture.getDepartureDate());
+                        if (d != null) {
+                            tvDepartureDateSticky.setText("Khởi hành " + sdfDayMonth.format(d));
+                        } else {
+                            tvDepartureDateSticky.setText("Khởi hành " + closestDeparture.getDepartureDate());
+                        }
+                    } catch (Exception e) {
+                        tvDepartureDateSticky.setText("Khởi hành " + closestDeparture.getDepartureDate());
+                    }
+                }
+            } else {
+                tvDepartureDateSticky.setText("Chưa có lịch");
+            }
         }
         if (tvAirlineBadge != null) {
             tvAirlineBadge.setText(tour.getProvider());
