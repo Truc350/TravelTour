@@ -880,6 +880,7 @@
                     android:focusable="true">
 
                     <TextView
+                        android:id="@+id/tvDepartureDateSticky"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Khởi hành 28/05"
