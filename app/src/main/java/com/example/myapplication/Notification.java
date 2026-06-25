@@ -202,9 +202,8 @@ public class Notification extends Fragment {
                         }
                     }
                     
-                    if (notificationList.isEmpty()) {
-                        initMockNotifications();
-                    }
+                    // Luôn gộp thêm các thông báo mẫu để giao diện luôn đầy đặn và sinh động
+                    initMockNotifications();
                     renderNotifications();
                 } else {
                     if (notificationList.isEmpty()) {
