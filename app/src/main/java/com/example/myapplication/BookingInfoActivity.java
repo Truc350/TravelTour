@@ -43,7 +43,7 @@ public class BookingInfoActivity extends AppCompatActivity {
     private String selectedVoucherCode = "";
 
     private EditText etFullName, etPhone, etEmail, etOtherRequests;
-    private TextView tvPassengerSummary, tvPriceSummary;
+    private TextView tvPassengerSummary, tvPriceSummary, tvDiscountSummary;
     private CheckBox cbRequestInvoice;
     private Button btnSubmitBooking;
 
@@ -83,12 +83,19 @@ public class BookingInfoActivity extends AppCompatActivity {
             infantCount = intent.getIntExtra("infant_count", 0);
             totalPrice = intent.getLongExtra("total_price", 5490000L);
             departureTime = intent.getStringExtra("departure_time");
+            selectedVoucherCode = intent.getStringExtra("voucher_code");
+            if (selectedVoucherCode == null) {
+                selectedVoucherCode = "";
+            }
+            discountAmount = intent.getLongExtra("discount_amount", 0);
         }
 
         initViews();
         prefillUserInfo();
         setupListeners();
         displaySummary();
+
+
     }
 
     private void prefillUserInfo() {
@@ -122,6 +129,7 @@ public class BookingInfoActivity extends AppCompatActivity {
 
         tvPassengerSummary = findViewById(R.id.tv_passenger_summary);
         tvPriceSummary = findViewById(R.id.tv_price_summary);
+        tvDiscountSummary = findViewById(R.id.tv_discount_summary);
         cbRequestInvoice = findViewById(R.id.cb_request_invoice);
         btnSubmitBooking = findViewById(R.id.btn_submit_booking);
     }
@@ -129,9 +137,6 @@ public class BookingInfoActivity extends AppCompatActivity {
     private void setupListeners() {
         // Nút Back
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
-
-        // Nhập mã giảm giá
-        findViewById(R.id.row_promo_code).setOnClickListener(v -> showPromoCodeDialog());
 
         // Real-time Phone validation
         etPhone.addTextChangedListener(new android.text.TextWatcher() {
@@ -187,178 +192,24 @@ public class BookingInfoActivity extends AppCompatActivity {
         }
         tvPassengerSummary.setText(passengerStr.toString());
 
+        // Hiển thị giảm giá nếu có voucher
+        if (discountAmount > 0 && !selectedVoucherCode.isEmpty()) {
+            if (tvDiscountSummary != null) {
+                tvDiscountSummary.setVisibility(View.VISIBLE);
+                tvDiscountSummary.setText("Giảm " + formatVnd(discountAmount) + " (" + selectedVoucherCode + ")");
+            }
+        } else {
+            if (tvDiscountSummary != null) {
+                tvDiscountSummary.setVisibility(View.GONE);
+            }
+        }
+
         // Cập nhật giá hiển thị
         long finalPrice = Math.max(0, totalPrice - discountAmount);
         tvPriceSummary.setText(formatVnd(finalPrice));
     }
 
-    private void showPromoCodeDialog() {
-        android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
-        int currentUserId = prefs.getInt("current_user_id", -1);
 
-        android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);
-        progressDialog.setMessage("Đang tải voucher...");
-        progressDialog.setCancelable(false);
-        progressDialog.show();
-
-        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-        apiService.getVouchers(currentUserId, true).enqueue(new Callback<List<VoucherHelper.AppVoucher>>() {
-            @Override
-            public void onResponse(Call<List<VoucherHelper.AppVoucher>> call, Response<List<VoucherHelper.AppVoucher>> response) {
-                progressDialog.dismiss();
-                List<VoucherHelper.AppVoucher> list = new ArrayList<>();
-                if (response.isSuccessful() && response.body() != null) {
-                    for (VoucherHelper.AppVoucher av : response.body()) {
-                        if (av.status != null && av.status.equalsIgnoreCase("Đã hết hạn")) continue;
-                        if (av.code != null && av.code.equals(selectedVoucherCode)) continue;
-                        list.add(av);
-                    }
-                }
-                if (list.isEmpty()) {
-                    Toast.makeText(BookingInfoActivity.this, "Không có voucher nào khả dụng!", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                showVouchersBottomSheet(sortVouchersByDiscount(list));
-            }
-
-            @Override
-            public void onFailure(Call<List<VoucherHelper.AppVoucher>> call, Throwable t) {
-                progressDialog.dismiss();
-                // Fallback: dùng dữ liệu local
-                List<VoucherHelper.AppVoucher> list = new ArrayList<>();
-                for (VoucherHelper.AppVoucher av : VoucherHelper.getAvailableVouchers()) {
-                    if (av.status != null && av.status.equalsIgnoreCase("Đã hết hạn")) continue;
-                    if (av.code != null && av.code.equals(selectedVoucherCode)) continue;
-                    list.add(av);
-                }
-                if (!list.isEmpty()) showVouchersBottomSheet(sortVouchersByDiscount(list));
-                else Toast.makeText(BookingInfoActivity.this, "Không thể tải voucher. Kiểm tra kết nối!", Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    private List<VoucherHelper.AppVoucher> sortVouchersByDiscount(List<VoucherHelper.AppVoucher> list) {
-        List<Long> discounts = computeDiscounts(list, totalPrice);
-
-        class VoucherPair {
-            VoucherHelper.AppVoucher voucher;
-            long discount;
-            VoucherPair(VoucherHelper.AppVoucher v, long d) {
-                this.voucher = v;
-                this.discount = d;
-            }
-        }
-
-        List<VoucherPair> pairs = new ArrayList<>();
-        for (int i = 0; i < list.size(); i++) {
-            pairs.add(new VoucherPair(list.get(i), discounts.get(i)));
-        }
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION.SDK_INT) {
-            pairs.sort((p1, p2) -> Long.compare(p2.discount, p1.discount));
-        } else {
-            java.util.Collections.sort(pairs, (p1, p2) -> Long.compare(p2.discount, p1.discount));
-        }
-
-        List<VoucherHelper.AppVoucher> sorted = new ArrayList<>();
-        for (VoucherPair pair : pairs) {
-            sorted.add(pair.voucher);
-        }
-        return sorted;
-    }
-
-    private void showVouchersBottomSheet(List<VoucherHelper.AppVoucher> vouchers) {
-        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
-        View sheetView = getLayoutInflater().inflate(R.layout.dialog_booking_vouchers, null);
-        bottomSheetDialog.setContentView(sheetView);
-
-        RecyclerView rv = sheetView.findViewById(R.id.rvBookingVouchers);
-        rv.setLayoutManager(new LinearLayoutManager(this));
-
-        List<Long> computedDiscounts = computeDiscounts(vouchers, totalPrice);
-        BookingVoucherAdapter adapter = new BookingVoucherAdapter(vouchers, computedDiscounts, (voucher, computedDiscount) -> {
-            selectedVoucherCode = voucher.code;
-            discountAmount = computedDiscount;
-            
-            LinearLayout rowPromo = findViewById(R.id.row_promo_code);
-            TextView tvPromoLabel = null;
-            for (int i = 0; i < rowPromo.getChildCount(); i++) {
-                View child = rowPromo.getChildAt(i);
-                if (child instanceof TextView) {
-                    tvPromoLabel = (TextView) child;
-                    break;
-                }
-            }
-            if (tvPromoLabel != null) {
-                tvPromoLabel.setText("Đã áp dụng: " + voucher.code + " (Giảm " + formatVnd(computedDiscount) + ")");
-                tvPromoLabel.setTextColor(Color.parseColor("#388E3C"));
-            }
-
-            displaySummary();
-            bottomSheetDialog.dismiss();
-        });
-
-        rv.setAdapter(adapter);
-
-        sheetView.findViewById(R.id.btnCloseBottomSheet).setOnClickListener(v -> bottomSheetDialog.dismiss());
-        sheetView.findViewById(R.id.row_clear_voucher).setOnClickListener(v -> {
-            selectedVoucherCode = "";
-            discountAmount = 0;
-            
-            LinearLayout rowPromo = findViewById(R.id.row_promo_code);
-            TextView tvPromoLabel = null;
-            for (int i = 0; i < rowPromo.getChildCount(); i++) {
-                View child = rowPromo.getChildAt(i);
-                if (child instanceof TextView) {
-                    tvPromoLabel = (TextView) child;
-                    break;
-                }
-            }
-            if (tvPromoLabel != null) {
-                tvPromoLabel.setText("Chọn voucher");
-                tvPromoLabel.setTextColor(Color.parseColor("#333333"));
-            }
-
-            displaySummary();
-            bottomSheetDialog.dismiss();
-        });
-
-        bottomSheetDialog.show();
-    }
-
-    private List<Long> computeDiscounts(List<VoucherHelper.AppVoucher> vouchers, long total) {
-        List<Long> discounts = new ArrayList<>();
-        for (VoucherHelper.AppVoucher v : vouchers) {
-            long discount = 0;
-            String val = v.discountVal;
-            if (val.endsWith("%")) {
-                try {
-                    int percent = Integer.parseInt(val.replace("%", "").trim());
-                    discount = (total * percent) / 100;
-                    if (v.maxDiscount > 0 && discount > v.maxDiscount) {
-                        discount = v.maxDiscount;
-                    }
-                } catch (Exception e) {
-                    discount = 0;
-                }
-            } else if (val.toLowerCase().endsWith("k")) {
-                try {
-                    long amount = Long.parseLong(val.toLowerCase().replace("k", "").trim()) * 1000;
-                    discount = amount;
-                } catch (Exception e) {
-                    discount = 0;
-                }
-            } else {
-                try {
-                    discount = Long.parseLong(val.trim());
-                } catch (Exception e) {
-                    discount = 0;
-                }
-            }
-            discounts.add(discount);
-        }
-        return discounts;
-    }
 
     private void submitBooking() {
         String fullName = etFullName.getText().toString().trim();

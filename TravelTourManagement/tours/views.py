@@ -250,20 +250,17 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
                 qr_img.save(buf, format='PNG')
                 qr_image_data = buf.getvalue()
 
-                # --- Passenger list HTML ---
-                passengers = booking.passengers.all()
-                passenger_rows = ""
-                if passengers.exists():
-                    for idx, p in enumerate(passengers, 1):
-                        passenger_rows += f"""
-                        <tr style="background:{'#F8FAFF' if idx % 2 == 0 else 'white'};">
-                            <td style="padding:8px 12px;border-bottom:1px solid #E2E8F0;">{idx}</td>
-                            <td style="padding:8px 12px;border-bottom:1px solid #E2E8F0;">{p.fullname or ''}</td>
-                            <td style="padding:8px 12px;border-bottom:1px solid #E2E8F0;">{p.birthdate or ''}</td>
-                            <td style="padding:8px 12px;border-bottom:1px solid #E2E8F0;">{p.salutation or ''}</td>
-                        </tr>"""
-                else:
-                    passenger_rows = '<tr><td colspan="4" style="padding:12px;text-align:center;color:#718096;">Không có thông tin hành khách</td></tr>'
+                # --- Payment Time and Discount ---
+                from datetime import datetime
+                payment_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+                discount_info = "Không có"
+                if booking.voucher_code:
+                    voucher = Voucher.objects.filter(code=booking.voucher_code).first()
+                    if voucher:
+                        discount_info = f"{voucher.discount_label} (Mã: {booking.voucher_code})"
+                    else:
+                        discount_info = f"Mã: {booking.voucher_code}"
 
                 subject = f"[Chill Tour] Hóa đơn điện tử - Đặt tour #{booking.id}"
 
@@ -276,6 +273,8 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
                     f"Tên tour: {tour_title}\n"
                     f"Ngày khởi hành: {dep_date}\n"
                     f"Giờ khởi hành: {dep_hour}\n"
+                    f"Thời gian thanh toán: {payment_time}\n"
+                    f"Khuyến mãi áp dụng: {discount_info}\n"
                     f"Tổng tiền: {booking.total_price:,.0f} VND\n"
                     f"Trạng thái: Đã thanh toán thành công\n\n"
                     "Trân trọng, Đội ngũ Chill Tour."
@@ -355,6 +354,14 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
               <td style="padding:12px 20px;color:#718096;font-size:13px;border-bottom:1px solid #E2E8F0;">Giờ khởi hành</td>
               <td style="padding:12px 20px;color:#2D3748;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;">{dep_hour}</td>
             </tr>
+            <tr>
+              <td style="padding:12px 20px;color:#718096;font-size:13px;border-bottom:1px solid #E2E8F0;background:#fff;">Thời gian thanh toán</td>
+              <td style="padding:12px 20px;color:#2D3748;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;background:#fff;">{payment_time}</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 20px;color:#718096;font-size:13px;border-bottom:1px solid #E2E8F0;">Khuyến mãi áp dụng</td>
+              <td style="padding:12px 20px;color:#E53935;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;">{discount_info}</td>
+            </tr>
           </table>
         </td>
       </tr>
@@ -381,27 +388,6 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
               <td style="padding:12px 20px;color:#718096;font-size:13px;">Email nhận hóa đơn</td>
               <td style="padding:12px 20px;color:#185FA5;font-size:13px;">{booking.customer_email}</td>
             </tr>
-          </table>
-        </td>
-      </tr>
-
-      <!-- Passenger List -->
-      <tr>
-        <td style="padding:0 40px 20px;">
-          <table width="100%" cellpadding="0" cellspacing="0"
-                 style="border-radius:12px;border:1px solid #BEE3F8;overflow:hidden;">
-            <tr>
-              <td colspan="4" style="background:#185FA5;padding:12px 20px;">
-                <span style="color:#fff;font-weight:700;font-size:15px;">DANH SÁCH HÀNH KHÁCH</span>
-              </td>
-            </tr>
-            <tr style="background:#EBF4FF;">
-              <th style="padding:10px 12px;text-align:left;font-size:12px;color:#4A5568;font-weight:600;border-bottom:1px solid #BEE3F8;">#</th>
-              <th style="padding:10px 12px;text-align:left;font-size:12px;color:#4A5568;font-weight:600;border-bottom:1px solid #BEE3F8;">Họ và tên</th>
-              <th style="padding:10px 12px;text-align:left;font-size:12px;color:#4A5568;font-weight:600;border-bottom:1px solid #BEE3F8;">Tuổi</th>
-              <th style="padding:10px 12px;text-align:left;font-size:12px;color:#4A5568;font-weight:600;border-bottom:1px solid #BEE3F8;">Giới tính</th>
-            </tr>
-            {passenger_rows}
           </table>
         </td>
       </tr>
