@@ -1,5 +1,4 @@
 import os
-os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 import faiss
 import numpy as np
 import pickle
@@ -12,27 +11,23 @@ class TourRAGEngine:
     TourRAGEngine quản lý việc tạo Vector Embedding bằng model BAAI/bge-m3 
     và thực hiện tìm kiếm ngữ nghĩa (semantic search) bằng FAISS.
     """
-    def __init__(self, model_name="all-MiniLM-L6-v2", index_dir=None):
+    def __init__(self, model_name="paraphrase-multilingual-MiniLM-L12-v2", index_dir=None):
         self.model_name = model_name
         self.index_dir = index_dir or os.path.join(settings.BASE_DIR, "faiss_tour_index")
         self.index_path = os.path.join(self.index_dir, "tour_faiss.index")
         self.mapping_path = os.path.join(self.index_dir, "tour_mapping.pkl")
         
-        self.model = None
-        self.dimension = 384 # Default dimension for paraphrase-multilingual-MiniLM-L12-v2
+        # Load SentenceTransformer model
+        # Dùng CPU mặc định hoặc GPU nếu khả dụng
+        print(f"[RAG Engine] Loading model {self.model_name}...")
+        self.model = SentenceTransformer(self.model_name)
+        self.dimension = self.model.get_sentence_embedding_dimension()
+        print(f"[RAG Engine] Model loaded. Dimension: {self.dimension}")
 
         # Tải index nếu đã có sẵn
         self.index = None
         self.tour_ids = []
         self.load_index()
-
-    def _get_model(self):
-        if self.model is None:
-            print(f"[RAG Engine] Loading model {self.model_name} lazily...")
-            self.model = SentenceTransformer(self.model_name)
-            self.dimension = self.model.get_sentence_embedding_dimension()
-            print(f"[RAG Engine] Model loaded. Dimension: {self.dimension}")
-        return self.model
 
     def get_tour_text_representation(self, tour: Tour) -> str:
         """
@@ -67,10 +62,9 @@ class TourRAGEngine:
             print("[RAG Engine] No tours found in database to build index.")
             return False
 
-        model = self._get_model()
         print(f"[RAG Engine] Encoding {len(tours)} tours...")
         texts = [self.get_tour_text_representation(tour) for tour in tours]
-        embeddings = model.encode(texts, show_progress_bar=True, normalize_embeddings=True)
+        embeddings = self.model.encode(texts, show_progress_bar=True, normalize_embeddings=True)
         embeddings = np.array(embeddings).astype('float32')
 
         # Khởi tạo FAISS index (sử dụng L2 distance hoặc Inner Product. Do normalize embeddings nên Inner Product tương đương Cosine Similarity)
@@ -128,8 +122,7 @@ class TourRAGEngine:
                 return []
 
         # Tạo embedding cho query
-        model = self._get_model()
-        query_vector = model.encode([query], normalize_embeddings=True)
+        query_vector = self.model.encode([query], normalize_embeddings=True)
         query_vector = np.array(query_vector).astype('float32')
 
         # Search trong FAISS
