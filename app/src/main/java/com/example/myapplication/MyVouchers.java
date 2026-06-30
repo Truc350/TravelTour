@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,8 +33,6 @@ import java.util.List;
  */
 public class MyVouchers extends Fragment {
 
-    private EditText etPromoCode;
-    private View btnApplyPromo;
     private TextView btnTabActive, btnTabHistory;
     private LinearLayout voucherContainer;
     private View layoutEmptyVouchers;
@@ -48,8 +45,6 @@ public class MyVouchers extends Fragment {
         View view = inflater.inflate(R.layout.fragment_my_vouchers, container, false);
 
         // Ánh xạ views
-        etPromoCode = view.findViewById(R.id.etPromoCode);
-        btnApplyPromo = view.findViewById(R.id.btnApplyPromo);
         btnTabActive = view.findViewById(R.id.btnTabActive);
         btnTabHistory = view.findViewById(R.id.btnTabHistory);
         voucherContainer = view.findViewById(R.id.voucherContainer);
@@ -68,9 +63,6 @@ public class MyVouchers extends Fragment {
         // Thiết lập sự kiện chọn tab
         btnTabActive.setOnClickListener(v -> switchTab("ACTIVE"));
         btnTabHistory.setOnClickListener(v -> switchTab("USED"));
-
-        // Áp dụng mã
-        btnApplyPromo.setOnClickListener(v -> applyPromoCode());
 
         return view;
     }
@@ -210,44 +202,6 @@ public class MyVouchers extends Fragment {
         }
     }
 
-    private void applyPromoCode() {
-        String code = etPromoCode.getText().toString().trim().toUpperCase();
-        if (code.isEmpty()) {
-            Toast.makeText(requireContext(), "Vui lòng nhập mã voucher!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Kiểm tra xem mã đã tồn tại và chưa dùng chưa
-        VoucherItem matchedItem = null;
-        for (VoucherItem item : voucherList) {
-            if (item.code.equalsIgnoreCase(code)) {
-                matchedItem = item;
-                break;
-            }
-        }
-
-        if (matchedItem != null) {
-            if ("ACTIVE".equals(matchedItem.status)) {
-                Toast.makeText(requireContext(), "Áp dụng thành công mã voucher: " + code, Toast.LENGTH_LONG).show();
-                etPromoCode.setText("");
-                // Switch to active tab to see it
-                switchTab("ACTIVE");
-            } else {
-                Toast.makeText(requireContext(), "Mã voucher này đã được sử dụng hoặc hết hạn!", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            // Trường hợp người dùng nhập mã voucher bí mật hợp lệ khác
-            if ("TRAVEL2026".equals(code) || "CHILLTOUR".equals(code)) {
-                VoucherItem newItem = new VoucherItem(code, "100k", "QUÀ TẶNG", "Ưu Đãi Đặc Biệt 2026", "Tặng ngay 100.000đ khi đặt bất kỳ tour du lịch nào.", "HSD: 31/12/2026", "ACTIVE", "#E53E3E");
-                voucherList.add(0, newItem);
-                Toast.makeText(requireContext(), "Chúc mừng! Bạn đã nhận voucher đặc biệt: " + code, Toast.LENGTH_LONG).show();
-                etPromoCode.setText("");
-                switchTab("ACTIVE");
-            } else {
-                Toast.makeText(requireContext(), "Mã voucher không hợp lệ. Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
 
     @Override
     public void onStart() {

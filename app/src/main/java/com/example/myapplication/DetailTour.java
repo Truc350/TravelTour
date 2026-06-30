@@ -348,18 +348,30 @@ public class DetailTour extends Fragment {
         if (tvAirlineBadge != null) {
             tvAirlineBadge.setText(tour.getProvider());
         }
-        if (tvRatingScore != null) {
-            tvRatingScore.setText(String.format(java.util.Locale.US, "%.1f", tour.getRatingScore()));
-        }
-        if (tvRatingStatus != null) {
-            double score = tour.getRatingScore();
-            if (score >= 9.0) tvRatingStatus.setText("Xuất sắc");
-            else if (score >= 8.0) tvRatingStatus.setText("Tuyệt vời");
-            else if (score >= 7.0) tvRatingStatus.setText("Rất tốt");
-            else tvRatingStatus.setText("Tốt");
+        double score = tour.getRatingScore();
+        int reviewsCount = tour.getReviewsCount();
+        if (reviewsCount > 0 && score > 0.0) {
+            if (tvRatingScore != null) {
+                tvRatingScore.setVisibility(View.VISIBLE);
+                tvRatingScore.setText(String.format(java.util.Locale.US, "%.1f", score));
+            }
+            if (tvRatingStatus != null) {
+                tvRatingStatus.setVisibility(View.VISIBLE);
+                if (score >= 9.0) tvRatingStatus.setText("Xuất sắc");
+                else if (score >= 8.0) tvRatingStatus.setText("Tuyệt vời");
+                else if (score >= 7.0) tvRatingStatus.setText("Rất tốt");
+                else tvRatingStatus.setText("Tốt");
+            }
+        } else {
+            if (tvRatingScore != null) {
+                tvRatingScore.setVisibility(View.GONE);
+            }
+            if (tvRatingStatus != null) {
+                tvRatingStatus.setVisibility(View.GONE);
+            }
         }
         if (tvReviewsCount != null) {
-            tvReviewsCount.setText(tour.getReviewsCount() + " đánh giá");
+            tvReviewsCount.setText(reviewsCount + " đánh giá");
         }
 
         // Render đánh giá động từ CSDL
