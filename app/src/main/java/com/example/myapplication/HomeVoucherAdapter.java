@@ -97,7 +97,7 @@ public class HomeVoucherAdapter extends RecyclerView.Adapter<HomeVoucherAdapter.
                     public void onResponse(Call<Void> call, Response<Void> response) {
                         if (response.isSuccessful()) {
                             item.isSaved = true;
-                            Toast.makeText(context, "Đã lưu voucher: " + item.code + " vào ví!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, "Đã lưu voucher: " + item.code + " vào voucher của tôi!", Toast.LENGTH_SHORT).show();
                             if (saveListener != null) {
                                 saveListener.onVoucherSaved(item.code);
                             }
