@@ -96,6 +96,12 @@ public class DetailTour extends Fragment {
         // Thiết lập sự kiện nút yêu thích
         setupFavoriteButton();
 
+        // Thiết lập sự kiện nút chia sẻ
+        View btnShare = view.findViewById(R.id.btnShare);
+        if (btnShare != null) {
+            btnShare.setOnClickListener(v -> showShareDialog());
+        }
+
         // SỬA: luôn nạp dữ liệu demo theo tourType trước (nếu có) để UI không trống trong lúc
         // chờ API, sau đó tải tour thật (đầy đủ departures/itineraries/images) theo tourIdArg
         // hoặc tourType, rồi bindTourData() sẽ ghi đè lại với dữ liệu thật.
@@ -249,6 +255,7 @@ public class DetailTour extends Fragment {
                         bindTourData(view, inflater);
                         checkFavoriteStatus();
                         loadRelatedTours(view, tour);
+                        logUserBehavior(currentUserId, tour.getId(), "VIEW");
                     } else if (tourIdArg > 0) {
                         Toast.makeText(requireContext(), "Không tìm thấy thông tin tour!", Toast.LENGTH_SHORT).show();
                     }
@@ -304,6 +311,7 @@ public class DetailTour extends Fragment {
         TextView tvRatingScore = view.findViewById(R.id.tvRatingScore);
         TextView tvRatingStatus = view.findViewById(R.id.tvRatingStatus);
         TextView tvReviewsCount = view.findViewById(R.id.tvReviewsCount);
+        TextView tvDepartureDateSticky = view.findViewById(R.id.tvDepartureDateSticky);
 
         if (tvTourTitle != null) {
             tvTourTitle.setText(tour.getTitle());
@@ -312,21 +320,64 @@ public class DetailTour extends Fragment {
             java.text.NumberFormat formatter = java.text.NumberFormat.getNumberInstance(new java.util.Locale("vi", "VN"));
             tvTourPrice.setText(formatter.format(tour.getDiscountPrice()) + "đ");
         }
+        if (tvDepartureDateSticky != null) {
+            if (tour.getDepartures() != null && !tour.getDepartures().isEmpty()) {
+                com.example.myapplication.data.model.TourDeparture closestDeparture = null;
+                double minDiff = Double.MAX_VALUE;
+                double mainPrice = tour.getDiscountPrice();
+                for (com.example.myapplication.data.model.TourDeparture departure : tour.getDepartures()) {
+                    double diff = Math.abs(departure.getPrice() - mainPrice);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestDeparture = departure;
+                    }
+                }
+
+                if (closestDeparture != null) {
+                    try {
+                        java.text.SimpleDateFormat sdfSource = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                        java.text.SimpleDateFormat sdfDayMonth = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
+                        java.util.Date d = sdfSource.parse(closestDeparture.getDepartureDate());
+                        if (d != null) {
+                            tvDepartureDateSticky.setText("Khởi hành " + sdfDayMonth.format(d));
+                        } else {
+                            tvDepartureDateSticky.setText("Khởi hành " + closestDeparture.getDepartureDate());
+                        }
+                    } catch (Exception e) {
+                        tvDepartureDateSticky.setText("Khởi hành " + closestDeparture.getDepartureDate());
+                    }
+                }
+            } else {
+                tvDepartureDateSticky.setText("Chưa có lịch");
+            }
+        }
         if (tvAirlineBadge != null) {
             tvAirlineBadge.setText(tour.getProvider());
         }
-        if (tvRatingScore != null) {
-            tvRatingScore.setText(String.format(java.util.Locale.US, "%.1f", tour.getRatingScore()));
-        }
-        if (tvRatingStatus != null) {
-            double score = tour.getRatingScore();
-            if (score >= 9.0) tvRatingStatus.setText("Xuất sắc");
-            else if (score >= 8.0) tvRatingStatus.setText("Tuyệt vời");
-            else if (score >= 7.0) tvRatingStatus.setText("Rất tốt");
-            else tvRatingStatus.setText("Tốt");
+        double score = tour.getRatingScore();
+        int reviewsCount = tour.getReviewsCount();
+        if (reviewsCount > 0 && score > 0.0) {
+            if (tvRatingScore != null) {
+                tvRatingScore.setVisibility(View.VISIBLE);
+                tvRatingScore.setText(String.format(java.util.Locale.US, "%.1f", score));
+            }
+            if (tvRatingStatus != null) {
+                tvRatingStatus.setVisibility(View.VISIBLE);
+                if (score >= 9.0) tvRatingStatus.setText("Xuất sắc");
+                else if (score >= 8.0) tvRatingStatus.setText("Tuyệt vời");
+                else if (score >= 7.0) tvRatingStatus.setText("Rất tốt");
+                else tvRatingStatus.setText("Tốt");
+            }
+        } else {
+            if (tvRatingScore != null) {
+                tvRatingScore.setVisibility(View.GONE);
+            }
+            if (tvRatingStatus != null) {
+                tvRatingStatus.setVisibility(View.GONE);
+            }
         }
         if (tvReviewsCount != null) {
-            tvReviewsCount.setText(tour.getReviewsCount() + " đánh giá");
+            tvReviewsCount.setText(reviewsCount + " đánh giá");
         }
 
         // Render đánh giá động từ CSDL
@@ -344,22 +395,16 @@ public class DetailTour extends Fragment {
                 for (int i = 0; i < limit; i++) {
                     Review r = reviewsList.get(i);
                     View itemReview = inflater.inflate(R.layout.item_review, reviewsContainer, false);
-                    
+
                     TextView tvName = itemReview.findViewById(R.id.tvReviewerName);
                     TextView tvScore = itemReview.findViewById(R.id.tvReviewScore);
-                    TextView tvStatus = itemReview.findViewById(R.id.tvReviewStatus);
                     TextView tvDate = itemReview.findViewById(R.id.tvReviewDate);
                     TextView tvComment = itemReview.findViewById(R.id.tvReviewComment);
+                    TextView tvSentiment = itemReview.findViewById(R.id.tvSentiment);
 
                     if (tvName != null) tvName.setText(r.getUserName());
-                    if (tvScore != null) tvScore.setText(String.format(java.util.Locale.US, "%.1f", (double) r.getRating()));
-                    if (tvStatus != null) {
-                        int rating = r.getRating();
-                        if (rating == 5) tvStatus.setText("Xuất sắc");
-                        else if (rating == 4) tvStatus.setText("Tuyệt vời");
-                        else if (rating == 3) tvStatus.setText("Rất tốt");
-                        else tvStatus.setText("Tốt");
-                    }
+                    if (tvScore != null)
+                        tvScore.setText(String.format(java.util.Locale.US, "%.1f", (double) r.getRating()));
                     if (tvDate != null && r.getCreatedAt() != null) {
                         String dateStr = r.getCreatedAt();
                         if (dateStr.length() >= 10) {
@@ -369,12 +414,26 @@ public class DetailTour extends Fragment {
                     }
                     if (tvComment != null) tvComment.setText(r.getComment());
 
+                    if (tvSentiment != null) {
+                        String commentText = r.getComment() != null ? r.getComment() : "";
+                        String sentiment = analyzeSentiment(commentText, r.getRating());
+                        tvSentiment.setText(sentiment);
+                        if ("Tích cực".equals(sentiment)) {
+                            tvSentiment.setBackgroundResource(R.drawable.bg_score_green);
+                        } else if ("Tiêu cực".equals(sentiment)) {
+                            tvSentiment.setBackgroundResource(R.drawable.bg_badge_red);
+                        } else {
+                            tvSentiment.setBackgroundResource(R.drawable.bg_badge_dark);
+                        }
+                    }
+
                     reviewsContainer.addView(itemReview);
                 }
             } else {
                 if (tvEmptyReviews != null) tvEmptyReviews.setVisibility(View.VISIBLE);
             }
         }
+
 
         // Xử lý hình ảnh (load bằng Glide vào ViewPager2)
         java.util.List<String> imageUrls = new java.util.ArrayList<>();
@@ -654,6 +713,9 @@ public class DetailTour extends Fragment {
         btnFavorite.setOnClickListener(v -> {
             if (currentUserId == -1) {
                 Toast.makeText(requireContext(), "Vui lòng đăng nhập để sử dụng tính năng này!", Toast.LENGTH_SHORT).show();
+                android.content.Intent intent = new android.content.Intent(requireContext(), LoginActivity.class);
+                intent.putExtra("return_to_caller", true);
+                startActivity(intent);
                 return;
             }
             if (tour == null) {
@@ -706,6 +768,30 @@ public class DetailTour extends Fragment {
                         Toast.makeText(requireContext(), "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
+            }
+        });
+    }
+
+    private void logUserBehavior(int userId, int tourId, String behaviorType) {
+        if (tourId == -1) return;
+        java.util.HashMap<String, Object> body = new java.util.HashMap<>();
+        body.put("user", userId);
+        body.put("tour", tourId);
+        body.put("behavior_type", behaviorType);
+
+        apiService.logBehavior(body).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    android.util.Log.d("BEHAVIOR", "Logged " + behaviorType + " successfully for tour " + tourId);
+                } else {
+                    android.util.Log.e("BEHAVIOR", "Failed to log behavior. Code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                android.util.Log.e("BEHAVIOR", "Error logging behavior: " + t.getMessage());
             }
         });
     }
@@ -1162,4 +1248,94 @@ public class DetailTour extends Fragment {
             this.score = score;
         }
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getContext() != null) {
+            SharedPreferences prefs = getContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+            currentUserId = prefs.getInt("current_user_id", -1);
+            checkFavoriteStatus();
+        }
+    }
+
+    private String analyzeSentiment(String text, int rating) {
+        if (text == null || text.trim().isEmpty()) {
+            if (rating >= 4) return "Tích cực";
+            if (rating <= 2) return "Tiêu cực";
+            return "Trung lập";
+        }
+        String lowerText = text.toLowerCase();
+
+        String[] positiveWords = {"tuyệt", "tốt", "hay", "đẹp", "xuất sắc", "thích", "ngon", "ok", "hài lòng", "đỉnh", "10 điểm", "chất lượng", "vui", "tuyet", "tot", "dep", "xuat sac", "thich", "hai long", "dinh", "chat luong"};
+        String[] negativeWords = {"tệ", "chán", "kém", "buồn", "thất vọng", "xấu", "dở", "đắt", "không tốt", "không hay", "lừa đảo", "te", "chan", "kem", "buon", "that vong", "xau", "do", "dat", "khong tot", "khong hay", "lua dao", "đắt đỏ", "dịch vụ kém"};
+
+        int posScore = 0;
+        int negScore = 0;
+
+        for (String word : positiveWords) {
+            if (lowerText.contains(word)) posScore++;
+        }
+        for (String word : negativeWords) {
+            if (lowerText.contains(word)) negScore++;
+        }
+
+        if (posScore > negScore) {
+            return "Tích cực";
+        } else if (negScore > posScore) {
+            return "Tiêu cực";
+        } else {
+            if (rating >= 4) return "Tích cực";
+            if (rating <= 2) return "Tiêu cực";
+            return "Trung lập";
+        }
+    }
+
+    private void showShareDialog() {
+        if (getActivity() == null) return;
+        if (tour == null) {
+            Toast.makeText(requireContext(), "Vui lòng đợi tải thông tin tour!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_share, null);
+        builder.setView(dialogView);
+
+        TextView tvShareTourName = dialogView.findViewById(R.id.tvShareTourName);
+        TextView tvShareLink = dialogView.findViewById(R.id.tvShareLink);
+        View btnShareCancel = dialogView.findViewById(R.id.btnShareCancel);
+        View btnShareCopy = dialogView.findViewById(R.id.btnShareCopy);
+
+        if (tvShareTourName != null) {
+            tvShareTourName.setText(tour.getTitle());
+        }
+
+        final String shareUrl = "https://traveltour.com/tours/" + tour.getId();
+        if (tvShareLink != null) {
+            tvShareLink.setText(shareUrl);
+        }
+
+        android.app.AlertDialog shareDialog = builder.create();
+
+        if (btnShareCancel != null) {
+            btnShareCancel.setOnClickListener(v -> shareDialog.dismiss());
+        }
+
+        if (btnShareCopy != null) {
+            btnShareCopy.setOnClickListener(v -> {
+                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                android.content.ClipData clip = android.content.ClipData.newPlainText("Tour Link", shareUrl);
+                if (clipboard != null) {
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(requireContext(), "Đã sao chép liên kết vào bộ nhớ tạm!", Toast.LENGTH_SHORT).show();
+                }
+                shareDialog.dismiss();
+            });
+        }
+
+        shareDialog.show();
+    }
+
 }

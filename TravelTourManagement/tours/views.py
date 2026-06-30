@@ -2,9 +2,12 @@ from django.db.models import Q, Case, When, IntegerField
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+import threading
+from .ai_engine import AIRecommendationEngine
 from rest_framework import generics, status
 from rest_framework.response import Response
-from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review
+from rest_framework.parsers import MultiPartParser, FormParser
+from .models import Tour, User, TourDeparture, Booking, Favorite, Notification, Passenger, TourImage, TourItinerary, Voucher, Review, UserVoucher, UserBehavior
 from .serializers import (
     TourSerializer,
     UserSerializer,
@@ -17,6 +20,8 @@ from .serializers import (
     TourItinerarySerializer,
     VoucherSerializer,
     ReviewSerializer,
+    UserVoucherSerializer,
+    UserBehaviorSerializer,
 )
 
 
@@ -41,7 +46,12 @@ class TourListAPIView(generics.ListAPIView):
     serializer_class = TourSerializer
 
     def get_queryset(self):
-        queryset = Tour.objects.all()
+        queryset = Tour.objects.all().prefetch_related(
+            'images',
+            'itineraries',
+            'departures',
+            'reviews__user'
+        )
 
         destination = self.request.query_params.get('destination', '').strip()
         origin = self.request.query_params.get('origin', '').strip()
@@ -49,6 +59,10 @@ class TourListAPIView(generics.ListAPIView):
         day_str = self.request.query_params.get('day', '').strip()
         month_str = self.request.query_params.get('month', '').strip()
         year_str = self.request.query_params.get('year', '').strip()
+
+        # Tối ưu: Nếu không có tham số tìm kiếm nào, bỏ qua hoàn toàn vòng lặp Python lọc thủ công
+        if not destination and not origin and not day_str and not month_str and not year_str:
+            return queryset
 
         has_date_filter = False
         possible_dates = []
@@ -135,8 +149,14 @@ class UserRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class TourDepartureListCreateAPIView(generics.ListCreateAPIView):
-    queryset = TourDeparture.objects.all()
     serializer_class = TourDepartureSerializer
+
+    def get_queryset(self):
+        queryset = TourDeparture.objects.all()
+        tour_id = self.request.query_params.get('tour_id')
+        if tour_id:
+            queryset = queryset.filter(tour_id=tour_id)
+        return queryset
 
 
 class TourDepartureRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -169,6 +189,291 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+
+        # Mark UserVoucher as used and decrement count
+        user_id = data.get('user')
+        voucher_code = data.get('voucher_code')
+        if user_id and voucher_code:
+            try:
+                voucher = Voucher.objects.filter(code=voucher_code).first()
+                if voucher:
+                    uv = UserVoucher.objects.filter(user_id=user_id, voucher=voucher).first()
+                    if uv:
+                        uv.is_used = True
+                        uv.save()
+                    else:
+                        UserVoucher.objects.create(user_id=user_id, voucher=voucher, is_used=True)
+                    if voucher.remaining_count > 0:
+                        voucher.remaining_count -= 1
+                        voucher.save()
+            except Exception as e:
+                print("Error updating UserVoucher on booking create:", e)
+
+        # Send invoice email if requested
+        booking = serializer.instance
+        print(f"[EMAIL DEBUG] Booking #{booking.id} created. is_invoice_requested={booking.is_invoice_requested}, customer_email='{booking.customer_email}'")
+        if booking.is_invoice_requested and booking.customer_email:
+            try:
+                import qrcode
+                import io
+                from django.core.mail import EmailMultiAlternatives
+                from django.conf import settings
+
+                tour_title = "Tour du lịch"
+                tour_code = "TOUR"
+                dep_date = str(booking.booking_date)
+                dep_hour = booking.departure_hour or "08:00"
+                if booking.departure:
+                    if booking.departure.tour:
+                        tour_title = booking.departure.tour.title
+                        tour_code = booking.departure.tour.code or "TOUR"
+                    if booking.departure.departure_date:
+                        dep_date = str(booking.departure.departure_date)
+
+                confirmation_code = f"CFM-{100000 + booking.id}"
+                booking_code = f"DL0{booking.id}"
+
+                # --- Build QR payload identical to Android app ---
+                def remove_acc(text):
+                    if not text:
+                        return ""
+                    import unicodedata
+                    nfkd = unicodedata.normalize('NFD', text)
+                    ascii_str = ''.join(c for c in nfkd if not unicodedata.combining(c))
+                    return ascii_str.replace('đ', 'd').replace('Đ', 'D')
+
+                qr_payload = (
+                    "=== VE DIEN TU TRAVELTOUR ===\n"
+                    f"Ma ve: {booking_code}\n"
+                    f"Ma xac nhan: {confirmation_code}\n"
+                    f"Tour: {remove_acc(tour_title)}\n"
+                    f"Ngay khoi hanh: {dep_date}\n"
+                    f"Gio khoi hanh: {dep_hour}\n"
+                    f"Gia ve: {booking.total_price:,.0f} VND\n"
+                    "Trang thai: Da thanh toan\n"
+                    "============================"
+                )
+
+                # --- Generate QR code as CID inline attachment ---
+                qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=8, border=4)
+                qr.add_data(qr_payload)
+                qr.make(fit=True)
+                qr_img = qr.make_image(fill_color="#185FA5", back_color="white")
+                buf = io.BytesIO()
+                qr_img.save(buf, format='PNG')
+                qr_image_data = buf.getvalue()
+
+                # --- Payment Time and Discount ---
+                from datetime import datetime
+                payment_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+                discount_info = "Không có"
+                if booking.voucher_code:
+                    voucher = Voucher.objects.filter(code=booking.voucher_code).first()
+                    if voucher:
+                        discount_info = f"{voucher.discount_label} (Mã: {booking.voucher_code})"
+                    else:
+                        discount_info = f"Mã: {booking.voucher_code}"
+
+                subject = f"[Chill Tour] Hóa đơn điện tử - Đặt tour #{booking.id}"
+
+                # --- Plain text fallback ---
+                plain_text = (
+                    f"Chào {booking.customer_name or 'Quý khách'},\n\n"
+                    f"Cảm ơn bạn đã đặt tour tại Chill Tour!\n\n"
+                    f"Mã đặt tour: {booking_code}\n"
+                    f"Mã xác nhận: {confirmation_code}\n"
+                    f"Tên tour: {tour_title}\n"
+                    f"Ngày khởi hành: {dep_date}\n"
+                    f"Giờ khởi hành: {dep_hour}\n"
+                    f"Thời gian thanh toán: {payment_time}\n"
+                    f"Khuyến mãi áp dụng: {discount_info}\n"
+                    f"Tổng tiền: {booking.total_price:,.0f} VND\n"
+                    f"Trạng thái: Đã thanh toán thành công\n\n"
+                    "Trân trọng, Đội ngũ Chill Tour."
+                )
+
+                # --- Rich HTML email body ---
+                html_body = f"""<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hóa đơn đặt tour</title>
+</head>
+<body style="margin:0;padding:0;background:#F0F4F8;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F0F4F8;padding:32px 0;">
+  <tr><td align="center">
+    <table width="620" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);">
+
+      <!-- Header -->
+      <tr>
+        <td style="background:linear-gradient(135deg,#185FA5 0%,#00B4D8 100%);padding:32px 40px;text-align:center;">
+          <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:1px;">Chill Tour</div>
+          <div style="color:#BEE3F8;font-size:14px;margin-top:6px;">Hóa Đơn Điện Tử Đặt Tour</div>
+        </td>
+      </tr>
+
+      <!-- Greeting -->
+      <tr>
+        <td style="padding:28px 40px 8px;">
+          <p style="font-size:16px;color:#2D3748;margin:0;">
+            Chào <strong>{booking.customer_name or 'Quý khách'}</strong>,
+          </p>
+          <p style="font-size:14px;color:#718096;margin:8px 0 0;">
+            Cảm ơn bạn đã tin tưởng và đặt tour tại <strong>Chill Tour</strong>.
+            Dưới đây là hóa đơn xác nhận đặt tour của bạn.
+          </p>
+        </td>
+      </tr>
+
+      <!-- Status Badge -->
+      <tr>
+        <td style="padding:16px 40px;">
+          <div style="display:inline-block;background:#D1FAE5;color:#065F46;font-weight:700;font-size:13px;
+                      padding:6px 18px;border-radius:20px;border:1px solid #6EE7B7;">
+            ĐÃ THANH TOÁN THÀNH CÔNG
+          </div>
+        </td>
+      </tr>
+
+      <!-- Booking Info Card -->
+      <tr>
+        <td style="padding:0 40px 20px;">
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#F8FAFF;border-radius:12px;border:1px solid #BEE3F8;overflow:hidden;">
+            <tr>
+              <td colspan="2" style="background:#185FA5;padding:12px 20px;">
+                <span style="color:#fff;font-weight:700;font-size:15px;">THÔNG TIN ĐẶT TOUR</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 20px;color:#718096;font-size:13px;width:45%;border-bottom:1px solid #E2E8F0;">Mã đặt tour</td>
+              <td style="padding:12px 20px;color:#185FA5;font-weight:700;font-size:14px;border-bottom:1px solid #E2E8F0;">{booking_code}</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 20px;color:#718096;font-size:13px;border-bottom:1px solid #E2E8F0;background:#fff;">Mã xác nhận</td>
+              <td style="padding:12px 20px;color:#2D3748;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;background:#fff;">{confirmation_code}</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 20px;color:#718096;font-size:13px;border-bottom:1px solid #E2E8F0;">Tên tour</td>
+              <td style="padding:12px 20px;color:#2D3748;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;">{tour_title}</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 20px;color:#718096;font-size:13px;border-bottom:1px solid #E2E8F0;background:#fff;">Ngày khởi hành</td>
+              <td style="padding:12px 20px;color:#2D3748;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;background:#fff;">{dep_date}</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 20px;color:#718096;font-size:13px;border-bottom:1px solid #E2E8F0;">Giờ khởi hành</td>
+              <td style="padding:12px 20px;color:#2D3748;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;">{dep_hour}</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 20px;color:#718096;font-size:13px;border-bottom:1px solid #E2E8F0;background:#fff;">Thời gian thanh toán</td>
+              <td style="padding:12px 20px;color:#2D3748;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;background:#fff;">{payment_time}</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 20px;color:#718096;font-size:13px;border-bottom:1px solid #E2E8F0;">Khuyến mãi áp dụng</td>
+              <td style="padding:12px 20px;color:#E53935;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;">{discount_info}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- Customer Info -->
+      <tr>
+        <td style="padding:0 40px 20px;">
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#F8FAFF;border-radius:12px;border:1px solid #BEE3F8;overflow:hidden;">
+            <tr>
+              <td colspan="2" style="background:#185FA5;padding:12px 20px;">
+                <span style="color:#fff;font-weight:700;font-size:15px;">THÔNG TIN KHÁCH HÀNG</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 20px;color:#718096;font-size:13px;width:45%;border-bottom:1px solid #E2E8F0;">Họ và tên</td>
+              <td style="padding:12px 20px;color:#2D3748;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;">{booking.customer_name or ''}</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 20px;color:#718096;font-size:13px;border-bottom:1px solid #E2E8F0;background:#fff;">Số điện thoại</td>
+              <td style="padding:12px 20px;color:#2D3748;font-weight:600;font-size:13px;border-bottom:1px solid #E2E8F0;background:#fff;">{booking.customer_phone or ''}</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 20px;color:#718096;font-size:13px;">Email nhận hóa đơn</td>
+              <td style="padding:12px 20px;color:#185FA5;font-size:13px;">{booking.customer_email}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- Total Price -->
+      <tr>
+        <td style="padding:0 40px 24px;">
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:linear-gradient(135deg,#185FA5,#00B4D8);border-radius:12px;">
+            <tr>
+              <td style="padding:20px 24px;">
+                <div style="color:#BEE3F8;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Tổng tiền thanh toán</div>
+                <div style="color:#fff;font-size:28px;font-weight:800;margin-top:4px;">{booking.total_price:,.0f} <span style="font-size:16px;">VND</span></div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- QR Code -->
+      <tr>
+        <td style="padding:0 40px 32px;text-align:center;">
+          <div style="background:#F8FAFF;border-radius:16px;border:2px dashed #BEE3F8;padding:24px;display:inline-block;">
+            <div style="font-size:14px;color:#185FA5;font-weight:700;margin-bottom:12px;">Mã QR Vé Điện Tử</div>
+            <img src="cid:qr_code_image" width="200" height="200" alt="QR Code vé điện tử"
+                 style="display:block;margin:0 auto;border-radius:8px;"/>
+            <div style="font-size:11px;color:#A0AEC0;margin-top:10px;">Quét mã QR để xem thông tin vé</div>
+            <div style="font-size:12px;color:#4A5568;font-weight:600;margin-top:4px;">{confirmation_code}</div>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="background:#F7FAFC;border-top:1px solid #E2E8F0;padding:24px 40px;text-align:center;">
+          <p style="font-size:13px;color:#718096;margin:0 0 8px;">
+            Hóa đơn này được phát hành tự động từ hệ thống <strong>Chill Tour</strong>.
+          </p>
+          <p style="font-size:13px;color:#718096;margin:0 0 4px;">
+            Nếu cần hỗ trợ, vui lòng liên hệ: <a href="mailto:skydronevn.web@gmail.com" style="color:#185FA5;">skydronevn.web@gmail.com</a>
+          </p>
+          <p style="font-size:12px;color:#A0AEC0;margin:12px 0 0;">
+            Chúc bạn có một chuyến đi vui vẻ và ý nghĩa.
+          </p>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>"""
+
+                email = EmailMultiAlternatives(
+                    subject=subject,
+                    body=plain_text,
+                    from_email=settings.EMAIL_HOST_USER,
+                    to=[booking.customer_email],
+                )
+                email.attach_alternative(html_body, "text/html")
+
+                # Attach QR image inline with Content-ID
+                from email.mime.image import MIMEImage
+                qr_mime = MIMEImage(qr_image_data, _subtype='png')
+                qr_mime.add_header('Content-ID', '<qr_code_image>')
+                qr_mime.add_header('Content-Disposition', 'inline', filename='qr_code.png')
+                email.attach(qr_mime)
+
+                email.send(fail_silently=False)
+                print(f"Sent HTML invoice email to {booking.customer_email} for booking #{booking.id}")
+            except Exception as e:
+                print(f"Failed to send invoice email: {e}")
+
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -181,6 +486,21 @@ class BookingRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView)
 class FavoriteListCreateAPIView(generics.ListCreateAPIView):
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
+
+    def perform_create(self, serializer):
+        favorite = serializer.save()
+        user_id = favorite.user_id
+        tour_id = favorite.tour_id
+        
+        # Chạy AI Engine bất đồng bộ để tránh block client Android
+        def run_ai():
+            try:
+                engine = AIRecommendationEngine()
+                engine.process_recommendation_flow(user_id, tour_id)
+            except Exception as e:
+                print(f"[AI Engine Thread Error]: {e}")
+                
+        threading.Thread(target=run_ai).start()
 
 
 class FavoriteRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -229,8 +549,45 @@ class TourItineraryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAP
 
 
 class VoucherListAPIView(generics.ListAPIView):
-    queryset = Voucher.objects.all()
     serializer_class = VoucherSerializer
+
+    def get_queryset(self):
+        user_id = self.request.query_params.get('user_id')
+        saved_only = self.request.query_params.get('saved_only')
+        queryset = Voucher.objects.all()
+        if user_id:
+            if saved_only and saved_only.lower() == 'true':
+                saved_voucher_ids = UserVoucher.objects.filter(user_id=user_id, is_used=False).values_list('voucher_id', flat=True)
+                queryset = queryset.filter(id__in=saved_voucher_ids)
+            else:
+                used_voucher_ids = UserVoucher.objects.filter(user_id=user_id, is_used=True).values_list('voucher_id', flat=True)
+                queryset = queryset.exclude(id__in=used_voucher_ids)
+        return queryset
+
+
+class UserVoucherListCreateAPIView(generics.ListCreateAPIView):
+    queryset = UserVoucher.objects.all()
+    serializer_class = UserVoucherSerializer
+
+    def get_queryset(self):
+        user_id = self.request.query_params.get('user_id')
+        queryset = UserVoucher.objects.all()
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
+        return queryset
+
+    def create(self, request, *args, **kwargs):
+        user_id = request.data.get('user')
+        voucher_id = request.data.get('voucher')
+        if not user_id or not voucher_id:
+            return Response({"error": "user and voucher are required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user_voucher, created = UserVoucher.objects.get_or_create(
+            user_id=user_id,
+            voucher_id=voucher_id
+        )
+        serializer = self.get_serializer(user_voucher)
+        return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
 class ReviewListCreateAPIView(generics.ListCreateAPIView):
@@ -285,4 +642,106 @@ def ticket_verify_view(request, booking_id):
         'is_completed': booking.status == 'COMPLETED',
     }
 
-    return render(request, 'ticket_verify.html', context)
+    return render(request, 'ticket_verify.html', context)
+
+
+class UserBehaviorListCreateAPIView(generics.ListCreateAPIView):
+    """API để ghi nhận hành vi người dùng (VIEW, SEARCH, CLICK, ...)"""
+    serializer_class = UserBehaviorSerializer
+
+    def get_queryset(self):
+        queryset = UserBehavior.objects.all()
+        user_id = self.request.query_params.get('user_id')
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
+        return queryset.order_by('-timestamp')
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        # If user id is -1, empty or null, set it to None for anonymous behaviors
+        if 'user' in data and (data['user'] == -1 or data['user'] == '-1' or not data['user']):
+            data['user'] = None
+        
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        
+        # Increment tour views if behavior is VIEW
+        behavior_type = data.get('behavior_type')
+        tour_id = data.get('tour')
+        if behavior_type == 'VIEW' and tour_id:
+            try:
+                tour = Tour.objects.filter(id=tour_id).first()
+                if tour:
+                    tour.views += 1
+                    tour.save()
+            except Exception as e:
+                print("Error incrementing tour view count:", e)
+                
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class VisualSearchAPIView(generics.GenericAPIView):
+    """API để tìm kiếm tour du lịch bằng hình ảnh trực quan"""
+    serializer_class = TourSerializer
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request, *args, **kwargs):
+        if 'image' not in request.FILES:
+            return Response({"error": "No image provided"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            import json
+            from PIL import Image
+            from rest_framework.parsers import MultiPartParser, FormParser
+            from .utils import extract_features, calculate_similarity
+            from .models import TourImageFeature
+
+            query_image_file = request.FILES['image']
+            query_img = Image.open(query_image_file)
+            
+            # Khởi tạo danh sách tour fallback (các tour nổi bật) phòng trường hợp chưa cài torch hoặc chưa chạy precompute
+            fallback_tours = Tour.objects.all().order_by('-rating_score')[:8]
+            
+            query_features = extract_features(query_img)
+            if query_features is None:
+                print("[Visual Search] Fallback to HOT tours (failed to extract features, likely PyTorch is not installed).")
+                serializer = self.get_serializer(fallback_tours, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            features_qs = TourImageFeature.objects.select_related('tour_image__tour').all()
+            if not features_qs.exists():
+                print("[Visual Search] Fallback to HOT tours (empty features database, please run compute_image_features).")
+                serializer = self.get_serializer(fallback_tours, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            tour_similarities = {}
+            for feat in features_qs:
+                tour = feat.tour_image.tour
+                try:
+                    feat_vector = json.loads(feat.feature_data)
+                except Exception:
+                    continue
+                
+                similarity = calculate_similarity(query_features, feat_vector)
+                
+                if tour.id not in tour_similarities or similarity > tour_similarities[tour.id]:
+                    tour_similarities[tour.id] = similarity
+            
+            sorted_tour_ids = sorted(tour_similarities.keys(), key=lambda x: tour_similarities[x], reverse=True)
+            top_tour_ids = sorted_tour_ids[:10]
+            
+            tours = {tour.id: tour for tour in Tour.objects.filter(id__in=top_tour_ids)}
+            ordered_tours = [tours[tid] for tid in top_tour_ids if tid in tours]
+            
+            # Nếu kết quả rỗng (ví dụ do lọc lỗi), dùng fallback
+            if not ordered_tours:
+                ordered_tours = list(fallback_tours)
+
+            serializer = self.get_serializer(ordered_tours, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

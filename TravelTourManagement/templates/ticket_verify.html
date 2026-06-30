@@ -604,7 +604,245 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        const BOOKING_ID = {{ booking.id }};
+        // Parse URL query parameters
+        const params = new URLSearchParams(window.location.search);
+        
+        let bookingId = params.get('id') || "{{ booking.id|default:'' }}";
+        if (bookingId && bookingId.startsWith('DL0')) {
+            bookingId = bookingId.substring(3);
+        }
+        
+        const tourTitle = params.get('tour') || "{{ tour.title|default:'' }}";
+        const bookingDateVal = params.get('booked_date') || "{{ booking.booking_date|default:'' }}";
+        const departureDateVal = params.get('date') || "{{ departure.departure_date|default:'' }}";
+        const departureHourVal = params.get('depTime') || "{{ booking.departure_hour|default:'08:00' }}";
+        const customerNameVal = params.get('name') || "{{ user.name|default:'' }}";
+        const contactVal = params.get('phone') || "{{ user.contact|default:'' }}";
+        const totalPriceVal = params.get('price') || "{{ booking.total_price|default:'' }}";
+        const statusVal = params.get('status') || "{{ booking.status|default:'PENDING' }}";
+        const confirmationCodeVal = params.get('code') || "{{ confirmation_code|default:'' }}";
+        const passengersVal = params.get('passengers') || "";
+        
+        // Dynamically update DOM if query parameters are provided
+        if (bookingId && !params.has('tour')) {
+            // Fetch booking details dynamically from server (QR URL is kept short to reduce density for reliable scanning)
+            fetch(`/api/bookings/${bookingId}/`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Booking not found");
+                    return res.json();
+                })
+                .then(data => {
+                    const tourTitleVal = data.departure_detail?.tour_detail?.title || "Tour Du Lịch";
+                    document.title = "Vé Điện Tử - " + tourTitleVal;
+                    
+                    const tourTitleEl = document.querySelector('.tour-title');
+                    if (tourTitleEl) tourTitleEl.innerText = tourTitleVal;
+                    
+                    const bookingCodeEl = document.querySelector('.booking-code strong');
+                    if (bookingCodeEl) bookingCodeEl.innerText = "#DL0" + data.id;
+                    
+                    const confirmCodeValueEl = document.querySelector('.confirm-code-value');
+                    if (confirmCodeValueEl) {
+                        confirmCodeValueEl.innerText = "CFM-" + (100000 + parseInt(data.id));
+                    }
+                    
+                    const infoValues = document.querySelectorAll('.info-value');
+                    if (infoValues.length >= 6) {
+                        infoValues[0].innerText = data.departure_detail?.departure_date || "—";
+                        infoValues[1].innerText = data.departure_hour || "08:00";
+                        infoValues[4].innerText = data.booking_date || "—";
+                        
+                        const priceVal = data.total_price;
+                        if (priceVal) {
+                            const priceNum = parseFloat(priceVal);
+                            infoValues[5].innerText = priceNum.toLocaleString('vi-VN') + " VNĐ";
+                        } else {
+                            infoValues[5].innerText = "—";
+                        }
+                    }
+                    
+                    if (data.user) {
+                        fetch(`/api/users/${data.user}/`)
+                            .then(uRes => uRes.json())
+                            .then(userData => {
+                                if (infoValues.length >= 6) {
+                                    infoValues[2].innerText = userData.name || "—";
+                                    infoValues[3].innerText = userData.contact || "—";
+                                }
+                            })
+                            .catch(err => console.error("Error fetching user:", err));
+                    }
+                    
+                    const statusMap = {
+                        'PENDING': { label: 'Chờ duyệt', color: '#F59E0B', bg: '#FEF3C7' },
+                        'CONFIRMED': { label: 'Đã thanh toán', color: '#3B82F6', bg: '#DBEAFE' },
+                        'COMPLETED': { label: 'Đã hoàn thành', color: '#10B981', bg: '#D1FAE5' },
+                        'CANCELLED': { label: 'Đã hủy', color: '#EF4444', bg: '#FEE2E2' },
+                    };
+                    const currentStatus = statusMap[(data.status || 'PENDING').toUpperCase()] || { label: 'Chờ duyệt', color: '#F59E0B', bg: '#FEF3C7' };
+                    
+                    const badgeEl = document.querySelector('.status-badge');
+                    if (badgeEl) {
+                        badgeEl.style.background = currentStatus.bg;
+                        badgeEl.style.color = currentStatus.color;
+                        badgeEl.innerHTML = `<span class="status-dot" style="background:${currentStatus.color}"></span> ${currentStatus.label}`;
+                    }
+                    
+                    const ticketActionEl = document.querySelector('.ticket-action');
+                    if (ticketActionEl) {
+                        if ((data.status || '').toUpperCase() === 'COMPLETED') {
+                            ticketActionEl.innerHTML = `
+                                <div class="success-state">
+                                    <div class="success-icon">✅</div>
+                                    <div class="success-title">Chuyến Đi Đã Hoàn Thành!</div>
+                                    <div class="success-subtitle">Cảm ơn bạn đã sử dụng dịch vụ TravelTour</div>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    const footerEl = document.querySelector('.ticket-footer');
+                    if (footerEl) {
+                        footerEl.innerText = `© 2026 TravelTour — Vé điện tử #DL0${data.id}`;
+                    }
+                })
+                .catch(err => console.error("Error fetching booking details:", err));
+        } else if (params.has('tour') || params.has('id')) {
+            document.title = "Vé Điện Tử - " + (tourTitle || "Tour Du Lịch");
+            
+            const tourTitleEl = document.querySelector('.tour-title');
+            if (tourTitleEl) tourTitleEl.innerText = tourTitle || "Tour Du Lịch";
+            
+            const bookingCodeEl = document.querySelector('.booking-code strong');
+            if (bookingCodeEl) bookingCodeEl.innerText = "#DL0" + bookingId;
+            
+            const confirmCodeValueEl = document.querySelector('.confirm-code-value');
+            if (confirmCodeValueEl) {
+                confirmCodeValueEl.innerText = confirmationCodeVal || ("CFM-" + (100000 + parseInt(bookingId || 0)));
+            }
+            
+            const infoValues = document.querySelectorAll('.info-value');
+            if (infoValues.length >= 6) {
+                infoValues[0].innerText = departureDateVal || "—";
+                infoValues[1].innerText = departureHourVal || "08:00";
+                infoValues[2].innerText = customerNameVal || "—";
+                infoValues[3].innerText = contactVal || "—";
+                infoValues[4].innerText = bookingDateVal || "—";
+                
+                if (totalPriceVal) {
+                    const priceNum = parseInt(totalPriceVal.replace(/[^0-9]/g, ''));
+                    if (!isNaN(priceNum)) {
+                        infoValues[5].innerText = priceNum.toLocaleString('vi-VN') + " VNĐ";
+                    } else {
+                        infoValues[5].innerText = totalPriceVal + (totalPriceVal.includes("VNĐ") ? "" : " VNĐ");
+                    }
+                } else {
+                    infoValues[5].innerText = "—";
+                }
+            }
+            
+            const statusMap = {
+                'PENDING': { label: 'Chờ duyệt', color: '#F59E0B', bg: '#FEF3C7' },
+                'CONFIRMED': { label: 'Đã thanh toán', color: '#3B82F6', bg: '#DBEAFE' },
+                'COMPLETED': { label: 'Đã hoàn thành', color: '#10B981', bg: '#D1FAE5' },
+                'CANCELLED': { label: 'Đã hủy', color: '#EF4444', bg: '#FEE2E2' },
+            };
+            const currentStatus = statusMap[statusVal.toUpperCase()] || { label: 'Chờ duyệt', color: '#F59E0B', bg: '#FEF3C7' };
+            
+            const badgeEl = document.querySelector('.status-badge');
+            if (badgeEl) {
+                badgeEl.style.background = currentStatus.bg;
+                badgeEl.style.color = currentStatus.color;
+                badgeEl.innerHTML = `<span class="status-dot" style="background:${currentStatus.color}"></span> ${currentStatus.label}`;
+            }
+            
+            const ticketActionEl = document.querySelector('.ticket-action');
+            if (ticketActionEl) {
+                if (statusVal.toUpperCase() === 'COMPLETED') {
+                    ticketActionEl.innerHTML = `
+                        <div class="success-state">
+                            <div class="success-icon">✅</div>
+                            <div class="success-title">Chuyến Đi Đã Hoàn Thành!</div>
+                            <div class="success-subtitle">Cảm ơn bạn đã sử dụng dịch vụ TravelTour</div>
+                        </div>
+                    `;
+                }
+            }
+            
+            const footerEl = document.querySelector('.ticket-footer');
+            if (footerEl) {
+                footerEl.innerText = `© 2026 TravelTour — Vé điện tử #DL0${bookingId}`;
+            }
+            
+            const passengerListEl = document.querySelector('.passenger-list');
+            const noPassengersEl = document.querySelector('.no-passengers');
+            
+            if (passengersVal && passengerListEl) {
+                passengerListEl.innerHTML = '';
+                if (noPassengersEl) noPassengersEl.style.display = 'none';
+                
+                const passengers = passengersVal.split('|');
+                passengers.forEach(p => {
+                    if (!p.trim()) return;
+                    let salutation = "Anh/Chị";
+                    let fullname = p;
+                    if (p.startsWith("Anh ")) {
+                        salutation = "Anh";
+                        fullname = p.substring(4);
+                    } else if (p.startsWith("Chị ")) {
+                        salutation = "Chị";
+                        fullname = p.substring(4);
+                    } else if (p.startsWith("Bé ")) {
+                        salutation = "Bé";
+                        fullname = p.substring(3);
+                    }
+                    
+                    const avatar = salutation === "Anh" ? "👨" : (salutation === "Chị" ? "👩" : "🧒");
+                    
+                    const pItem = document.createElement('div');
+                    pItem.className = 'passenger-item';
+                    pItem.innerHTML = `
+                        <div class="passenger-avatar">${avatar}</div>
+                        <div class="passenger-info">
+                            <div class="passenger-name">${salutation} ${fullname}</div>
+                            <div class="passenger-detail">Việt Nam</div>
+                        </div>
+                    `;
+                    passengerListEl.appendChild(pItem);
+                });
+            } else if (!passengersVal && bookingId && passengerListEl) {
+                // Fetch passengers dynamically from Django API
+                fetch(`/api/passengers/?booking_id=${bookingId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            passengerListEl.innerHTML = '';
+                            if (noPassengersEl) noPassengersEl.style.display = 'none';
+                            
+                            data.forEach(p => {
+                                const salutation = p.salutation || "Anh/Chị";
+                                const fullname = p.fullname || "";
+                                const id_or_passport = p.id_or_passport || "";
+                                const nationality = p.nationality || "Việt Nam";
+                                
+                                const avatar = salutation === "Anh" ? "👨" : (salutation === "Chị" ? "👩" : "🧒");
+                                
+                                const pItem = document.createElement('div');
+                                pItem.className = 'passenger-item';
+                                pItem.innerHTML = `
+                                    <div class="passenger-avatar">${avatar}</div>
+                                    <div class="passenger-info">
+                                        <div class="passenger-name">${salutation} ${fullname}</div>
+                                        <div class="passenger-detail">${id_or_passport} • ${nationality}</div>
+                                    </div>
+                                `;
+                                passengerListEl.appendChild(pItem);
+                            });
+                        }
+                    })
+                    .catch(err => console.error("Error fetching passengers:", err));
+            }
+        }
 
         function showToast(msg, type = '') {
             const el = document.getElementById('toast');
@@ -621,13 +859,15 @@
             const btnText = document.getElementById('btnText');
             const spinner = document.getElementById('btnSpinner');
 
-            // Show loading state
             btn.disabled = true;
             btnText.style.display = 'none';
             spinner.style.display = 'block';
 
             try {
-                const response = await fetch(window.location.href, {
+                // Post directly to the booking confirmation endpoint
+                const postUrl = bookingId ? `/api/ticket-verify/${bookingId}/` : window.location.href;
+                
+                const response = await fetch(postUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -641,7 +881,6 @@
                 if (data.success) {
                     showToast('🎉 Xác nhận thành công!', 'success');
                     setTimeout(() => {
-                        // Show completed state
                         document.querySelector('.ticket-action').innerHTML = `
                             <div class="success-state">
                                 <div class="success-icon">✅</div>
@@ -649,7 +888,6 @@
                                 <div class="success-subtitle">Cảm ơn bạn đã sử dụng dịch vụ TravelTour</div>
                             </div>
                         `;
-                        // Update status badge
                         document.querySelector('.status-badge').innerHTML =
                             '<span class="status-dot" style="background:#10B981;"></span> Đã hoàn thành';
                         document.querySelector('.status-badge').style.background = '#D1FAE5';

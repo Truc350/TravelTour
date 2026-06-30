@@ -48,12 +48,17 @@
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:background="@drawable/bg_orange_badge"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:minWidth="80dp"
+                android:gravity="center"
                 android:text="Còn 99 chỗ"
                 android:textColor="#E65100"
                 android:textSize="12sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:singleLine="true" />
         </RelativeLayout>
 
         <!-- Time & Station Info Row -->

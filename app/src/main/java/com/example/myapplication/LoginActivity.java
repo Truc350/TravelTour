@@ -131,14 +131,74 @@ public class LoginActivity extends AppCompatActivity {
             // Ưu tiên kiểm tra trong SQLite nội bộ trước (hỗ trợ các tài khoản offline/test)
             if (dbHelper.checkUserCredentials(contact, password)) {
                 Toast.makeText(LoginActivity.this, R.string.msg_login_success, Toast.LENGTH_LONG).show();
+                // Lấy session tạm thời từ local
+                int localUserId = dbHelper.getUserIdByContact(contact);
                 getSharedPreferences("UserSession", MODE_PRIVATE).edit()
                         .putString("current_user_contact", contact)
+                        .putInt("current_user_id", localUserId)
                         .apply();
+
+                // Xác thực user_id đúng với Server và sync FCM token
+                ApiService localApiService = RetrofitClient.getClient().create(ApiService.class);
+                String fcmToken = getSharedPreferences("UserSession", MODE_PRIVATE).getString("fcm_token", null);
+                localApiService.getUsers().enqueue(new Callback<List<User>>() {
+                    @Override
+                    public void onResponse(Call<List<User>> call, Response<List<User>> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            for (User u : response.body()) {
+                                if (contact.equals(u.getContact())) {
+                                    // Lưu user_id đúng từ Server vào SharedPreferences
+                                    getSharedPreferences("UserSession", MODE_PRIVATE).edit()
+                                            .putInt("current_user_id", u.getId())
+                                            .apply();
+                                    android.util.Log.d("LOGIN", "Synced server user_id = " + u.getId());
+
+                                    // Sync FCM Token lên Backend
+                                    if (fcmToken != null) {
+                                        java.util.Map<String, Object> fields = new java.util.HashMap<>();
+                                        fields.put("fcm_token", fcmToken);
+                                        localApiService.patchUser(u.getId(), fields).enqueue(new Callback<User>() {
+                                            @Override
+                                            public void onResponse(Call<User> call, Response<User> response) {
+                                                android.util.Log.d("FCM", "FCM token synced after local login for user " + u.getId());
+                                            }
+                                            @Override
+                                            public void onFailure(Call<User> call, Throwable t) {}
+                                        });
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    @Override
+                    public void onFailure(Call<List<User>> call, Throwable t) {
+                        android.util.Log.e("LOGIN", "Cannot sync server user_id: " + t.getMessage());
+                    }
+                });
+
+                boolean returnToCaller = getIntent().getBooleanExtra("return_to_caller", false);
+                if (returnToCaller) {
+                    setResult(RESULT_OK);
+                    finish();
+                    return;
+                }
+                boolean redirectToDeparture = getIntent().getBooleanExtra("redirect_to_departure", false);
+                if (redirectToDeparture) {
+                    Intent intent = new Intent(LoginActivity.this, DepartureActivity.class);
+                    intent.putExtra("tour_id", getIntent().getIntExtra("tour_id", -1));
+                    intent.putExtra("tour_title", getIntent().getStringExtra("tour_title"));
+                    intent.putExtra("adult_price", getIntent().getLongExtra("adult_price", 0L));
+                    startActivity(intent);
+                    finish();
+                    return;
+                }
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
                 return;
             }
+
             // Nếu không có dưới local, gọi API lên Server
             ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
             btnLogin.setEnabled(false);
@@ -174,6 +234,23 @@ public class LoginActivity extends AppCompatActivity {
                                     .putString("current_user_contact", contact)
                                     .putInt("current_user_id", userId)
                                     .apply();
+                            boolean returnToCaller = getIntent().getBooleanExtra("return_to_caller", false);
+                            if (returnToCaller) {
+                                setResult(RESULT_OK);
+                                finish();
+                                return;
+                            }
+                            boolean redirectToDeparture = getIntent().getBooleanExtra("redirect_to_departure", false);
+                            if (redirectToDeparture) {
+                                Intent intent = new Intent(LoginActivity.this, DepartureActivity.class);
+                                intent.putExtra("tour_id", getIntent().getIntExtra("tour_id", -1));
+                                intent.putExtra("tour_title", getIntent().getStringExtra("tour_title"));
+                                intent.putExtra("adult_price", getIntent().getLongExtra("adult_price", 0L));
+                                startActivity(intent);
+                                finish(); // Close LoginActivity
+                                return;
+                            }
+
 
                             // Proactively sync FCM token if exists
                             String fcmToken = getSharedPreferences("UserSession", MODE_PRIVATE).getString("fcm_token", null);

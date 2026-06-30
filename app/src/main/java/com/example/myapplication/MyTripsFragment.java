@@ -54,7 +54,7 @@ public class MyTripsFragment extends Fragment {
 
     // State
     private boolean isHistoryMode = false;
-    private String selectedDate = "09/09"; // Mặc định khớp screenshot
+    private String selectedDate = "ALL"; // Mặc định hiển thị Tất cả chuyến đi
 
     // Cấu trúc ngày cho thanh cuộn ngang
     private static class DateTab {
@@ -115,6 +115,9 @@ public class MyTripsFragment extends Fragment {
         // 1. Dữ liệu các Ngày cho thanh cuộn ngang được tạo động xung quanh ngày hiện tại (2 ngày trước và 4 ngày sau)
         dateTabs.clear();
 
+        // Thêm mục "Tất cả" trước tiên để xem tất cả chuyến đi
+        dateTabs.add(new DateTab("Tất cả", "ALL"));
+
         java.util.Calendar cal = java.util.Calendar.getInstance();
         cal.add(java.util.Calendar.DAY_OF_YEAR, -2); // bắt đầu từ 2 ngày trước
 
@@ -137,11 +140,6 @@ public class MyTripsFragment extends Fragment {
 
             dateTabs.add(new DateTab(label, filterVal));
 
-            // Đặt ngày hôm nay làm mặc định (ngày thứ 3 trong danh sách, tức i = 2)
-            if (i == 2) {
-                selectedDate = filterVal;
-            }
-
             cal.add(java.util.Calendar.DAY_OF_YEAR, 1);
         }
 
@@ -153,7 +151,20 @@ public class MyTripsFragment extends Fragment {
         if (getContext() == null) return;
 
         SharedPreferences prefs = getContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
-        int currentUserId = prefs.getInt("current_user_id", 1); // default user 1
+        int currentUserId = prefs.getInt("current_user_id", -1); // default to -1 if guest
+
+        if (currentUserId == -1) {
+            allTrips.clear();
+            displayedTrips.clear();
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
+            layoutNoTrips.setVisibility(View.VISIBLE);
+            rvTickets.setVisibility(View.GONE);
+            tvEmptyTitle.setText("Chưa đăng nhập");
+            tvEmptySubtitle.setText("Vui lòng đăng nhập để xem thông tin chuyến đi của bạn.");
+            return;
+        }
 
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
         apiService.getBookings().enqueue(new Callback<List<BookingResponse>>() {
@@ -163,8 +174,12 @@ public class MyTripsFragment extends Fragment {
                     List<BookingResponse> bookings = response.body();
                     allTrips.clear();
 
-                    // Thêm additionalTrips local trước
-                    allTrips.addAll(additionalTrips);
+                    // Thêm additionalTrips local trước (lọc theo user đăng nhập)
+                    for (BookedTripAdapter.TripItem localItem : additionalTrips) {
+                        if (localItem.userId == currentUserId) {
+                            allTrips.add(localItem);
+                        }
+                    }
 
                     for (BookingResponse b : bookings) {
                         // Lọc chỉ lấy booking của user hiện tại
@@ -172,8 +187,8 @@ public class MyTripsFragment extends Fragment {
                             String code = "DL0" + b.id;
                             String trainName = "Tour Du Lịch";
                             String tourType = "tour";
-                            String depStation = "Hồ Chí Minh";
-                            String arrStation = "Điểm đến";
+                            String depStation = "Thời gian đi";
+                            String arrStation = "Thời gian đến";
                             
                             if (b.departureDetail != null) {
                                 if (b.departureDetail.tourDetail != null) {
@@ -197,6 +212,13 @@ public class MyTripsFragment extends Fragment {
 
                             String priceFormatted = formatVndPrice((long) b.totalPrice);
 
+                            String depDateForTab = "09/09";
+                            if (b.departureDetail != null && b.departureDetail.departureDate != null) {
+                                depDateForTab = formatDepartureDateToDdMm(b.departureDetail.departureDate);
+                            } else if (b.bookingDate != null) {
+                                depDateForTab = formatDepartureDateToDdMm(b.bookingDate);
+                            }
+
                             BookedTripAdapter.TripItem item = new BookedTripAdapter.TripItem(
                                     code,
                                     trainName,
@@ -207,7 +229,7 @@ public class MyTripsFragment extends Fragment {
                                     arrStation,
                                     "Trọn gói",
                                     priceFormatted,
-                                    b.bookingDate != null ? b.bookingDate : "09/09",
+                                    depDateForTab,
                                     "CANCELLED".equalsIgnoreCase(b.status) || "COMPLETED".equalsIgnoreCase(b.status), // coi như history nếu đã hủy hoặc completed
                                     tourType
                             );
@@ -218,6 +240,7 @@ public class MyTripsFragment extends Fragment {
                                     item.tourId = b.departureDetail.tour;
                                 }
                             }
+                            item.userId = currentUserId;
                             allTrips.add(item);
                         }
                     }
@@ -227,7 +250,11 @@ public class MyTripsFragment extends Fragment {
                     Toast.makeText(getContext(), "Lỗi tải dữ liệu chuyến đi từ máy chủ!", Toast.LENGTH_SHORT).show();
                     // Fallback to local additionalTrips
                     allTrips.clear();
-                    allTrips.addAll(additionalTrips);
+                    for (BookedTripAdapter.TripItem localItem : additionalTrips) {
+                        if (localItem.userId == currentUserId) {
+                            allTrips.add(localItem);
+                        }
+                    }
                     filterAndDisplayTrips();
                 }
             }
@@ -237,7 +264,11 @@ public class MyTripsFragment extends Fragment {
                 Toast.makeText(getContext(), "Không thể kết nối máy chủ để tải chuyến đi!", Toast.LENGTH_SHORT).show();
                 // Fallback to local additionalTrips
                 allTrips.clear();
-                allTrips.addAll(additionalTrips);
+                for (BookedTripAdapter.TripItem localItem : additionalTrips) {
+                    if (localItem.userId == currentUserId) {
+                        allTrips.add(localItem);
+                    }
+                }
                 filterAndDisplayTrips();
             }
         });
@@ -254,7 +285,41 @@ public class MyTripsFragment extends Fragment {
                 sb.append('.');
             }
         }
-        return sb + " đ";
+        return sb + " d";
+    }
+
+    /** Bỏ dấu tiếng Việt để QR code chỉ chứa ASCII thuần, tránh lỗi font khi quét */
+    private String removeAccents(String text) {
+        if (text == null) return "";
+        String normalized = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD);
+        return normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                         .replace("đ", "d").replace("Đ", "D");
+    }
+
+    private String formatDepartureDateToDdMm(String departureDateStr) {
+        if (departureDateStr == null) return "09/09";
+        try {
+            java.text.SimpleDateFormat fromServerFmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+            java.util.Date date = fromServerFmt.parse(departureDateStr);
+            java.text.SimpleDateFormat toTabFmt = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
+            return toTabFmt.format(date);
+        } catch (Exception e) {
+            try {
+                java.text.SimpleDateFormat fromServerFmt = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                java.util.Date date = fromServerFmt.parse(departureDateStr);
+                java.text.SimpleDateFormat toTabFmt = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
+                return toTabFmt.format(date);
+            } catch (Exception ex) {
+                // Nếu là định dạng dd/MM/yyyy hoặc tương tự thì thử tìm cách parse
+                if (departureDateStr.contains("/")) {
+                    String[] parts = departureDateStr.split("/");
+                    if (parts.length >= 2) {
+                        return parts[0] + "/" + parts[1];
+                    }
+                }
+                return departureDateStr;
+            }
+        }
     }
 
     private void setupTabs() {
@@ -363,9 +428,9 @@ public class MyTripsFragment extends Fragment {
                 }
             }
         } else {
-            // Lọc các chuyến đi sắp tới theo ngày đang chọn
+            // Lọc các chuyến đi sắp tới theo ngày đang chọn hoặc hiển thị tất cả
             for (BookedTripAdapter.TripItem item : allTrips) {
-                if (!item.isHistory && item.date.equals(selectedDate)) {
+                if (!item.isHistory && ("ALL".equals(selectedDate) || item.date.equals(selectedDate))) {
                     displayedTrips.add(item);
                 }
             }
@@ -384,7 +449,11 @@ public class MyTripsFragment extends Fragment {
                 tvEmptySubtitle.setText("Bạn chưa có chuyến đi nào hoàn thành trong lịch sử.");
             } else {
                 tvEmptyTitle.setText("Không có chuyến đi");
-                tvEmptySubtitle.setText("Bạn không có chuyến đi nào đã đặt vào ngày " + selectedDate + ".");
+                if ("ALL".equals(selectedDate)) {
+                    tvEmptySubtitle.setText("Bạn chưa đặt chuyến đi nào sắp tới.");
+                } else {
+                    tvEmptySubtitle.setText("Bạn không có chuyến đi nào đã đặt vào ngày " + selectedDate + ".");
+                }
             }
         } else {
             layoutNoTrips.setVisibility(View.GONE);
@@ -462,35 +531,38 @@ public class MyTripsFragment extends Fragment {
             }
         }
 
-        // Sinh QR Code động - URL đến trang xác nhận vé trên web
+        // Sinh QR Code - nội dung plain text thông tin vé
         if (imgQrCode != null) {
-            String qrPayload;
-            // Nếu booking từ server (id dạng "DL0xxx"), tạo URL verify trực tiếp
-            int bookingId = -1;
+            String confirmCode = "CFM-" + (100000 + Math.abs(item.id.hashCode() % 900000));
             try {
                 if (item.id.startsWith("DL0")) {
-                    bookingId = Integer.parseInt(item.id.substring(3));
+                    int bid = Integer.parseInt(item.id.substring(3));
+                    confirmCode = "CFM-" + (100000 + bid);
                 }
             } catch (Exception ignored) {}
 
-            if (bookingId > 0) {
-                // URL trỏ đến trang web xác nhận vé trên Django
-                qrPayload = RetrofitClient.BASE_URL + "api/ticket-verify/" + bookingId + "/";
-            } else {
-                // Fallback cho chuyến đi local (chưa có server booking ID)
-                qrPayload = "VÉ TOUR ĐIỆN TỬ\n" +
-                        "Mã vé: " + ticketCode + "\n" +
-                        "Tour: " + item.trainName + "\n" +
-                        "Khởi hành: " + item.depTime + " " + item.date + "/2026\n" +
-                        "Hành trình: " + item.depStation + " -> " + item.arrStation + "\n" +
-                        "Thời gian: " + item.duration + "\n" +
-                        "Giá vé: " + item.price;
+            String depDate = item.date + "/2026";
+            if (item.depStation != null && item.depStation.startsWith("Khởi hành: ")) {
+                depDate = item.depStation.substring(11);
             }
+
+            String qrPayload =
+                    "=== VE DIEN TU TRAVELTOUR ===\n" +
+                    "Ma ve: " + item.id + "\n" +
+                    "Ma xac nhan: " + confirmCode + "\n" +
+                    "Tour: " + removeAccents(item.trainName) + "\n" +
+                    "Ngay khoi hanh: " + depDate + "\n" +
+                    "Gio khoi hanh: " + item.depTime + "\n" +
+                    "Gia ve: " + removeAccents(item.price) + "\n" +
+                    "Trang thai: " + removeAccents(item.statusBadge) + "\n" +
+                    "============================";
+
             android.graphics.Bitmap qrBitmap = QrCodeGenerator.generateQrCode(qrPayload, 400, 400);
             if (qrBitmap != null) {
                 imgQrCode.setImageBitmap(qrBitmap);
             }
         }
+
 
         View.OnClickListener openTourDetail = v -> {
             alertDialog.dismiss();
@@ -522,7 +594,10 @@ public class MyTripsFragment extends Fragment {
     }
 
     private void confirmTripSuccess(BookedTripAdapter.TripItem item) {
-        // 1. Cập nhật offline cục bộ trong additionalTrips (nếu tồn tại)
+        // 1. Cập nhật trạng thái local ngay lập tức
+        item.isHistory = true;
+        item.statusBadge = "Đã hoàn thành";
+
         for (BookedTripAdapter.TripItem localItem : additionalTrips) {
             if (localItem.id.equals(item.id)) {
                 localItem.isHistory = true;
@@ -531,7 +606,20 @@ public class MyTripsFragment extends Fragment {
             }
         }
 
-        // 2. Trích xuất ID booking để cập nhật trên Django Backend
+        // Cập nhật trong allTrips
+        for (BookedTripAdapter.TripItem t : allTrips) {
+            if (t.id.equals(item.id)) {
+                t.isHistory = true;
+                t.statusBadge = "Đã hoàn thành";
+                break;
+            }
+        }
+
+        // 2. Hiển thị toast xanh lá thành công ngay cho người dùng
+        showCustomToast("Đã cập nhật trạng thái chuyến đi thành công!", false);
+        filterAndDisplayTrips();
+
+        // 3. Đồng bộ lên Django Backend âm thầm (không hiện toast lỗi)
         int bookingId = -1;
         try {
             if (item.id.startsWith("DL0")) {
@@ -547,27 +635,18 @@ public class MyTripsFragment extends Fragment {
             apiService.patchBooking(bookingId, fields).enqueue(new Callback<BookingResponse>() {
                 @Override
                 public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
-                    if (getContext() == null) return;
-                    if (response.isSuccessful()) {
-                        Toast.makeText(getContext(), "Đã cập nhật trạng thái chuyến đi hoàn thành trên Django!", Toast.LENGTH_SHORT).show();
-                        // Nạp lại dữ liệu từ máy chủ để đồng bộ hóa
+                    // Reload silently nếu thành công để đồng bộ dữ liệu mới nhất
+                    if (getContext() != null && response.isSuccessful()) {
                         loadBookingsFromServer();
-                    } else {
-                        Toast.makeText(getContext(), "Lỗi khi cập nhật trạng thái lên Django!", Toast.LENGTH_SHORT).show();
-                        filterAndDisplayTrips();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<BookingResponse> call, Throwable t) {
-                    if (getContext() == null) return;
-                    Toast.makeText(getContext(), "Lỗi kết nối khi cập nhật trạng thái chuyến đi!", Toast.LENGTH_SHORT).show();
-                    filterAndDisplayTrips();
+                    // Không hiện lỗi - trạng thái local đã được cập nhật
+                    android.util.Log.e("MyTrips", "Lỗi đồng bộ trạng thái: " + t.getMessage());
                 }
             });
-        } else {
-            // Đối với các chuyến đi local, chỉ cần lọc lại và hiển thị
-            filterAndDisplayTrips();
         }
     }
 
@@ -577,6 +656,19 @@ public class MyTripsFragment extends Fragment {
         SharedPreferences prefs = getContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
         int currentUserId = prefs.getInt("current_user_id", 1);
         int tourId = item.tourId > 0 ? item.tourId : 1;
+
+        // Đếm số lần đặt tour này (trong lịch sử)
+        int completedBookingsCount = 0;
+        for (BookedTripAdapter.TripItem t : allTrips) {
+            if (t.tourId == tourId && t.isHistory) {
+                completedBookingsCount++;
+            }
+        }
+        if (completedBookingsCount == 0) {
+            completedBookingsCount = 1;
+        }
+
+        final int finalCompletedBookingsCount = completedBookingsCount;
 
         // Hiển thị tiến trình kiểm tra
         android.app.ProgressDialog checkProgress = new android.app.ProgressDialog(getContext());
@@ -590,14 +682,13 @@ public class MyTripsFragment extends Fragment {
             public void onResponse(Call<List<com.example.myapplication.data.model.Review>> call, Response<List<com.example.myapplication.data.model.Review>> response) {
                 checkProgress.dismiss();
                 if (response.isSuccessful() && response.body() != null) {
-                    boolean alreadyRated = false;
+                    int reviewCount = 0;
                     for (com.example.myapplication.data.model.Review r : response.body()) {
                         if (r.getUserId() == currentUserId && r.getTourId() == tourId) {
-                            alreadyRated = true;
-                            break;
+                            reviewCount++;
                         }
                     }
-                    if (alreadyRated) {
+                    if (reviewCount >= finalCompletedBookingsCount) {
                         Toast.makeText(getContext(), "Bạn đã đánh giá tour này rồi! Không thể đánh giá thêm.", Toast.LENGTH_LONG).show();
                     } else {
                         displayRatingDialog(item);
@@ -699,21 +790,87 @@ public class MyTripsFragment extends Fragment {
                     public void onResponse(Call<Void> call, Response<Void> response) {
                         progressDialog.dismiss();
                         if (response.isSuccessful()) {
-                            Toast.makeText(getContext(), "Đã gửi đánh giá thành công! Cảm ơn bạn đã phản hồi.", Toast.LENGTH_LONG).show();
+                            showCustomToast("Đã gửi đánh giá thành công! Cảm ơn bạn.", false);
                         } else {
-                            Toast.makeText(getContext(), "Gửi đánh giá thất bại! Mã lỗi: " + response.code(), Toast.LENGTH_LONG).show();
+                            showCustomToast("Gửi đánh giá thất bại!", true);
                         }
                     }
 
                     @Override
                     public void onFailure(Call<Void> call, Throwable t) {
                         progressDialog.dismiss();
-                        Toast.makeText(getContext(), "Lỗi kết nối khi gửi đánh giá!", Toast.LENGTH_LONG).show();
+                        showCustomToast("Lỗi kết nối khi gửi đánh giá!", true);
                     }
                 });
             });
         }
 
         ratingDialog.show();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadBookingsFromServer();
+    }
+
+    private void showCustomToast(String message, boolean isError) {
+        if (getContext() == null) return;
+        
+        android.widget.Toast toast = new android.widget.Toast(getContext());
+        toast.setDuration(android.widget.Toast.LENGTH_SHORT);
+        
+        LinearLayout toastLayout = new LinearLayout(getContext());
+        toastLayout.setOrientation(LinearLayout.HORIZONTAL);
+        toastLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        int paddingDpHorizontal = 20;
+        int paddingDpVertical = 12;
+        float density = getResources().getDisplayMetrics().density;
+        toastLayout.setPadding(
+            (int)(paddingDpHorizontal * density), 
+            (int)(paddingDpVertical * density), 
+            (int)(paddingDpHorizontal * density), 
+            (int)(paddingDpVertical * density)
+        );
+        
+        android.graphics.drawable.GradientDrawable drawable = new android.graphics.drawable.GradientDrawable();
+        drawable.setCornerRadius(24 * density); // Bo góc đẹp
+        if (isError) {
+            drawable.setColor(Color.parseColor("#FEE2E2")); // Red pastel
+            drawable.setStroke((int)(1 * density), Color.parseColor("#FCA5A5"));
+        } else {
+            drawable.setColor(Color.parseColor("#DCFCE7")); // Green pastel
+            drawable.setStroke((int)(1 * density), Color.parseColor("#86EFAC"));
+        }
+        toastLayout.setBackground(drawable);
+        
+        // Icon
+        ImageView icon = new ImageView(getContext());
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
+            (int)(18 * density), 
+            (int)(18 * density)
+        );
+        iconParams.rightMargin = (int)(8 * density);
+        icon.setLayoutParams(iconParams);
+        if (isError) {
+            icon.setImageResource(android.R.drawable.ic_dialog_alert);
+            icon.setImageTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#EF4444")));
+        } else {
+            icon.setImageResource(android.R.drawable.checkbox_on_background);
+            icon.setImageTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#22C55E")));
+        }
+        toastLayout.addView(icon);
+        
+        // Text
+        TextView text = new TextView(getContext());
+        text.setText(message);
+        text.setTextColor(Color.parseColor(isError ? "#991B1B" : "#166534"));
+        text.setTextSize(14f);
+        text.setTypeface(null, Typeface.BOLD);
+        toastLayout.addView(text);
+        
+        toast.setView(toastLayout);
+        toast.setGravity(android.view.Gravity.BOTTOM | android.view.Gravity.CENTER_HORIZONTAL, 0, (int)(100 * density));
+        toast.show();
     }
 }

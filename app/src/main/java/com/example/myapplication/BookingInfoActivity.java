@@ -1,8 +1,11 @@
 package com.example.myapplication;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -18,13 +21,29 @@ import androidx.core.view.WindowInsetsCompat;
 
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.example.myapplication.data.model.VoucherHelper;
+import com.example.myapplication.data.remote.ApiService;
+import com.example.myapplication.data.remote.RetrofitClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import com.example.myapplication.DatabaseHelper;
+
+
 /**
  * Activity bước 2/3: Điền thông tin khách hàng và tiến hành đặt tour.
  */
 public class BookingInfoActivity extends AppCompatActivity {
 
+    private String selectedVoucherCode = "";
+
     private EditText etFullName, etPhone, etEmail, etOtherRequests;
-    private TextView tvPassengerSummary, tvPriceSummary;
+    private TextView tvPassengerSummary, tvPriceSummary, tvDiscountSummary;
     private CheckBox cbRequestInvoice;
     private Button btnSubmitBooking;
 
@@ -38,6 +57,7 @@ public class BookingInfoActivity extends AppCompatActivity {
     private long discountAmount = 0;
 
     private String departureTime = "";
+    private String departureDate = "";
     private boolean isInvoiceRequested = false;
 
     @Override
@@ -64,11 +84,43 @@ public class BookingInfoActivity extends AppCompatActivity {
             infantCount = intent.getIntExtra("infant_count", 0);
             totalPrice = intent.getLongExtra("total_price", 5490000L);
             departureTime = intent.getStringExtra("departure_time");
+            departureDate = intent.getStringExtra("departure_date");
+            selectedVoucherCode = intent.getStringExtra("voucher_code");
+            if (selectedVoucherCode == null) {
+                selectedVoucherCode = "";
+            }
+            discountAmount = intent.getLongExtra("discount_amount", 0);
         }
 
         initViews();
+        prefillUserInfo();
         setupListeners();
         displaySummary();
+
+
+    }
+
+    private void prefillUserInfo() {
+        android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+        String contact = prefs.getString("current_user_contact", "");
+        if (!contact.isEmpty()) {
+            DatabaseHelper dbHelper = new DatabaseHelper(this);
+            java.util.Map<String, String> userDetails = dbHelper.getUserDetails(contact);
+            if (userDetails != null) {
+                String name = userDetails.get("name");
+                if (name != null && !name.isEmpty()) {
+                    etFullName.setText(name);
+                }
+                if (contact.contains("@")) {
+                    etEmail.setText(contact);
+                } else {
+                    String invEmail = userDetails.get("invoice_email");
+                    if (invEmail != null && !invEmail.isEmpty()) {
+                        etEmail.setText(invEmail);
+                    }
+                }
+            }
+        }
     }
 
     private void initViews() {
@@ -79,6 +131,7 @@ public class BookingInfoActivity extends AppCompatActivity {
 
         tvPassengerSummary = findViewById(R.id.tv_passenger_summary);
         tvPriceSummary = findViewById(R.id.tv_price_summary);
+        tvDiscountSummary = findViewById(R.id.tv_discount_summary);
         cbRequestInvoice = findViewById(R.id.cb_request_invoice);
         btnSubmitBooking = findViewById(R.id.btn_submit_booking);
     }
@@ -86,9 +139,6 @@ public class BookingInfoActivity extends AppCompatActivity {
     private void setupListeners() {
         // Nút Back
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
-
-        // Nhập mã giảm giá
-        findViewById(R.id.row_promo_code).setOnClickListener(v -> showPromoCodeDialog());
 
         // Real-time Phone validation
         etPhone.addTextChangedListener(new android.text.TextWatcher() {
@@ -144,43 +194,24 @@ public class BookingInfoActivity extends AppCompatActivity {
         }
         tvPassengerSummary.setText(passengerStr.toString());
 
+        // Hiển thị giảm giá nếu có voucher
+        if (discountAmount > 0 && !selectedVoucherCode.isEmpty()) {
+            if (tvDiscountSummary != null) {
+                tvDiscountSummary.setVisibility(View.VISIBLE);
+                tvDiscountSummary.setText("Giảm " + formatVnd(discountAmount) + " (" + selectedVoucherCode + ")");
+            }
+        } else {
+            if (tvDiscountSummary != null) {
+                tvDiscountSummary.setVisibility(View.GONE);
+            }
+        }
+
         // Cập nhật giá hiển thị
         long finalPrice = Math.max(0, totalPrice - discountAmount);
         tvPriceSummary.setText(formatVnd(finalPrice));
     }
 
-    private void showPromoCodeDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Nhập mã giảm giá");
 
-        final EditText input = new EditText(this);
-        input.setHint("Nhập mã (Ví dụ: WELCOME50, CHILLTOUR10)");
-        input.setPadding(32, 24, 32, 24);
-        builder.setView(input);
-
-        builder.setPositiveButton("Áp dụng", (dialog, which) -> {
-            String code = input.getText().toString().trim().toUpperCase();
-            if (TextUtils.isEmpty(code)) {
-                Toast.makeText(this, "Vui lòng nhập mã giảm giá", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (code.equals("WELCOME50")) {
-                discountAmount = 50000;
-                Toast.makeText(this, "Áp dụng thành công! Giảm 50.000đ", Toast.LENGTH_SHORT).show();
-            } else if (code.equals("CHILLTOUR10")) {
-                discountAmount = totalPrice / 10; // Giảm 10%
-                Toast.makeText(this, "Áp dụng thành công! Giảm 10%", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Mã giảm giá không hợp lệ hoặc đã hết hạn", Toast.LENGTH_SHORT).show();
-                discountAmount = 0;
-            }
-            displaySummary();
-        });
-
-        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.cancel());
-        builder.show();
-    }
 
     private void submitBooking() {
         String fullName = etFullName.getText().toString().trim();
@@ -217,12 +248,10 @@ public class BookingInfoActivity extends AppCompatActivity {
             return;
         }
 
-        // Ghi nhận yêu cầu xuất hóa đơn
         if (cbRequestInvoice != null) {
             isInvoiceRequested = cbRequestInvoice.isChecked();
         }
 
-        // Chuyển tiếp sang màn hình thanh toán (PaymentActivity)
         long finalPrice = Math.max(0, totalPrice - discountAmount);
         Intent intent = new Intent(this, PaymentActivity.class);
         intent.putExtra("tour_title", tourTitle);
@@ -234,9 +263,11 @@ public class BookingInfoActivity extends AppCompatActivity {
         intent.putExtra("total_price", finalPrice);
         intent.putExtra("is_invoice_requested", isInvoiceRequested);
         intent.putExtra("departure_time", departureTime);
+        intent.putExtra("departure_date", departureDate);
         intent.putExtra("full_name", fullName);
         intent.putExtra("phone", phone);
         intent.putExtra("email", email);
+        intent.putExtra("voucher_code", selectedVoucherCode);
         startActivity(intent);
         finish();
     }

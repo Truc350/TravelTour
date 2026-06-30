@@ -6,6 +6,10 @@ class ToursConfig(AppConfig):
     name = 'tours'
 
     def ready(self):
-        # import tours.signals
-        pass
+        try:
+            from django.core.management import call_command
+            call_command('migrate', interactive=False)
+            print("[ToursConfig] Database migration completed successfully.")
+        except Exception as e:
+            print("[ToursConfig] Error running automatic migrations: ", e)
 

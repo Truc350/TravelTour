@@ -41,6 +41,7 @@ public class BookedTripAdapter extends RecyclerView.Adapter<BookedTripAdapter.Tr
         public boolean isHistory; // true nếu là chuyến đi trong lịch sử
         public String tourType; // loại tour (ví dụ "sapa", "taiwan")
         public int tourId = -1;
+        public int userId = -1;
 
 
         public TripItem(String id, String trainName, String statusBadge, String depTime, String arrTime,
@@ -88,30 +89,48 @@ public class BookedTripAdapter extends RecyclerView.Adapter<BookedTripAdapter.Tr
         // Thiết lập trạng thái và phong cách dựa trên loại chuyến đi (Sắp tới / Lịch sử)
         if (item.isHistory) {
             // Lịch sử chuyến đi
-            holder.tvStatusBadge.setText("Đã hoàn thành");
-            holder.tvStatusBadge.setTextColor(Color.parseColor("#388E3C")); // Màu xanh lá đậm
-            holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_score_green); // Màu nền xanh nhạt
-            
+            if ("Đã hủy".equals(item.statusBadge)) {
+                holder.tvStatusBadge.setText("Đã hủy");
+                holder.tvStatusBadge.setTextColor(Color.parseColor("#C62828")); // đỏ đậm
+                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_red); // nền đỏ nhạt
+            } else {
+                holder.tvStatusBadge.setText("Đã hoàn thành");
+                holder.tvStatusBadge.setTextColor(Color.parseColor("#FFFFFF")); // trắng
+                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_score_green); // nền xanh đặc
+            }
+
             // Thay đổi nút Chọn thành Chi tiết
             holder.btnAction.setText("Chi tiết");
             holder.btnAction.setBackgroundResource(R.drawable.bg_chip_selected_cyan);
             holder.btnAction.setTextColor(Color.parseColor("#00B4D8"));
-            
+
             // Ẩn bớt các tag ưu đãi cho lịch sử sạch hơn
             holder.layoutPromoTags.setVisibility(View.GONE);
-            
+
             // Đặt độ mờ nhẹ cho thẻ lịch sử
             holder.itemView.setAlpha(0.85f);
         } else {
-            // Chuyến đi sắp tới (Giống hệt screenshot)
-            holder.tvStatusBadge.setText(item.statusBadge);
-            holder.tvStatusBadge.setTextColor(Color.parseColor("#E65100")); // Cam đậm
-            holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_orange_badge); // Cam nhạt
-            
+            // Chuyến đi sắp tới - màu badge theo trạng thái
+            String badge = item.statusBadge != null ? item.statusBadge : "Chờ duyệt";
+            if ("Đã thanh toán".equals(badge) || "CONFIRMED".equalsIgnoreCase(badge)) {
+                holder.tvStatusBadge.setText("Đã thanh toán");
+                holder.tvStatusBadge.setTextColor(Color.parseColor("#185FA5")); // xanh dương
+                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_blue);
+            } else if ("Đã hủy".equals(badge) || "CANCELLED".equalsIgnoreCase(badge)) {
+                holder.tvStatusBadge.setText("Đã hủy");
+                holder.tvStatusBadge.setTextColor(Color.parseColor("#C62828")); // đỏ đậm
+                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_red);
+            } else {
+                // Chờ duyệt / PENDING
+                holder.tvStatusBadge.setText("Chờ duyệt");
+                holder.tvStatusBadge.setTextColor(Color.parseColor("#E65100")); // cam đậm
+                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_orange_badge);
+            }
+
             holder.btnAction.setText("Xem vé");
             holder.btnAction.setBackgroundResource(R.drawable.bg_button_orange);
             holder.btnAction.setTextColor(Color.WHITE);
-            
+
             holder.layoutPromoTags.setVisibility(View.VISIBLE);
             holder.itemView.setAlpha(1.0f);
         }

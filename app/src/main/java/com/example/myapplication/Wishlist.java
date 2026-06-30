@@ -52,12 +52,10 @@ public class Wishlist extends Fragment {
 
         // Lấy session đăng nhập hiện tại
         SharedPreferences prefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
-        String contact = prefs.getString("current_user_contact", "");
-        if (contact.isEmpty()) {
-            contact = dbHelper.getLastUserContact();
-        }
+        int currentUserId = prefs.getInt("current_user_id", -1);
 
-        if (!contact.isEmpty()) {
+        if (currentUserId != -1) {
+            String contact = prefs.getString("current_user_contact", "");
             loadFavorites(inflater, contact);
         } else {
             // Trường hợp lỗi chưa đăng nhập
@@ -291,6 +289,22 @@ public class Wishlist extends Fragment {
 
                 // Thêm view vào danh sách cuộn
                 favoriteContainer.addView(itemView);
+            }
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getContext() != null) {
+            SharedPreferences prefs = getContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+            int currentUserId = prefs.getInt("current_user_id", -1);
+            if (currentUserId == -1) {
+                layoutEmptyState.setVisibility(View.VISIBLE);
+                scrollViewFavoriteList.setVisibility(View.GONE);
+            } else {
+                String contact = prefs.getString("current_user_contact", "");
+                loadFavorites(LayoutInflater.from(getContext()), contact);
             }
         }
     }

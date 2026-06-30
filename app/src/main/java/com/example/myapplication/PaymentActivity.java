@@ -53,6 +53,7 @@ public class PaymentActivity extends AppCompatActivity {
     private long totalPrice = 0;
     private String orderId = "";
     private String departureTime = "";
+    private String departureDate = "";
     private boolean isInvoiceRequested = false;
 
     private String fullName = "";
@@ -88,6 +89,7 @@ public class PaymentActivity extends AppCompatActivity {
             totalPrice = intent.getLongExtra("total_price", 10980000L);
             isInvoiceRequested = intent.getBooleanExtra("is_invoice_requested", false);
             departureTime = intent.getStringExtra("departure_time");
+            departureDate = intent.getStringExtra("departure_date");
             fullName = intent.getStringExtra("full_name");
             phone = intent.getStringExtra("phone");
             email = intent.getStringExtra("email");
@@ -285,37 +287,13 @@ public class PaymentActivity extends AppCompatActivity {
         if (btnCopyAmount != null) btnCopyAmount.setOnClickListener(copyListener);
         if (btnCopyInfo != null) btnCopyInfo.setOnClickListener(copyListener);
 
-        // Đếm ngược 60 giây giả lập kiểm tra giao dịch thời gian thực
-        CountDownTimer timer = new CountDownTimer(60000, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                long secs = millisUntilFinished / 1000;
-                if (tvPaymentStatus != null) {
-                    tvPaymentStatus.setText("Đang chờ quét mã... (" + secs + "s)");
-                }
-            }
-
-            @Override
-            public void onFinish() {
-                if (tvPaymentStatus != null) {
-                    tvPaymentStatus.setText("Xác minh giao dịch thành công!");
-                    tvPaymentStatus.setTextColor(Color.parseColor("#388E3C")); // Màu xanh lá
-                }
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    if (dialog.isShowing()) {
-                        dialog.dismiss();
-                        onPaymentSuccess();
-                    }
-                }, 1000);
-            }
-        };
-        timer.start();
-
-        dialog.setOnDismissListener(dialogInterface -> timer.cancel());
+        // Đặt trạng thái chờ quét mã chuyển khoản
+        if (tvPaymentStatus != null) {
+            tvPaymentStatus.setText("Đang chờ quét mã chuyển khoản...");
+        }
 
         if (btnQrConfirm != null) {
             btnQrConfirm.setOnClickListener(v -> {
-                timer.cancel();
                 dialog.dismiss();
                 onPaymentSuccess();
             });
@@ -359,10 +337,20 @@ public class PaymentActivity extends AppCompatActivity {
         // Gọi API tạo Booking mới trên Django Backend
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
         android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
-        int currentUserId = prefs.getInt("current_user_id", 1); // mặc định user 1 (Ngọc Quyên)
+        int currentUserId = prefs.getInt("current_user_id", -1); // lấy ID user đăng nhập thực tế
         int depId = departureId > 0 ? departureId : 1; // mặc định departure 1 nếu chưa được gán chính xác
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
         String currentDate = sdf.format(new java.util.Date());
+
+        String voucherCode = getIntent().getStringExtra("voucher_code");
+        if (voucherCode == null) {
+            voucherCode = "";
+        }
+
+        String customerName = getIntent().getStringExtra("full_name");
+        String customerPhone = getIntent().getStringExtra("phone");
+        String customerEmail = getIntent().getStringExtra("email");
+        boolean isInvoiceRequested = getIntent().getBooleanExtra("is_invoice_requested", false);
 
         com.example.myapplication.data.model.BookingRequest request = new com.example.myapplication.data.model.BookingRequest(
                 currentUserId,
@@ -371,7 +359,12 @@ public class PaymentActivity extends AppCompatActivity {
                 departureTime != null && !departureTime.isEmpty() ? departureTime : "08:00",
                 "CONFIRMED", // đã xác nhận/đã thanh toán
                 totalPrice,
-                tourId
+                tourId,
+                voucherCode,
+                customerName,
+                customerPhone,
+                customerEmail,
+                isInvoiceRequested
         );
 
         apiService.createBooking(request).enqueue(new retrofit2.Callback<com.example.myapplication.data.model.BookingResponse>() {
@@ -379,7 +372,6 @@ public class PaymentActivity extends AppCompatActivity {
             public void onResponse(retrofit2.Call<com.example.myapplication.data.model.BookingResponse> call, retrofit2.Response<com.example.myapplication.data.model.BookingResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     android.util.Log.d("DJANGO_API", "Tạo booking thành công trên server! ID = " + response.body().id);
-                    Toast.makeText(PaymentActivity.this, "Đã lưu thông tin đặt tour thành công vào Django!", Toast.LENGTH_SHORT).show();
                 } else {
                     android.util.Log.e("DJANGO_API", "Không thể tạo booking trên server! Code = " + response.code());
                     Toast.makeText(PaymentActivity.this, "Lỗi phản hồi từ Django! Mã lỗi: " + response.code(), Toast.LENGTH_LONG).show();
@@ -393,22 +385,43 @@ public class PaymentActivity extends AppCompatActivity {
             }
         });
 
+        String formattedDepDate = currentDate;
+        if (departureDate != null && !departureDate.isEmpty()) {
+            try {
+                java.text.SimpleDateFormat dbFmt = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                java.util.Date d = dbFmt.parse(departureDate);
+                if (d != null) {
+                    java.text.SimpleDateFormat tabFmt = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
+                    formattedDepDate = tabFmt.format(d);
+                }
+            } catch (Exception e) {
+                try {
+                    java.text.SimpleDateFormat dbFmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+                    java.util.Date d = dbFmt.parse(departureDate);
+                    if (d != null) {
+                        java.text.SimpleDateFormat tabFmt = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
+                        formattedDepDate = tabFmt.format(d);
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+
         BookedTripAdapter.TripItem newTrip = new BookedTripAdapter.TripItem(
                 orderId,
                 tourTitle,
                 "Đã thanh toán",
                 departureTime != null && !departureTime.isEmpty() ? departureTime : "08:00",
                 "Dự kiến",
-                "Điểm đi",
-                "Điểm đến",
+                "Thời gian đi",
+                "Thời gian đến",
                 adultCount + " người lớn" + (childCount > 0 ? ", " + childCount + " trẻ em" : ""),
                 formatVnd(totalPrice),
-                currentDate,
+                formattedDepDate,
                 false,
                 "tour"
         );
         newTrip.tourId = tourId;
-        newTrip.tourId = tourId;
+        newTrip.userId = currentUserId;
 
 
         // Lưu vào danh sách tĩnh của MyTripsFragment
@@ -416,36 +429,9 @@ public class PaymentActivity extends AppCompatActivity {
 
         Toast.makeText(this, "Thanh toán thành công!", Toast.LENGTH_LONG).show();
 
-        // Gửi email nếu tích vào ô xuất hóa đơn
+        // Hóa đơn điện tử sẽ được Django server tự động gửi qua SMTP
         if (isInvoiceRequested) {
-            String subject = "[Chill Tour] Xác nhận đặt tour & Yêu cầu xuất hóa đơn - Đơn hàng " + orderId;
-            String emailBody = "Kính gửi Quý khách " + fullName + ",\n\n" +
-                    "Cảm ơn Quý khách đã tin tưởng và lựa chọn dịch vụ của Chill Tour. Chúng tôi xin xác nhận đã tiếp nhận thanh toán của Quý khách với thông tin chi tiết như sau:\n\n" +
-                    "--------------------------------------------------\n" +
-                    "THÔNG TIN ĐƠN ĐẶT TOUR:\n" +
-                    "- Mã đơn hàng: " + orderId + "\n" +
-                    "- Tên tour: " + tourTitle + "\n" +
-                    "- Số lượng khách: " + adultCount + " người lớn" + (childCount > 0 ? ", " + childCount + " trẻ em" : "") + "\n" +
-                    "- Giờ khởi hành: " + (departureTime != null && !departureTime.isEmpty() ? departureTime : "08:00") + "\n" +
-                    "- Tổng thanh toán: " + formatVnd(totalPrice) + "\n" +
-                    "- Phương thức thanh toán: Chuyển khoản VietQR\n" +
-                    "--------------------------------------------------\n\n" +
-                    "Yêu cầu xuất hóa đơn đỏ (VAT) của Quý khách đã được tiếp nhận thành công. Bộ phận kế toán của Chill Tour sẽ sớm liên hệ với Quý khách qua email này để xác nhận thông tin doanh nghiệp (Tên công ty, MST, Địa chỉ) và tiến hành xuất hóa đơn điện tử trong vòng 24 giờ làm việc.\n\n" +
-                    "Mọi thắc mắc cần hỗ trợ gấp, Quý khách vui lòng liên hệ hotline chăm sóc khách hàng của chúng tôi.\n\n" +
-                    "Chúc Quý khách có một chuyến đi tuyệt vời!\n\n" +
-                    "Trân trọng,\n" +
-                    "Đội ngũ Chill Tour";
-
-            Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
-            emailIntent.setData(android.net.Uri.parse("mailto:"));
-            emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{email});
-            emailIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
-            emailIntent.putExtra(Intent.EXTRA_TEXT, emailBody);
-            try {
-                startActivity(Intent.createChooser(emailIntent, "Gửi email xác nhận hóa đơn qua..."));
-            } catch (android.content.ActivityNotFoundException ex) {
-                Toast.makeText(this, "Không tìm thấy ứng dụng gửi mail trên thiết bị.", Toast.LENGTH_SHORT).show();
-            }
+            Toast.makeText(this, "Hóa đơn điện tử đang được gửi đến email " + email + "!", Toast.LENGTH_LONG).show();
         }
 
         // Chuyển sang MainActivity với tab Chuyến đi (MyTrips)

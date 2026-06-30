@@ -3,6 +3,7 @@ package com.example.myapplication.data.remote;
 import android.app.DownloadManager;
 
 import com.example.myapplication.data.model.Tour;
+import com.example.myapplication.data.model.TourDeparture;
 import com.example.myapplication.data.model.User;
 import com.example.myapplication.data.model.Passenger;
 import com.example.myapplication.data.model.Favorite;
@@ -13,6 +14,7 @@ import com.example.myapplication.data.model.VoucherHelper;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
@@ -22,11 +24,16 @@ import retrofit2.http.PUT;
 import retrofit2.http.PATCH;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import retrofit2.http.Multipart;
+import retrofit2.http.Part;
 
 public interface ApiService {
 
     @GET("api/tours/")
     Call<List<Tour>> getTours();
+
+    @GET("api/tour-departures/")
+    Call<List<TourDeparture>> getTourDepartures(@Query("tour_id") int tourId);
 
     // Bookings CRUD
     @GET("api/bookings/")
@@ -78,6 +85,10 @@ public interface ApiService {
     @DELETE("api/favorites/{id}/")
     Call<Void> removeFavorite(@Path("id") int id);
 
+    @POST("api/behaviors/")
+    Call<Void> logBehavior(@Body java.util.Map<String, Object> behavior);
+
+
     @GET("api/tours/")
     Call<List<Tour>> searchTours(
             @Query("destination") String destination,
@@ -88,11 +99,24 @@ public interface ApiService {
     );
 
     @GET("api/vouchers/")
-    Call<List<VoucherHelper.AppVoucher>> getVouchers();
+    Call<List<VoucherHelper.AppVoucher>> getVouchers(
+            @Query("user_id") Integer userId,
+            @Query("saved_only") Boolean savedOnly
+    );
+
+    @POST("api/user-vouchers/")
+    Call<Void> saveUserVoucher(@Body java.util.Map<String, Object> body);
+
+    @GET("api/user-vouchers/")
+    Call<List<VoucherHelper.UserVoucherResponse>> getUserVouchers(@Query("user_id") Integer userId);
 
     @GET("api/reviews/")
     Call<List<com.example.myapplication.data.model.Review>> getReviews();
 
     @POST("api/reviews/")
     Call<Void> createReview(@Body java.util.Map<String, Object> reviewData);
+
+    @Multipart
+    @POST("api/tours/visual-search/")
+    Call<List<Tour>> searchToursByImage(@Part MultipartBody.Part image);
 }

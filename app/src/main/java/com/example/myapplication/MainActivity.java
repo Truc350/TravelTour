@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -68,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigation.setSelectedItemId(R.id.nav_home);
         }
 
+        // Xử lý deep link khi mở ứng dụng từ thông báo
+        handleDeepLink(getIntent());
+
         // Lắng nghe sự kiện khi người dùng bấm vào từng tab điều hướng
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -92,6 +96,13 @@ public class MainActivity extends AppCompatActivity {
                         .replace(R.id.contentFrame, new Notification())
                         .commit();
             } else if (itemId == R.id.nav_account) {
+                android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+                int currentUserId = prefs.getInt("current_user_id", -1);
+                if (currentUserId == -1) {
+                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                    startActivity(intent);
+                    return false;
+                }
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.contentFrame, new Account())
                         .commit();
@@ -152,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
 
         // 2. Request Permission for Android 13+
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) 
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
                     != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 androidx.core.app.ActivityCompat.requestPermissions(
                         this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101
@@ -204,5 +215,24 @@ public class MainActivity extends AppCompatActivity {
                 android.util.Log.e("FCM", "Error syncing token: " + t.getMessage());
             }
         });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleDeepLink(intent);
+    }
+
+    private void handleDeepLink(Intent intent) {
+        if (intent == null) return;
+        String action = intent.getStringExtra("action");
+        if ("open_voucher".equals(action)) {
+            android.util.Log.d("MainActivity", "Deep link matching: open_voucher");
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.contentFrame, new MyVouchers())
+                    .addToBackStack(null)
+                    .commit();
+        }
     }
 }

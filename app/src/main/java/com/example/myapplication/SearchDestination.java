@@ -11,6 +11,15 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.content.Intent;
+import android.net.Uri;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -50,6 +59,7 @@ public class SearchDestination extends Fragment {
     private static final int MAX_HISTORY = 10;
     private static final int DEFAULT_SHOW = 3;
     private boolean isShowingAllHistory = false;
+    private static final int PICK_IMAGE_REQUEST = 1002;
 
     private List<DestinationItem> recentList = new ArrayList<>();
     private List<DestinationItem> hotList = new ArrayList<>();
@@ -109,6 +119,7 @@ public class SearchDestination extends Fragment {
         ImageView btnBack = view.findViewById(R.id.btnBack);
         EditText etSearchDest = view.findViewById(R.id.etSearchDest);
         ImageView btnClearSearch = view.findViewById(R.id.btnClearSearch);
+        ImageView btnCameraSearch = view.findViewById(R.id.btnCameraSearch);
 
         containerRecent = view.findViewById(R.id.containerRecent);
         containerHot = view.findViewById(R.id.containerHot);
@@ -128,6 +139,15 @@ public class SearchDestination extends Fragment {
             });
         }
 
+        // Sự kiện camera search
+        if (btnCameraSearch != null) {
+            btnCameraSearch.setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setType("image/*");
+                startActivityForResult(intent, PICK_IMAGE_REQUEST);
+            });
+        }
+
         // Sự kiện xóa nội dung ô tìm kiếm nhanh
         if (btnClearSearch != null && etSearchDest != null) {
             btnClearSearch.setOnClickListener(v -> etSearchDest.setText(""));
@@ -144,6 +164,9 @@ public class SearchDestination extends Fragment {
                     String query = s.toString().trim();
                     if (btnClearSearch != null) {
                         btnClearSearch.setVisibility(query.isEmpty() ? View.GONE : View.VISIBLE);
+                    }
+                    if (btnCameraSearch != null) {
+                        btnCameraSearch.setVisibility(query.isEmpty() ? View.VISIBLE : View.GONE);
                     }
                     
                     if (query.isEmpty()) {
@@ -407,10 +430,15 @@ public class SearchDestination extends Fragment {
 
                 tourView.setOnClickListener(v -> {
                     saveSearchHistory(query);
-                    Bundle resultBundle = new Bundle();
-                    resultBundle.putString("selected_destination", tour.getTitle());
-                    getParentFragmentManager().setFragmentResult("destination_request", resultBundle);
-                    getParentFragmentManager().popBackStack();
+                    DetailTour detailFragment = new DetailTour();
+                    Bundle args = new Bundle();
+                    args.putInt("tour_id", tour.getId());
+                    detailFragment.setArguments(args);
+                    if (getParentFragmentManager() != null) {
+                        getParentFragmentManager().beginTransaction()
+                                .replace(R.id.contentFrame, detailFragment)
+                                .addToBackStack(null).commit();
+                    }
                 });
 
                 containerSearchResults.addView(tourView);
@@ -490,14 +518,20 @@ public class SearchDestination extends Fragment {
     private void handleSearchResults(String query, List<Tour> results) {
         if (getActivity() == null || containerSearchResults == null) return;
         getActivity().runOnUiThread(() -> {
+            // Ẩn lịch sử tìm kiếm và các địa điểm gợi ý HOT khi hiện kết quả
+            if (layoutRecentSection != null)
+                layoutRecentSection.setVisibility(View.GONE);
+            if (layoutHotHeader != null)
+                layoutHotHeader.setVisibility(View.GONE);
+            if (containerHot != null)
+                containerHot.setVisibility(View.GONE);
+
             if (results.isEmpty()) {
                 if (layoutSearchResultsSection != null)
                     layoutSearchResultsSection.setVisibility(View.GONE);
                 if (layoutNoResults != null)
-                    layoutNoResults.setVisibility(View.GONE);
+                    layoutNoResults.setVisibility(View.VISIBLE);
             } else {
-                if (layoutRecentSection != null)
-                    layoutRecentSection.setVisibility(View.VISIBLE);
                 if (layoutSearchResultsSection != null)
                     layoutSearchResultsSection.setVisibility(View.VISIBLE);
                 if (layoutNoResults != null)
@@ -505,6 +539,104 @@ public class SearchDestination extends Fragment {
                 displaySearchResults(results, query);
             }
         });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == android.app.Activity.RESULT_OK && data != null && data.getData() != null) {
+            Uri selectedImageUri = data.getData();
+            uploadImageAndSearch(selectedImageUri);
+        }
+    }
+
+    private void uploadImageAndSearch(Uri imageUri) {
+        if (getContext() == null) return;
+
+        Toast.makeText(getContext(), "Đang phân tích hình ảnh và tìm kiếm...", Toast.LENGTH_SHORT).show();
+
+        try {
+            InputStream inputStream = getContext().getContentResolver().openInputStream(imageUri);
+            if (inputStream == null) {
+                Toast.makeText(getContext(), "Không thể đọc tệp ảnh!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Giải mã ảnh sang Bitmap để tiến hành nén và resize
+            android.graphics.Bitmap originalBitmap = android.graphics.BitmapFactory.decodeStream(inputStream);
+            inputStream.close();
+
+            if (originalBitmap == null) {
+                Toast.makeText(getContext(), "Không thể giải mã tệp ảnh!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Đặt kích thước ảnh tối đa 800px để tối ưu hóa tốc độ upload và dung lượng truyền tải
+            int maxDimension = 800;
+            int width = originalBitmap.getWidth();
+            int height = originalBitmap.getHeight();
+            android.graphics.Bitmap resizedBitmap = originalBitmap;
+            if (width > maxDimension || height > maxDimension) {
+                float aspectRatio = (float) width / (float) height;
+                int newWidth = maxDimension;
+                int newHeight = maxDimension;
+                if (aspectRatio > 1) {
+                    newHeight = (int) (maxDimension / aspectRatio);
+                } else {
+                    newWidth = (int) (maxDimension * aspectRatio);
+                }
+                resizedBitmap = android.graphics.Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true);
+            }
+
+            File tempFile = new File(getContext().getCacheDir(), "search_temp_image.jpg");
+            try (FileOutputStream outputStream = new FileOutputStream(tempFile)) {
+                // Nén ảnh chất lượng JPEG 75% (giảm dung lượng file từ vài MB xuống còn 80-150KB)
+                resizedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 75, outputStream);
+            }
+
+            // Giải phóng bộ nhớ RAM
+            if (resizedBitmap != originalBitmap) {
+                resizedBitmap.recycle();
+            }
+            originalBitmap.recycle();
+
+            RequestBody requestFile = RequestBody.create(
+                    MediaType.parse("image/*"),
+                    tempFile
+            );
+            MultipartBody.Part body = MultipartBody.Part.createFormData(
+                    "image",
+                    tempFile.getName(),
+                    requestFile
+            );
+
+            ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+            apiService.searchToursByImage(body).enqueue(new Callback<List<Tour>>() {
+                @Override
+                public void onResponse(Call<List<Tour>> call, Response<List<Tour>> response) {
+                    if (tempFile.exists()) tempFile.delete();
+
+                    if (response.isSuccessful() && response.body() != null) {
+                        List<Tour> tours = response.body();
+                        handleSearchResults("Tìm kiếm bằng hình ảnh", tours);
+                    } else {
+                        Toast.makeText(getContext(), "Không tìm thấy tour phù hợp", Toast.LENGTH_SHORT).show();
+                        handleSearchResults("Tìm kiếm bằng hình ảnh", new ArrayList<>());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<Tour>> call, Throwable t) {
+                    if (tempFile.exists()) tempFile.delete();
+                    Log.e("SEARCH_DEST", "Lỗi visual search: " + t.getMessage(), t);
+                    Toast.makeText(getContext(), "Lỗi kết nối máy chủ: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Lỗi xử lý ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

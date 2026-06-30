@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -33,7 +34,7 @@ public class Home extends Fragment {
     private int selectedMonth = java.util.Calendar.MAY;
     private int selectedYear = 2026;
 
-    private TourAdapter adapterUuDai, adapterMienBac, adapterMienTrung, adapterMienNam;
+    private TourAdapter adapterUuDai, adapterMienBac, adapterMienTrung, adapterMienNam, adapterRecommendations;
     private HomeVoucherAdapter voucherAdapter;
 
     @Nullable
@@ -118,27 +119,34 @@ public class Home extends Fragment {
 
         // --- Setup RecyclerViews ---
         RecyclerView rvUuDai = view.findViewById(R.id.rvTourUuDai);
+        RecyclerView rvRecommendations = view.findViewById(R.id.rvTourRecommendations);
         RecyclerView rvMienBac = view.findViewById(R.id.rvTourMienBac);
         RecyclerView rvMienTrung = view.findViewById(R.id.rvTourMienTrung);
         RecyclerView rvMienNam = view.findViewById(R.id.rvTourMienNam);
 
         adapterUuDai = new TourAdapter(new ArrayList<>(), this::openDetail);
+        adapterRecommendations = new TourAdapter(new ArrayList<>(), this::openDetail);
         adapterMienBac = new TourAdapter(new ArrayList<>(), this::openDetail);
         adapterMienTrung = new TourAdapter(new ArrayList<>(), this::openDetail);
         adapterMienNam = new TourAdapter(new ArrayList<>(), this::openDetail);
 
         setupRecyclerView(rvUuDai, adapterUuDai);
+        setupRecyclerView(rvRecommendations, adapterRecommendations);
         setupRecyclerView(rvMienBac, adapterMienBac);
         setupRecyclerView(rvMienTrung, adapterMienTrung);
         setupRecyclerView(rvMienNam, adapterMienNam);
+
+        // Setup scroll buttons for each section
+        setupScrollButton(view, R.id.btnMoreTours, rvUuDai, adapterUuDai);
+        setupScrollButton(view, R.id.btnMoreRecommendTours, rvRecommendations, adapterRecommendations);
+        setupScrollButton(view, R.id.btnMoreNorthernTours, rvMienBac, adapterMienBac);
+        setupScrollButton(view, R.id.btnMoreCentralTours, rvMienTrung, adapterMienTrung);
+        setupScrollButton(view, R.id.btnMoreSouthernTours, rvMienNam, adapterMienNam);
 
         // --- Setup Voucher Section ---
         RecyclerView rvHomeVouchers = view.findViewById(R.id.rvHomeVouchers);
         android.content.SharedPreferences sessionPrefs = requireContext().getSharedPreferences("UserSession", android.content.Context.MODE_PRIVATE);
         String currentContact = sessionPrefs.getString("current_user_contact", "");
-        if (currentContact.isEmpty()) {
-            currentContact = new DatabaseHelper(requireContext()).getLastUserContact();
-        }
         final String finalUserContact = currentContact;
         final List<VoucherHelper.AppVoucher> availableVouchers = new ArrayList<>(VoucherHelper.getAvailableVouchers());
 
@@ -232,7 +240,17 @@ public class Home extends Fragment {
                         }
                     }
 
+                    // Gợi ý cho bạn: sắp xếp danh sách tất cả các tour theo views giảm dần
+                    List<Tour> listRecommend = new ArrayList<>(all);
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION.SDK_INT) {
+                        listRecommend.sort((t1, t2) -> Integer.compare(t2.getViews(), t1.getViews()));
+                    } else {
+                        java.util.Collections.sort(listRecommend, (t1, t2) -> Integer.compare(t2.getViews(), t1.getViews()));
+                    }
+                    List<Tour> topRecommend = listRecommend.stream().limit(6).collect(Collectors.toList());
+
                     adapterUuDai.updateData(listUuDai);
+                    adapterRecommendations.updateData(topRecommend);
                     adapterMienBac.updateData(listMienBac);
                     adapterMienTrung.updateData(listMienTrung);
                     adapterMienNam.updateData(listMienNam);
@@ -264,7 +282,10 @@ public class Home extends Fragment {
                               final HomeVoucherAdapter homeAdapter,
                               final DetailVoucherAdapter detailAdapter) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-        apiService.getVouchers().enqueue(new Callback<List<VoucherHelper.AppVoucher>>() {
+        android.content.SharedPreferences prefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+        int currentUserId = prefs.getInt("current_user_id", -1);
+        Integer userIdParam = (currentUserId == -1) ? null : currentUserId;
+        apiService.getVouchers(userIdParam, null).enqueue(new Callback<List<VoucherHelper.AppVoucher>>() {
             @Override
             public void onResponse(Call<List<VoucherHelper.AppVoucher>> call, Response<List<VoucherHelper.AppVoucher>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -288,5 +309,25 @@ public class Home extends Fragment {
                 Log.e("DJANGO_API", "Lỗi tải voucher từ API: " + t.getMessage());
             }
         });
+    }
+
+    private void setupScrollButton(View view, int buttonId, RecyclerView rv, TourAdapter adapter) {
+        View btn = view.findViewById(buttonId);
+        if (btn != null && rv != null && adapter != null) {
+            btn.setOnClickListener(v -> {
+                if (rv.getLayoutManager() instanceof LinearLayoutManager) {
+                    LinearLayoutManager lm = (LinearLayoutManager) rv.getLayoutManager();
+                    int totalItems = adapter.getItemCount();
+                    if (totalItems > 0) {
+                        int lastVisible = lm.findLastVisibleItemPosition();
+                        if (lastVisible < totalItems - 1) {
+                            rv.smoothScrollToPosition(lastVisible + 1);
+                        } else {
+                            rv.smoothScrollToPosition(0);
+                        }
+                    }
+                }
+            });
+        }
     }
 }

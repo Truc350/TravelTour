@@ -12,7 +12,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import com.example.myapplication.data.model.VoucherHelper;
+import com.example.myapplication.data.remote.ApiService;
+import com.example.myapplication.data.remote.RetrofitClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import java.util.List;
 
@@ -54,7 +61,7 @@ public class DetailVoucherAdapter extends RecyclerView.Adapter<DetailVoucherAdap
         }
 
         // Check if voucher is already saved by the user
-        boolean isSaved = VoucherHelper.isVoucherSaved(context, userContact, item.code);
+        boolean isSaved = item.isSaved;
         if (isSaved) {
             holder.btnVoucherAction.setText("Đã lưu");
             holder.btnVoucherAction.setEnabled(false);
@@ -66,11 +73,41 @@ public class DetailVoucherAdapter extends RecyclerView.Adapter<DetailVoucherAdap
             holder.btnVoucherAction.setBackgroundResource(R.drawable.bg_pref_selected);
             holder.btnVoucherAction.setTextColor(Color.WHITE);
             holder.btnVoucherAction.setOnClickListener(v -> {
-                VoucherHelper.saveVoucher(context, userContact, item.code);
-                Toast.makeText(context, "Đã lưu voucher: " + item.code + " vào ví!", Toast.LENGTH_SHORT).show();
-                if (saveListener != null) {
-                    saveListener.onVoucherSaved(item.code);
+                SharedPreferences prefs = context.getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+                int currentUserId = prefs.getInt("current_user_id", -1);
+                if (currentUserId == -1) {
+                    Toast.makeText(context, "Vui lòng đăng nhập để lưu voucher!", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(context, LoginActivity.class);
+                    context.startActivity(intent);
+                    return;
                 }
+
+                holder.btnVoucherAction.setEnabled(false);
+                ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+                java.util.Map<String, Object> body = new java.util.HashMap<>();
+                body.put("user", currentUserId);
+                body.put("voucher", item.id);
+                apiService.saveUserVoucher(body).enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        if (response.isSuccessful()) {
+                            item.isSaved = true;
+                            Toast.makeText(context, "Đã lưu voucher: " + item.code + " vào voucher của tôi!", Toast.LENGTH_SHORT).show();
+                            if (saveListener != null) {
+                                saveListener.onVoucherSaved(item.code);
+                            }
+                        } else {
+                            holder.btnVoucherAction.setEnabled(true);
+                            Toast.makeText(context, "Lưu voucher thất bại!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        holder.btnVoucherAction.setEnabled(true);
+                        Toast.makeText(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
             });
         }
     }

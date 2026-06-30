@@ -48,6 +48,10 @@ public class Account extends Fragment {
             startActivity(new Intent(requireContext(), ProfileActivity.class));
         });
 
+        view.findViewById(R.id.btnMyInvoices).setOnClickListener(v -> {
+            startActivity(new Intent(requireContext(), InvoiceListActivity.class));
+        });
+
         view.findViewById(R.id.btnPassengerInfo).setOnClickListener(v -> {
             // Xử lý khi nhấn "Thông tin hành khách" -> Chuyển sang màn hình PassengerList
             requireActivity().getSupportFragmentManager().beginTransaction()
@@ -81,13 +85,7 @@ public class Account extends Fragment {
         });
 
         view.findViewById(R.id.btnZaloSupport).setOnClickListener(v -> {
-            try {
-                android.net.Uri uri = android.net.Uri.parse("https://zalo.me/0858342303");
-                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                startActivity(intent);
-            } catch (Exception e) {
-                android.widget.Toast.makeText(requireContext(), "Không thể mở Zalo. Vui lòng cài đặt ứng dụng Zalo!", android.widget.Toast.LENGTH_SHORT).show();
-            }
+            startActivity(new Intent(requireContext(), ChatbotActivity.class));
         });
 
         view.findViewById(R.id.btnTerms).setOnClickListener(v -> {
@@ -117,8 +115,8 @@ public class Account extends Fragment {
                                 .edit()
                                 .clear()
                                 .apply();
-                        // Chuyển sang LoginActivity và xóa toàn bộ back stack
-                        Intent intent = new Intent(requireActivity(), LoginActivity.class);
+                        // Chuyển sang MainActivity (về trạng thái khách) và xóa toàn bộ back stack
+                        Intent intent = new Intent(requireActivity(), MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
                     })

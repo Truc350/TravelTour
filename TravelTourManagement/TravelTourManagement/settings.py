@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-3iq^z(ar@ex#8ukixxpota86!m36im^gcvpeusnb0fg1kqfj+^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.0.2.2', 'localhost', '127.0.0.1','10.111.30.186']
+ALLOWED_HOSTS = ['10.0.2.2', 'localhost', '127.0.0.1', '10.111.30.186', '10.51.180.232']
 
 
 # Application definition
@@ -124,4 +124,16 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Email SMTP Settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'tourt7396@gmail.com'
+EMAIL_HOST_PASSWORD = 'lixl rhhw sfjx kfdi'
+
+# Cấu hình Gemini API Key
+GEMINI_API_KEY = "AQ.Ab8RN6LlCfwg7uUryFcWKZJY2caWALNTPWPj3Q_cNU5NRWsF-Q"
+
 

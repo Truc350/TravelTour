@@ -485,18 +485,7 @@
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
-                    <TextView
-                        android:id="@+id/tvViewAll"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:text="Xem tất cả"
-                        android:textColor="#495057"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:clickable="true"
-                        android:focusable="true" />
+
                 </RelativeLayout>
 
                 <!-- Container cho lịch trình động -->
@@ -880,6 +869,7 @@
                     android:focusable="true">
 
                     <TextView
+                        android:id="@+id/tvDepartureDateSticky"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Khởi hành 28/05"
