@@ -96,6 +96,12 @@ public class DetailTour extends Fragment {
         // Thiết lập sự kiện nút yêu thích
         setupFavoriteButton();
 
+        // Thiết lập sự kiện nút chia sẻ
+        View btnShare = view.findViewById(R.id.btnShare);
+        if (btnShare != null) {
+            btnShare.setOnClickListener(v -> showShareDialog());
+        }
+
         // SỬA: luôn nạp dữ liệu demo theo tourType trước (nếu có) để UI không trống trong lúc
         // chờ API, sau đó tải tour thật (đầy đủ departures/itineraries/images) theo tourIdArg
         // hoặc tourType, rồi bindTourData() sẽ ghi đè lại với dữ liệu thật.
@@ -1283,6 +1289,53 @@ public class DetailTour extends Fragment {
             if (rating <= 2) return "Tiêu cực";
             return "Trung lập";
         }
+    }
+
+    private void showShareDialog() {
+        if (getActivity() == null) return;
+        if (tour == null) {
+            Toast.makeText(requireContext(), "Vui lòng đợi tải thông tin tour!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_share, null);
+        builder.setView(dialogView);
+
+        TextView tvShareTourName = dialogView.findViewById(R.id.tvShareTourName);
+        TextView tvShareLink = dialogView.findViewById(R.id.tvShareLink);
+        View btnShareCancel = dialogView.findViewById(R.id.btnShareCancel);
+        View btnShareCopy = dialogView.findViewById(R.id.btnShareCopy);
+
+        if (tvShareTourName != null) {
+            tvShareTourName.setText(tour.getTitle());
+        }
+
+        final String shareUrl = "https://traveltour.com/tours/" + tour.getId();
+        if (tvShareLink != null) {
+            tvShareLink.setText(shareUrl);
+        }
+
+        android.app.AlertDialog shareDialog = builder.create();
+
+        if (btnShareCancel != null) {
+            btnShareCancel.setOnClickListener(v -> shareDialog.dismiss());
+        }
+
+        if (btnShareCopy != null) {
+            btnShareCopy.setOnClickListener(v -> {
+                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                android.content.ClipData clip = android.content.ClipData.newPlainText("Tour Link", shareUrl);
+                if (clipboard != null) {
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(requireContext(), "Đã sao chép liên kết vào bộ nhớ tạm!", Toast.LENGTH_SHORT).show();
+                }
+                shareDialog.dismiss();
+            });
+        }
+
+        shareDialog.show();
     }
 
 }
