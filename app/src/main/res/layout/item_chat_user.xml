@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Item bong bóng chat của User (phải) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="end"
+    android:layout_marginBottom="10dp"
+    android:layout_marginStart="60dp">
+
+    <!-- Bong bóng chat người dùng -->
+    <TextView
+        android:id="@+id/tvUserMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_chip_selected"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:lineSpacingMultiplier="1.4"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:maxWidth="260dp" />
+
+    <!-- Timestamp -->
+    <TextView
+        android:id="@+id/tvUserTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#AAAAAA"
+        android:textSize="10sp"
+        android:layout_marginTop="3dp" />
+
+</LinearLayout>

@@ -294,7 +294,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- ==================== GROUP CARD 3: HỖ TRỢ ZALO ==================== -->
+        <!-- ==================== GROUP CARD 3: CHATBOT CHĂM SÓC KHÁCH HÀNG ==================== -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -308,7 +308,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Mục: Hỗ trợ qua Zalo -->
+                <!-- Mục: Chatbot chăm sóc khách hàng -->
                 <LinearLayout
                     android:id="@+id/btnZaloSupport"
                     android:layout_width="match_parent"
@@ -324,14 +324,14 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/ic_zalo"
+                        android:src="@drawable/ic_chatbot"
                         android:layout_marginEnd="16dp" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Hỗ trợ qua Zalo ChillTour"
+                        android:text="Chatbot chăm sóc khách hàng"
                         android:textColor="#185FA5"
                         android:textStyle="bold"
                         android:textSize="16sp" />

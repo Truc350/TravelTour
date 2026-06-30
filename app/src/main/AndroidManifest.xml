@@ -73,6 +73,12 @@
 
 
 
+        <!-- Màn hình Chatbot chăm sóc khách hàng -->
+        <activity
+            android:name=".ChatbotActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- Màn hình chính MainActivity -->
         <activity
             android:name=".MainActivity"

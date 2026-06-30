@@ -1,0 +1,31 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Bot head (rounded rectangle) -->
+    <path
+        android:fillColor="#185FA5"
+        android:pathData="M12,2 C8.686,2 6,4.686 6,8 L6,8.5 C4.343,8.5 3,9.843 3,11.5 L3,12.5 C3,14.157 4.343,15.5 6,15.5 L6,16 C6,19.314 8.686,22 12,22 C15.314,22 18,19.314 18,16 L18,15.5 C19.657,15.5 21,14.157 21,12.5 L21,11.5 C21,9.843 19.657,8.5 18,8.5 L18,8 C18,4.686 15.314,2 12,2 Z" />
+    <!-- Eyes -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M9,11 C9.552,11 10,11.448 10,12 C10,12.552 9.552,13 9,13 C8.448,13 8,12.552 8,12 C8,11.448 8.448,11 9,11 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M15,11 C15.552,11 16,11.448 16,12 C16,12.552 15.552,13 15,13 C14.448,13 14,12.552 14,12 C14,11.448 14.448,11 15,11 Z" />
+    <!-- Smile -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M9.5,15 Q12,17 14.5,15" />
+    <!-- Antenna -->
+    <path
+        android:fillColor="#185FA5"
+        android:pathData="M12,0.5 C12.552,0.5 13,0.948 13,1.5 L13,2.5 L11,2.5 L11,1.5 C11,0.948 11.448,0.5 12,0.5 Z" />
+    <path
+        android:fillColor="#185FA5"
+        android:pathData="M12,0 C12.828,0 13.5,0.672 13.5,1.5 C13.5,2.328 12.828,3 12,3 C11.172,3 10.5,2.328 10.5,1.5 C10.5,0.672 11.172,0 12,0 Z" />
+</vector>

@@ -85,13 +85,7 @@ public class Account extends Fragment {
         });
 
         view.findViewById(R.id.btnZaloSupport).setOnClickListener(v -> {
-            try {
-                android.net.Uri uri = android.net.Uri.parse("https://zalo.me/0858342303");
-                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                startActivity(intent);
-            } catch (Exception e) {
-                android.widget.Toast.makeText(requireContext(), "Không thể mở Zalo. Vui lòng cài đặt ứng dụng Zalo!", android.widget.Toast.LENGTH_SHORT).show();
-            }
+            startActivity(new Intent(requireContext(), ChatbotActivity.class));
         });
 
         view.findViewById(R.id.btnTerms).setOnClickListener(v -> {
