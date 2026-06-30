@@ -16,7 +16,7 @@ class OllamaLLMEngine:
         
         # Khởi tạo client Ollama với host tuỳ chỉnh
         self.client = ollama.Client(host=self.host)
-        print(f"[LLM Engine] Initializing Ollama Client with model: {self.model_name}, host: {self.host}")
+        print(f"[LLM Engine] Khởi tạo Ollama Client với model: {self.model_name}, host: {self.host}")
 
     def generate_response(self, system_instruction: str, messages: list, temperature: float = 0.3) -> str:
         """
@@ -56,11 +56,11 @@ class OllamaLLMEngine:
             
         except Exception as e:
             logger.error(f"[LLM Engine] Lỗi kết nối Ollama: {e}")
-            print(f"[LLM Engine] Ollama connection error: {e}")
+            print(f"[LLM Engine] Lỗi kết nối Ollama: {e}")
             
             # Thử gọi fallback model nhẹ hơn (ví dụ: qwen2.5:0.5b hoặc qwen2.5:7b) nếu qwen3:8b không có sẵn
             if "not found" in str(e).lower() and self.model_name != "qwen2.5:7b":
-                print(f"[LLM Engine] Model {self.model_name} not found. Trying fallback to qwen2.5:7b...")
+                print(f"[LLM Engine] Model {self.model_name} không tìm thấy. Thử fallback sang qwen2.5:7b...")
                 try:
                     self.model_name = "qwen2.5:7b"
                     response = self.client.chat(
@@ -70,6 +70,6 @@ class OllamaLLMEngine:
                     )
                     return response['message']['content'].strip()
                 except Exception as ex:
-                    print(f"[LLM Engine] Fallback error: {ex}")
+                    print(f"[LLM Engine] Lỗi fallback: {ex}")
             
             return "Tôi không thể kết nối tới máy chủ trí tuệ nhân tạo (Ollama). Vui lòng kiểm tra lại dịch vụ Ollama."
