@@ -136,6 +136,13 @@ public class Home extends Fragment {
         setupRecyclerView(rvMienTrung, adapterMienTrung);
         setupRecyclerView(rvMienNam, adapterMienNam);
 
+        // Setup scroll buttons for each section
+        setupScrollButton(view, R.id.btnMoreTours, rvUuDai, adapterUuDai);
+        setupScrollButton(view, R.id.btnMoreRecommendTours, rvRecommendations, adapterRecommendations);
+        setupScrollButton(view, R.id.btnMoreNorthernTours, rvMienBac, adapterMienBac);
+        setupScrollButton(view, R.id.btnMoreCentralTours, rvMienTrung, adapterMienTrung);
+        setupScrollButton(view, R.id.btnMoreSouthernTours, rvMienNam, adapterMienNam);
+
         // --- Setup Voucher Section ---
         RecyclerView rvHomeVouchers = view.findViewById(R.id.rvHomeVouchers);
         android.content.SharedPreferences sessionPrefs = requireContext().getSharedPreferences("UserSession", android.content.Context.MODE_PRIVATE);
@@ -302,5 +309,25 @@ public class Home extends Fragment {
                 Log.e("DJANGO_API", "Lỗi tải voucher từ API: " + t.getMessage());
             }
         });
+    }
+
+    private void setupScrollButton(View view, int buttonId, RecyclerView rv, TourAdapter adapter) {
+        View btn = view.findViewById(buttonId);
+        if (btn != null && rv != null && adapter != null) {
+            btn.setOnClickListener(v -> {
+                if (rv.getLayoutManager() instanceof LinearLayoutManager) {
+                    LinearLayoutManager lm = (LinearLayoutManager) rv.getLayoutManager();
+                    int totalItems = adapter.getItemCount();
+                    if (totalItems > 0) {
+                        int lastVisible = lm.findLastVisibleItemPosition();
+                        if (lastVisible < totalItems - 1) {
+                            rv.smoothScrollToPosition(lastVisible + 1);
+                        } else {
+                            rv.smoothScrollToPosition(0);
+                        }
+                    }
+                }
+            });
+        }
     }
 }

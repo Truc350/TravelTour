@@ -657,6 +657,19 @@ public class MyTripsFragment extends Fragment {
         int currentUserId = prefs.getInt("current_user_id", 1);
         int tourId = item.tourId > 0 ? item.tourId : 1;
 
+        // Đếm số lần đặt tour này (trong lịch sử)
+        int completedBookingsCount = 0;
+        for (BookedTripAdapter.TripItem t : allTrips) {
+            if (t.tourId == tourId && t.isHistory) {
+                completedBookingsCount++;
+            }
+        }
+        if (completedBookingsCount == 0) {
+            completedBookingsCount = 1;
+        }
+
+        final int finalCompletedBookingsCount = completedBookingsCount;
+
         // Hiển thị tiến trình kiểm tra
         android.app.ProgressDialog checkProgress = new android.app.ProgressDialog(getContext());
         checkProgress.setMessage("Đang kiểm tra lịch sử đánh giá...");
@@ -669,14 +682,13 @@ public class MyTripsFragment extends Fragment {
             public void onResponse(Call<List<com.example.myapplication.data.model.Review>> call, Response<List<com.example.myapplication.data.model.Review>> response) {
                 checkProgress.dismiss();
                 if (response.isSuccessful() && response.body() != null) {
-                    boolean alreadyRated = false;
+                    int reviewCount = 0;
                     for (com.example.myapplication.data.model.Review r : response.body()) {
                         if (r.getUserId() == currentUserId && r.getTourId() == tourId) {
-                            alreadyRated = true;
-                            break;
+                            reviewCount++;
                         }
                     }
-                    if (alreadyRated) {
+                    if (reviewCount >= finalCompletedBookingsCount) {
                         Toast.makeText(getContext(), "Bạn đã đánh giá tour này rồi! Không thể đánh giá thêm.", Toast.LENGTH_LONG).show();
                     } else {
                         displayRatingDialog(item);
