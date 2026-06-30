@@ -41,6 +41,7 @@ public class ChatbotActivity extends AppCompatActivity {
     // ─── Constants ───────────────────────────────────────────────────────────
     private static final int TYPE_BOT  = 0;
     private static final int TYPE_USER = 1;
+    private static final int TYPE_TOUR = 2; // Loại tin nhắn chứa thẻ Tour Card trực quan
 
     // ─── Views ────────────────────────────────────────────────────────────────
     private RecyclerView     recyclerChat;
@@ -177,9 +178,6 @@ public class ChatbotActivity extends AppCompatActivity {
     // ─── Chat logic ───────────────────────────────────────────────────────────
     // Session ID duy nhất để ghi nhớ lịch sử hội thoại trong phiên
     private String chatSessionId = null;
-    private static final int TYPE_BOT  = 0;
-    private static final int TYPE_USER = 1;
-    private static final int TYPE_TOUR = 2; // Loại tin nhắn chứa thẻ Tour Card trực quan
 
     private void sendMessage(String text) {
         addMessage(new ChatMessage(text, TYPE_USER, now()));

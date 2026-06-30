@@ -11,7 +11,7 @@ class TourRAGEngine:
     TourRAGEngine quản lý việc tạo Vector Embedding bằng model BAAI/bge-m3 
     và thực hiện tìm kiếm ngữ nghĩa (semantic search) bằng FAISS.
     """
-    def __init__(self, model_name="BAAI/bge-m3", index_dir=None):
+    def __init__(self, model_name="paraphrase-multilingual-MiniLM-L12-v2", index_dir=None):
         self.model_name = model_name
         self.index_dir = index_dir or os.path.join(settings.BASE_DIR, "faiss_tour_index")
         self.index_path = os.path.join(self.index_dir, "tour_faiss.index")
