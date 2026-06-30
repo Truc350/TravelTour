@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 
 
 class Tour(models.Model):
@@ -266,6 +267,91 @@ class UserBehavior(models.Model):
 
 
 
+# ============================================================
+# CHATBOT MODELS – Lưu trữ lịch sử hội thoại AI Chatbot
+# ============================================================
+
+class ChatSession(models.Model):
+    """
+    Đại diện cho một phiên trò chuyện với chatbot.
+    
+    Mỗi phiên có một session_id duy nhất (UUID) để Android có thể
+    duy trì context mà không cần đăng nhập bắt buộc.
+    
+    Attributes:
+        session_id: UUID duy nhất, được tạo tự động, dùng làm khóa từ client
+        user: Tùy chọn liên kết với tài khoản User đăng nhập
+        created_at: Thời điểm bắt đầu phiên chat
+        updated_at: Thời điểm tin nhắn cuối cùng được ghi
+    """
+    session_id = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        db_index=True,
+        editable=False,
+        help_text="UUID duy nhất định danh phiên chat, gửi từ client"
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='chat_sessions',
+        help_text="Người dùng (nếu đã đăng nhập)"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'chat_sessions'
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        user_info = self.user.name if self.user else "Anonymous"
+        return f"ChatSession [{self.session_id}] – {user_info}"
+
+
+class ChatMessage(models.Model):
+    """
+    Lưu từng tin nhắn trong một phiên trò chuyện.
+    
+    Attributes:
+        session: Phiên chat chứa tin nhắn này
+        role: 'user' (người dùng gửi) hoặc 'assistant' (chatbot trả lời)
+        content: Nội dung tin nhắn
+        timestamp: Thời điểm tin nhắn được tạo
+    """
+    ROLE_CHOICES = [
+        ('user', 'Người dùng'),
+        ('assistant', 'Chatbot'),
+    ]
+
+    session = models.ForeignKey(
+        ChatSession,
+        on_delete=models.CASCADE,
+        related_name='messages',
+        help_text="Phiên chat chứa tin nhắn này"
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        help_text="'user' hoặc 'assistant'"
+    )
+    content = models.TextField(
+        help_text="Nội dung tin nhắn"
+    )
+    timestamp = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Thời điểm tin nhắn được tạo"
+    )
+
+    class Meta:
+        db_table = 'chat_messages'
+        ordering = ['timestamp']  # Hiển thị theo thứ tự thời gian tăng dần
+
+    def __str__(self):
+        preview = self.content[:50] + "..." if len(self.content) > 50 else self.content
+        return f"[{self.role.upper()}] {preview}"
 
 
 

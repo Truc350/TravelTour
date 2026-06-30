@@ -24,8 +24,18 @@ from .views import (
     UserBehaviorListCreateAPIView,
     VisualSearchAPIView,
 )
+from .chatbot_views import (
+    ChatbotAPIView,
+    ChatHistoryAPIView,
+    ChatSessionDeleteAPIView,
+)
 
 urlpatterns = [
+    # AI Chatbot API endpoints
+    path('chatbot/chat/', ChatbotAPIView.as_view(), name='chatbot-chat'),
+    path('chatbot/history/<str:session_id>/', ChatHistoryAPIView.as_view(), name='chatbot-history'),
+    path('chatbot/session/<str:session_id>/', ChatSessionDeleteAPIView.as_view(), name='chatbot-session-delete'),
+
     path('tours/visual-search/', VisualSearchAPIView.as_view(), name='tour-visual-search'),
     path('tours/', TourListAPIView.as_view(), name='tour-list'),
     path('users/', UserListCreateAPIView.as_view(), name='user-list-create'),

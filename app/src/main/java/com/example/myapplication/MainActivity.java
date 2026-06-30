@@ -69,6 +69,19 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigation.setSelectedItemId(R.id.nav_home);
         }
 
+        // Hỗ trợ mở chi tiết tour từ Chatbot Activity
+        int openTourId = getIntent().getIntExtra("open_tour_id", -1);
+        if (openTourId != -1) {
+            DetailTour detailFragment = new DetailTour();
+            Bundle args = new Bundle();
+            args.putInt("tour_id", openTourId);
+            detailFragment.setArguments(args);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.contentFrame, detailFragment)
+                    .addToBackStack(null)
+                    .commit();
+        }
+
         // Xử lý deep link khi mở ứng dụng từ thông báo
         handleDeepLink(getIntent());
 

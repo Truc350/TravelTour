@@ -175,12 +175,51 @@ public class ChatbotActivity extends AppCompatActivity {
     }
 
     // ─── Chat logic ───────────────────────────────────────────────────────────
+    // Session ID duy nhất để ghi nhớ lịch sử hội thoại trong phiên
+    private String chatSessionId = null;
+    private static final int TYPE_BOT  = 0;
+    private static final int TYPE_USER = 1;
+    private static final int TYPE_TOUR = 2; // Loại tin nhắn chứa thẻ Tour Card trực quan
+
     private void sendMessage(String text) {
         addMessage(new ChatMessage(text, TYPE_USER, now()));
-        handler.postDelayed(() -> {
-            String reply = generateReply(text);
-            addMessage(new ChatMessage(reply, TYPE_BOT, now()));
-        }, 800);
+        
+        // Gọi API Chatbot lên Django Server
+        ApiService api = RetrofitClient.getClient().create(ApiService.class);
+        android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+        int currentUserId = prefs.getInt("current_user_id", -1);
+        Integer userIdParam = (currentUserId == -1) ? null : currentUserId;
+
+        com.example.myapplication.data.model.ChatbotRequest request = 
+                new com.example.myapplication.data.model.ChatbotRequest(text, chatSessionId, userIdParam);
+
+        api.chatWithBot(request).enqueue(new Callback<com.example.myapplication.data.model.ChatbotResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<com.example.myapplication.data.model.ChatbotResponse> call,
+                                   @NonNull Response<com.example.myapplication.data.model.ChatbotResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    com.example.myapplication.data.model.ChatbotResponse body = response.body();
+                    chatSessionId = body.getSessionId(); // Lưu session_id để duy trì ngữ cảnh các tin nhắn sau
+
+                    // Thêm câu trả lời văn bản từ chatbot
+                    addMessage(new ChatMessage(body.getResponse(), TYPE_BOT, now()));
+
+                    // Nếu có tour được đề xuất phù hợp, hiển thị dưới dạng thẻ card
+                    if (body.getTours() != null && !body.getTours().isEmpty()) {
+                        for (Tour tour : body.getTours()) {
+                            addMessage(new ChatMessage(tour, TYPE_TOUR, now()));
+                        }
+                    }
+                } else {
+                    addMessage(new ChatMessage("Xin lỗi, tôi gặp sự cố khi xử lý câu hỏi này. Bạn vui lòng thử lại nhé!", TYPE_BOT, now()));
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<com.example.myapplication.data.model.ChatbotResponse> call, @NonNull Throwable t) {
+                addMessage(new ChatMessage("Không thể kết nối đến trợ lý ảo. Vui lòng kiểm tra lại kết nối mạng.", TYPE_BOT, now()));
+            }
+        });
     }
 
     private void addMessage(ChatMessage msg) {
@@ -197,270 +236,25 @@ public class ChatbotActivity extends AppCompatActivity {
         return new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
     }
 
-    // ─── Reply engine ─────────────────────────────────────────────────────────
-    private String generateReply(String input) {
-        String q = input.toLowerCase().trim();
-
-        // Chào hỏi
-        if (matches(q, "xin chào", "hello", "hi", "chào", "hey", "alo")) {
-            return "Xin chào! 😊 Tôi là ChillBot.\nBạn muốn biết thông tin về tour nào? "
-                    + "Hãy hỏi tôi về tên tour, giá cả, vùng miền hoặc đánh giá nhé!";
-        }
-
-        // Không có dữ liệu
-        if (!toursLoaded || tourList.isEmpty()) {
-            return "Đang tải dữ liệu tour, vui lòng thử lại sau giây lát... ⏳";
-        }
-
-        // Tour theo vùng miền
-        if (matches(q, "miền bắc", "mien bac", "bắc", "hà nội", "ha noi", "hạ long", "ha long", "sapa", "sa pa")) {
-            return getToursByRegion("Miền Bắc");
-        }
-        if (matches(q, "miền trung", "mien trung", "trung", "đà nẵng", "da nang", "huế", "hue", "nha trang")) {
-            return getToursByRegion("Miền Trung");
-        }
-        if (matches(q, "miền nam", "mien nam", "nam", "hồ chí minh", "hcm", "phú quốc", "phu quoc", "miền tây", "mien tay")) {
-            return getToursByRegion("Miền Nam");
-        }
-        if (matches(q, "nước ngoài", "nuoc ngoai", "quốc tế", "quoc te", "singapore", "đài loan", "dai loan", "thai lan", "thái lan", "nhật", "nhat", "hàn", "han")) {
-            return getToursByRegion("Quốc tế");
-        }
-
-        // Tour rẻ nhất
-        if (matches(q, "rẻ nhất", "re nhat", "giá rẻ", "gia re", "rẻ", "re", "thấp nhất", "thap nhat")) {
-            return getCheapestTours();
-        }
-
-        // Tour đánh giá cao
-        if (matches(q, "đánh giá cao", "danh gia cao", "tốt nhất", "tot nhat", "rating", "điểm cao", "diem cao", "nổi bật", "noi bat", "hot", "phổ biến")) {
-            return getTopRatedTours();
-        }
-
-        // Giá tour
-        if (matches(q, "giá", "gia", "giá tiền", "gia tien", "bao nhiêu tiền", "bao nhieu tien", "cost", "price")) {
-            return getTourPriceInfo(q);
-        }
-
-        // Tất cả tour / danh sách
-        if (matches(q, "tất cả", "tat ca", "danh sách", "danh sach", "list", "có những tour", "co nhung tour", "các tour", "cac tour")) {
-            return getAllToursOverview();
-        }
-
-        // Hỏi về mô tả / thông tin
-        if (matches(q, "mô tả", "mo ta", "thông tin", "thong tin", "giới thiệu", "gioi thieu", "chi tiết", "chi tiet", "describe")) {
-            return getTourDescription(q);
-        }
-
-        // Hỏi cụ thể tên tour → tìm kiếm theo keyword
-        Tour found = findTourByKeyword(q);
-        if (found != null) {
-            return buildTourDetail(found);
-        }
-
-        // Fallback
-        return "Tôi chưa tìm thấy thông tin phù hợp với câu hỏi của bạn.\n\n"
-                + "Thử hỏi tôi:\n"
-                + "• \"Tour miền Bắc có gì?\"\n"
-                + "• \"Tour nào giá rẻ nhất?\"\n"
-                + "• \"Tour Phú Quốc thông tin?\"\n"
-                + "• \"Tour đánh giá cao nhất?\"";
-    }
-
-    // ─── Tour query methods ───────────────────────────────────────────────────
-
-    /** Tìm tour theo vùng miền và trả về danh sách */
-    private String getToursByRegion(String regionKeyword) {
-        List<Tour> filtered = new ArrayList<>();
-        for (Tour t : tourList) {
-            String region = t.getRegion() != null ? t.getRegion() : "";
-            String title  = t.getTitle()  != null ? t.getTitle()  : "";
-            if (region.toLowerCase().contains(regionKeyword.toLowerCase())
-                    || title.toLowerCase().contains(regionKeyword.toLowerCase())) {
-                filtered.add(t);
-            }
-        }
-        if (filtered.isEmpty()) {
-            return "Hiện tại ChillTour chưa có tour " + regionKeyword + " trong hệ thống.";
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append("🗺️ Tour ").append(regionKeyword).append(" hiện có:\n\n");
-        int count = Math.min(filtered.size(), 5);
-        for (int i = 0; i < count; i++) {
-            Tour t = filtered.get(i);
-            sb.append("• ").append(t.getTitle()).append("\n");
-            sb.append("  💰 ").append(formatPrice(t.getDiscountPrice())).append("\n");
-            sb.append("  ⭐ ").append(t.getRatingScore()).append(" (").append(t.getReviewsCount()).append(" đánh giá)\n\n");
-        }
-        if (filtered.size() > 5) {
-            sb.append("... và ").append(filtered.size() - 5).append(" tour khác.\n\n");
-        }
-        sb.append("Bạn muốn biết chi tiết tour nào? Hỏi tôi tên tour nhé!");
-        return sb.toString();
-    }
-
-    /** Tour giá rẻ nhất */
-    private String getCheapestTours() {
-        if (tourList.isEmpty()) return "Không có dữ liệu tour.";
-        List<Tour> sorted = new ArrayList<>(tourList);
-        sorted.sort((a, b) -> Double.compare(
-                a.getDiscountPrice() > 0 ? a.getDiscountPrice() : a.getOriginalPrice(),
-                b.getDiscountPrice() > 0 ? b.getDiscountPrice() : b.getOriginalPrice()));
-
-        StringBuilder sb = new StringBuilder("💰 Top 5 tour giá rẻ nhất tại ChillTour:\n\n");
-        int count = Math.min(sorted.size(), 5);
-        for (int i = 0; i < count; i++) {
-            Tour t = sorted.get(i);
-            double price = t.getDiscountPrice() > 0 ? t.getDiscountPrice() : t.getOriginalPrice();
-            sb.append(i + 1).append(". ").append(t.getTitle()).append("\n");
-            sb.append("   💵 ").append(formatPrice(price)).append("/người\n\n");
-        }
-        sb.append("Hỏi tôi tên tour để biết thêm chi tiết!");
-        return sb.toString();
-    }
-
-    /** Tour đánh giá cao nhất */
-    private String getTopRatedTours() {
-        if (tourList.isEmpty()) return "Không có dữ liệu tour.";
-        List<Tour> sorted = new ArrayList<>(tourList);
-        sorted.sort((a, b) -> Double.compare(b.getRatingScore(), a.getRatingScore()));
-
-        StringBuilder sb = new StringBuilder("⭐ Top 5 tour được đánh giá cao nhất:\n\n");
-        int count = Math.min(sorted.size(), 5);
-        for (int i = 0; i < count; i++) {
-            Tour t = sorted.get(i);
-            sb.append(i + 1).append(". ").append(t.getTitle()).append("\n");
-            sb.append("   ⭐ ").append(t.getRatingScore())
-              .append(" – ").append(t.getReviewsCount()).append(" đánh giá\n");
-            sb.append("   💰 ").append(formatPrice(t.getDiscountPrice())).append("\n\n");
-        }
-        sb.append("Muốn biết chi tiết tour nào? Cứ hỏi tôi nhé!");
-        return sb.toString();
-    }
-
-    /** Thông tin giá */
-    private String getTourPriceInfo(String q) {
-        Tour found = findTourByKeyword(q);
-        if (found != null) {
-            return buildTourDetail(found);
-        }
-        // Thống kê chung
-        double min = Double.MAX_VALUE, max = 0;
-        for (Tour t : tourList) {
-            double p = t.getDiscountPrice() > 0 ? t.getDiscountPrice() : t.getOriginalPrice();
-            if (p < min) min = p;
-            if (p > max) max = p;
-        }
-        return "💰 Thông tin giá tour tại ChillTour:\n\n"
-                + "• Giá thấp nhất: " + formatPrice(min) + "/người\n"
-                + "• Giá cao nhất: " + formatPrice(max) + "/người\n\n"
-                + "Bạn hỏi cụ thể tên tour nào để tôi tra giá chính xác nhé!";
-    }
-
-    /** Danh sách tổng quan tất cả tour */
-    private String getAllToursOverview() {
-        if (tourList.isEmpty()) return "Hiện tại không có tour nào trong hệ thống.";
-        StringBuilder sb = new StringBuilder("📋 Danh sách tour của ChillTour (" + tourList.size() + " tour):\n\n");
-        int count = Math.min(tourList.size(), 8);
-        for (int i = 0; i < count; i++) {
-            Tour t = tourList.get(i);
-            sb.append("• ").append(t.getTitle()).append("\n");
-        }
-        if (tourList.size() > 8) sb.append("... và ").append(tourList.size() - 8).append(" tour khác.\n");
-        sb.append("\nBạn hỏi tên tour cụ thể để tôi cung cấp thông tin chi tiết nhé!");
-        return sb.toString();
-    }
-
-    /** Mô tả tour theo keyword */
-    private String getTourDescription(String q) {
-        Tour found = findTourByKeyword(q);
-        if (found != null) return buildTourDetail(found);
-        return "Bạn muốn tìm hiểu tour nào?\nHãy nhắn tên địa điểm hoặc tên tour để tôi tra thông tin!";
-    }
-
-    /** Tìm tour khớp với keyword bất kỳ trong câu */
-    private Tour findTourByKeyword(String q) {
-        // Ưu tiên khớp chính xác nhiều từ nhất
-        Tour bestMatch = null;
-        int  bestScore = 0;
-        for (Tour t : tourList) {
-            String title = t.getTitle() != null ? t.getTitle().toLowerCase() : "";
-            String desc  = t.getDescription() != null ? t.getDescription().toLowerCase() : "";
-            String region = t.getRegion() != null ? t.getRegion().toLowerCase() : "";
-            int score = 0;
-            // Tính điểm khớp theo từng từ trong query
-            String[] words = q.split("\\s+");
-            for (String w : words) {
-                if (w.length() < 2) continue;
-                if (title.contains(w))  score += 3;
-                if (region.contains(w)) score += 2;
-                if (desc.contains(w))   score += 1;
-            }
-            if (score > bestScore) {
-                bestScore = score;
-                bestMatch = t;
-            }
-        }
-        return bestScore >= 2 ? bestMatch : null;
-    }
-
-    /** Tạo thẻ thông tin chi tiết một tour */
-    private String buildTourDetail(Tour t) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("🏖️ ").append(t.getTitle()).append("\n");
-        sb.append("─────────────────────\n");
-
-        if (t.getRegion() != null && !t.getRegion().isEmpty()) {
-            sb.append("📍 Vùng: ").append(t.getRegion()).append("\n");
-        }
-        if (t.getProvider() != null && !t.getProvider().isEmpty()) {
-            sb.append("🏢 Nhà cung cấp: ").append(t.getProvider()).append("\n");
-        }
-
-        double price = t.getDiscountPrice() > 0 ? t.getDiscountPrice() : t.getOriginalPrice();
-        sb.append("💰 Giá: ").append(formatPrice(price)).append("/người\n");
-        if (t.getDiscountPrice() > 0 && t.getOriginalPrice() > t.getDiscountPrice()) {
-            sb.append("   Gốc: ~~").append(formatPrice(t.getOriginalPrice())).append("~~\n");
-        }
-
-        sb.append("⭐ Đánh giá: ").append(t.getRatingScore())
-          .append("/5 (").append(t.getReviewsCount()).append(" đánh giá)\n");
-
-        if (t.getDescription() != null && !t.getDescription().isEmpty()) {
-            String desc = t.getDescription();
-            if (desc.length() > 200) desc = desc.substring(0, 200) + "...";
-            sb.append("\n📝 ").append(desc).append("\n");
-        }
-
-        if (t.getDescriptionTourInclude() != null && !t.getDescriptionTourInclude().isEmpty()) {
-            sb.append("\n✅ Tour bao gồm:\n").append(t.getDescriptionTourInclude()).append("\n");
-        }
-
-        return sb.toString();
-    }
-
-    private String formatPrice(double price) {
-        if (price <= 0) return "Liên hệ";
-        DecimalFormat df = new DecimalFormat("#,###");
-        return df.format((long) price) + " đ";
-    }
-
-    private boolean matches(String input, String... keywords) {
-        for (String kw : keywords) {
-            if (input.contains(kw)) return true;
-        }
-        return false;
-    }
-
     // ─── Data model ───────────────────────────────────────────────────────────
     static class ChatMessage {
         final String content;
         final int    type;
         final String time;
+        final Tour   tour; // Chỉ sử dụng khi type == TYPE_TOUR
 
         ChatMessage(String content, int type, String time) {
             this.content = content;
             this.type    = type;
             this.time    = time;
+            this.tour    = null;
+        }
+
+        ChatMessage(Tour tour, int type, String time) {
+            this.content = null;
+            this.type    = type;
+            this.time    = time;
+            this.tour    = tour;
         }
     }
 
@@ -479,8 +273,11 @@ public class ChatbotActivity extends AppCompatActivity {
             LayoutInflater inf = LayoutInflater.from(parent.getContext());
             if (viewType == TYPE_BOT) {
                 return new BotVH(inf.inflate(R.layout.item_chat_bot, parent, false));
-            } else {
+            } else if (viewType == TYPE_USER) {
                 return new UserVH(inf.inflate(R.layout.item_chat_user, parent, false));
+            } else {
+                // Sử dụng lại card layout của tour để hiển thị trong chat list
+                return new TourVH(inf.inflate(R.layout.item_tour_card, parent, false));
             }
         }
 
@@ -488,7 +285,8 @@ public class ChatbotActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int pos) {
             ChatMessage msg = data.get(pos);
             if (holder instanceof BotVH)  ((BotVH)  holder).bind(msg);
-            else                          ((UserVH) holder).bind(msg);
+            else if (holder instanceof UserVH) ((UserVH) holder).bind(msg);
+            else if (holder instanceof TourVH) ((TourVH) holder).bind(msg);
         }
 
         @Override public int getItemCount() { return data.size(); }
@@ -503,6 +301,73 @@ public class ChatbotActivity extends AppCompatActivity {
             final TextView tvMsg, tvTime;
             UserVH(View v) { super(v); tvMsg = v.findViewById(R.id.tvUserMessage); tvTime = v.findViewById(R.id.tvUserTime); }
             void bind(ChatMessage m) { tvMsg.setText(m.content); tvTime.setText(m.time); }
+        }
+
+        static class TourVH extends RecyclerView.ViewHolder {
+            TextView tvTourTitle, tvOldPrice, tvNewPrice, tvRibbonBadge, btnViewTour;
+            android.widget.ImageView ivTourImage;
+
+            TourVH(View itemView) {
+                super(itemView);
+                tvTourTitle    = itemView.findViewById(R.id.tvTourTitle);
+                tvOldPrice     = itemView.findViewById(R.id.tvOldPrice);
+                tvNewPrice     = itemView.findViewById(R.id.tvNewPrice);
+                tvRibbonBadge  = itemView.findViewById(R.id.tvRibbonBadge);
+                btnViewTour    = itemView.findViewById(R.id.btnViewTour);
+                ivTourImage    = itemView.findViewById(R.id.ivTourImage);
+            }
+
+            void bind(ChatMessage m) {
+                final Tour tour = m.tour;
+                if (tour == null) return;
+
+                tvTourTitle.setText(tour.getTitle());
+
+                // Định dạng tiền tệ VNĐ
+                java.text.NumberFormat formatter = java.text.NumberFormat.getNumberInstance(new java.util.Locale("vi", "VN"));
+
+                // Giá gốc gạch ngang
+                tvOldPrice.setText(formatter.format(tour.getOriginalPrice()));
+                tvOldPrice.setPaintFlags(
+                        tvOldPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG
+                );
+
+                // Giá khuyến mãi
+                tvNewPrice.setText(formatter.format(tour.getDiscountPrice()));
+
+                // Badge nhà cung cấp
+                tvRibbonBadge.setText(tour.getProvider());
+
+                // Nhấp vào Xem tour để mở chi tiết
+                android.view.View.OnClickListener listener = v -> {
+                    android.content.Intent intent = new android.content.Intent(itemView.getContext(), MainActivity.class);
+                    intent.putExtra("open_tour_id", tour.getId());
+                    itemView.getContext().startActivity(intent);
+                };
+
+                btnViewTour.setOnClickListener(listener);
+                itemView.setOnClickListener(listener);
+
+                // Load hình ảnh
+                if (ivTourImage != null) {
+                    String imageUrl = null;
+                    if (tour.getImages() != null && !tour.getImages().isEmpty()) {
+                        imageUrl = tour.getImages().get(0).getImageUrl();
+                    }
+                    if (imageUrl != null && !imageUrl.isEmpty()) {
+                        if (imageUrl.startsWith("/")) {
+                            imageUrl = "http://10.0.2.2:8000" + imageUrl;
+                        }
+                        com.bumptech.glide.Glide.with(itemView.getContext())
+                                .load(imageUrl)
+                                .placeholder(R.drawable.img_taiwan_tour)
+                                .centerCrop()
+                                .into(ivTourImage);
+                    } else {
+                        ivTourImage.setImageResource(R.drawable.img_taiwan_tour);
+                    }
+                }
+            }
         }
     }
 }

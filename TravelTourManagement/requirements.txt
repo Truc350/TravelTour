@@ -3,6 +3,25 @@ djangorestframework>=3.15.0
 pillow>=10.0.0
 numpy>=1.20.0
 requests>=2.30.0
+
+# PyTorch (CPU-only để nhẹ hơn, dùng cho sentence-transformers)
 --find-links https://download.pytorch.org/whl/cpu
 torch
 torchvision
+
+# ==================== AI CHATBOT DEPENDENCIES ====================
+
+# Embedding model: BAAI/bge-m3
+# Dùng để chuyển đổi text tour thành vector embedding
+sentence-transformers>=3.0.0
+
+# Vector search: FAISS (CPU version)
+# Dùng để tìm kiếm tour tương đồng ngữ nghĩa (Approximate Nearest Neighbor)
+faiss-cpu>=1.7.4
+
+# Ollama Python Client
+# Dùng để giao tiếp với Ollama server chạy Qwen3 8B
+ollama>=0.3.0
+
+# Django import/export (admin panel)
+django-import-export>=3.0.0

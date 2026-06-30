@@ -119,4 +119,7 @@ public interface ApiService {
     @Multipart
     @POST("api/tours/visual-search/")
     Call<List<Tour>> searchToursByImage(@Part MultipartBody.Part image);
+
+    @POST("api/chatbot/chat/")
+    Call<com.example.myapplication.data.model.ChatbotResponse> chatWithBot(@Body com.example.myapplication.data.model.ChatbotRequest request);
 }
