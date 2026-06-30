@@ -1,5 +1,4 @@
 from .rag_engine import TourRAGEngine
-from .llm_engine import OllamaLLMEngine
 from .prompt_builder import ChatbotPromptBuilder
 from .session_manager import ChatSessionManager
 import logging
@@ -21,7 +20,6 @@ class TourChatService:
     """
     def __init__(self):
         self.rag_engine = TourRAGEngine()
-        self.llm_engine = OllamaLLMEngine()
 
     def process_user_message(self, message_content: str, session_id_str: str = None, user_id: int = None) -> dict:
         """
@@ -47,19 +45,11 @@ class TourChatService:
         # Ngưỡng tương đồng threshold mặc định là 0.32 để tránh gợi ý tour không liên quan.
         search_results = self.rag_engine.search_tours(message_content, top_k=3, threshold=0.32)
 
-        # 3. Tạo Context & Prompt
-        tours_context_str = ChatbotPromptBuilder.format_tours_context(search_results)
-        system_instruction = ChatbotPromptBuilder.get_system_instruction(tours_context_str)
-
-        # 4. Lấy lịch sử hội thoại gần nhất (tối đa 8 tin nhắn trước đó để giữ context tốt nhất)
-        history_messages = ChatSessionManager.get_chat_history_messages(session, limit=8)
-
-        # 5. LLM sinh câu trả lời
-        response_text = self.llm_engine.generate_response(
-            system_instruction=system_instruction,
-            messages=history_messages,
-            temperature=0.25 # Nhiệt độ thấp để model bám sát context và tránh ảo tưởng (hallucination)
-        )
+        # 3. Trả về thông báo mặc định vì không dùng LLM nữa
+        if search_results:
+            response_text = "Tôi tìm thấy một số tour có thể phù hợp với yêu cầu của bạn dưới đây. Bạn tham khảo nhé!"
+        else:
+            response_text = "Xin lỗi, hiện tại tôi chưa tìm thấy tour nào phù hợp với yêu cầu của bạn. Bạn thử thay đổi từ khóa xem sao nhé!"
 
         # 6. Lưu phản hồi của Chatbot vào cơ sở dữ liệu
         ChatSessionManager.save_message(session, role='assistant', content=response_text)
