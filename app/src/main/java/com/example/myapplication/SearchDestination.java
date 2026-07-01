@@ -294,7 +294,7 @@ public class SearchDestination extends Fragment {
         if (layoutHotHeader != null) layoutHotHeader.setVisibility(View.VISIBLE);
         if (containerHot != null) containerHot.setVisibility(View.VISIBLE);
 
-        // ✅ Hiển thị lịch sử tìm kiếm
+        // Hiển thị lịch sử tìm kiếm
         List<String> history = getSearchHistory();
         if (history.isEmpty()) {
             if (layoutRecentSection != null) layoutRecentSection.setVisibility(View.GONE);
