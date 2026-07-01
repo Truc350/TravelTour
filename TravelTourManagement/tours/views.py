@@ -168,9 +168,14 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
 
+    # BƯỚC 6: Django Backend xử lý API POST '/api/bookings/'
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
         tour_id = data.get('tour_id')
+        
+        # BƯỚC 6.1: Xử lý TourDeparture
+        # Lấy tour_id từ request, tìm đối tượng Tour trong CSDL.
+        # Nếu chưa có TourDeparture tương ứng thì tự động tạo mới một chuyến khởi hành (TourDeparture) mẫu.
         if tour_id:
             try:
                 tour = Tour.objects.get(id=tour_id)
@@ -186,11 +191,14 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
             except Tour.DoesNotExist:
                 pass
         
+        # BƯỚC 6.2: Validate dữ liệu và lưu Booking mới vào Database
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        # Mark UserVoucher as used and decrement count
+        # BƯỚC 6.3: Xử lý áp dụng Voucher giảm giá
+        # Nếu người dùng có chọn mã voucher, tìm Voucher và đánh dấu UserVoucher đã được sử dụng (is_used = True).
+        # Đồng thời giảm số lượng Voucher còn lại đi 1 đơn vị (remaining_count -= 1).
         user_id = data.get('user')
         voucher_code = data.get('voucher_code')
         if user_id and voucher_code:
@@ -209,7 +217,7 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
             except Exception as e:
                 print("Error updating UserVoucher on booking create:", e)
 
-        # Send invoice email if requested
+        # BƯỚC 6.4: Gửi hóa đơn điện tử qua Email (nếu người dùng tích chọn is_invoice_requested)
         booking = serializer.instance
         print(f"[EMAIL DEBUG] Booking #{booking.id} created. is_invoice_requested={booking.is_invoice_requested}, customer_email='{booking.customer_email}'")
         if booking.is_invoice_requested and booking.customer_email:
@@ -469,11 +477,13 @@ class BookingListCreateAPIView(generics.ListCreateAPIView):
                 qr_mime.add_header('Content-Disposition', 'inline', filename='qr_code.png')
                 email.attach(qr_mime)
 
+                # Gửi email qua SMTP server
                 email.send(fail_silently=False)
                 print(f"Sent HTML invoice email to {booking.customer_email} for booking #{booking.id}")
             except Exception as e:
                 print(f"Failed to send invoice email: {e}")
 
+        # BƯỚC 6.5: Trả về HTTP 201 Created cùng serializer.data cho Android client
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 

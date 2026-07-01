@@ -213,17 +213,22 @@ public class BookingInfoActivity extends AppCompatActivity {
 
 
 
+    // BƯỚC 1 TRONG LUỒNG THANH TOÁN (Từ BookingInfoActivity.java chuyển sang PaymentActivity.java)
+    // Nhiệm vụ: Thu thập, kiểm tra thông tin khách hàng, tính tổng tiền sau voucher và đóng gói dữ liệu gửi qua màn hình thanh toán.
     private void submitBooking() {
+        // Đọc giá trị từ các trường nhập liệu trên giao diện
         String fullName = etFullName.getText().toString().trim();
         String phone = etPhone.getText().toString().trim();
         String email = etEmail.getText().toString().trim();
 
+        // Kiểm tra hợp lệ: Họ tên không được để trống
         if (TextUtils.isEmpty(fullName)) {
             etFullName.setError("Vui lòng nhập họ tên");
             etFullName.requestFocus();
             return;
         }
 
+        // Kiểm tra hợp lệ: Số điện thoại phải bắt đầu bằng 0 và có đúng 10 số
         if (TextUtils.isEmpty(phone)) {
             etPhone.setError("Vui lòng nhập số điện thoại");
             etPhone.requestFocus();
@@ -238,6 +243,7 @@ public class BookingInfoActivity extends AppCompatActivity {
             return;
         }
 
+        // Kiểm tra hợp lệ: Email phải đúng định dạng
         if (TextUtils.isEmpty(email)) {
             etEmail.setError("Vui lòng nhập email");
             etEmail.requestFocus();
@@ -248,11 +254,16 @@ public class BookingInfoActivity extends AppCompatActivity {
             return;
         }
 
+        // Kiểm tra xem người dùng có tích chọn yêu cầu gửi hóa đơn điện tử không
         if (cbRequestInvoice != null) {
             isInvoiceRequested = cbRequestInvoice.isChecked();
         }
 
+        // Tính toán số tiền cuối cùng cần thanh toán sau khi trừ đi phần giảm giá từ Voucher (nếu có)
         long finalPrice = Math.max(0, totalPrice - discountAmount);
+
+        // Đóng gói toàn bộ thông tin đặt tour chuyển sang lớp tiếp theo: PaymentActivity.java
+        // Dùng Intent chứa các extras để truyền dữ liệu đi.
         Intent intent = new Intent(this, PaymentActivity.class);
         intent.putExtra("tour_title", tourTitle);
         intent.putExtra("tour_id", tourId);
@@ -268,6 +279,8 @@ public class BookingInfoActivity extends AppCompatActivity {
         intent.putExtra("phone", phone);
         intent.putExtra("email", email);
         intent.putExtra("voucher_code", selectedVoucherCode);
+
+        // Kích hoạt Activity thanh toán (PaymentActivity.java) và đóng Activity hiện tại
         startActivity(intent);
         finish();
     }

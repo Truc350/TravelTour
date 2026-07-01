@@ -63,20 +63,21 @@ public class PaymentActivity extends AppCompatActivity {
     private int childCount = 0;
     private int infantCount = 0;
 
+    // BƯỚC 2 TRONG LUỒNG THANH TOÁN: Khởi tạo PaymentActivity, nhận dữ liệu và chuẩn bị UI
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_payment);
 
-        // Xử lý System Bar Padding
+        // Xử lý System Bar Padding để tránh UI đè lên status/navigation bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // Đọc dữ liệu từ Intent
+        // BƯỚC 2.1: Nhận toàn bộ dữ liệu đơn hàng được truyền qua Intent từ BookingInfoActivity.java
         Intent intent = getIntent();
         if (intent != null) {
             tourTitle = intent.getStringExtra("tour_title");
@@ -95,15 +96,21 @@ public class PaymentActivity extends AppCompatActivity {
             email = intent.getStringExtra("email");
         }
 
-        // Tạo mã đơn hàng ngẫu nhiên để tăng tính thực tế (hoặc dùng mã mẫu DL0091642)
+        // BƯỚC 2.2: Tạo mã đơn hàng client ngẫu nhiên (DL0xxxxxxx) phục vụ hiển thị UI cục bộ
         generateOrderId();
 
+        // Ánh xạ các thành phần giao diện từ layout activity_payment.xml
         initViews();
+        // Đăng ký các sự kiện tương tác của người dùng
         setupListeners();
+        // Hiển thị tóm tắt thông tin đơn hàng lên giao diện
         displayData();
-        selectPaymentMethod(0); // Chọn mặc định Chuyển khoản QR
+        // Mặc định chọn phương thức thanh toán đầu tiên: Chuyển khoản QR VietQR
+        selectPaymentMethod(0); 
     }
 
+    // BƯỚC 2.2: Hàm tự động sinh mã đơn hàng hiển thị dạng DL0 + 7 chữ số ngẫu nhiên.
+    // Lưu ý: Đây là mã định danh tạm thời trên client, ID thực của booking sẽ do Django Database tự tăng.
     private void generateOrderId() {
         int randomNum = (int) (Math.random() * 9000000) + 1000000; // 7 chữ số
         orderId = "DL0" + randomNum;
@@ -129,20 +136,22 @@ public class PaymentActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-        // Nút Back
+        // Nút quay lại (Back) màn hình trước
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
 
-        // Chọn phương thức thanh toán
-        layoutPayQr.setOnClickListener(v -> selectPaymentMethod(0));
-        layoutPayCard.setOnClickListener(v -> selectPaymentMethod(1));
-        layoutPayMomo.setOnClickListener(v -> selectPaymentMethod(2));
-        layoutPayAtm.setOnClickListener(v -> selectPaymentMethod(3));
+        // BƯỚC 3: Người dùng chọn phương thức thanh toán bằng cách nhấn vào các LinearLayout tương ứng
+        layoutPayQr.setOnClickListener(v -> selectPaymentMethod(0));   // Chuyển khoản QR VietQR
+        layoutPayCard.setOnClickListener(v -> selectPaymentMethod(1)); // Thẻ tín dụng quốc tế
+        layoutPayMomo.setOnClickListener(v -> selectPaymentMethod(2)); // Ví điện tử MoMo
+        layoutPayAtm.setOnClickListener(v -> selectPaymentMethod(3));  // Thẻ ATM nội địa
 
-        // Nút Xác nhận thanh toán
+        // BƯỚC 4: Người dùng nhấn nút "Xác nhận thanh toán"
         btnConfirmPayment.setOnClickListener(v -> {
             if (rbPayQr.isChecked()) {
+                // Nếu chọn QR -> Chuyển đến BƯỚC 4a: Hiển thị dialog VietQR để quét mã
                 showVietQrDialog();
             } else if (rbPayMomo.isChecked()) {
+                // Nếu chọn các ví/thẻ -> Chuyển đến BƯỚC 4b: Giả lập kết nối cổng thanh toán
                 showProcessingPaymentDialog("Ví MoMo");
             } else if (rbPayCard.isChecked()) {
                 showProcessingPaymentDialog("Thẻ tín dụng");
@@ -179,13 +188,15 @@ public class PaymentActivity extends AppCompatActivity {
         tvPaymentDeadline.setText(deadlineStr);
     }
 
+    // BƯỚC 3.1: Đổi trạng thái RadioButton và background viền của các item phương thức thanh toán
     private void selectPaymentMethod(int index) {
-        // Reset tất cả các RadioButton và background
+        // Reset tất cả các RadioButton: Chỉ checked phần tử trùng với index được truyền vào
         rbPayQr.setChecked(index == 0);
         rbPayCard.setChecked(index == 1);
         rbPayMomo.setChecked(index == 2);
         rbPayAtm.setChecked(index == 3);
 
+        // Thay đổi background drawable tương ứng (bg_payment_item_selected là viền xanh đậm, bg_payment_item_unselected là viền xám nhạt)
         layoutPayQr.setBackgroundResource(index == 0 ? R.drawable.bg_payment_item_selected : R.drawable.bg_payment_item_unselected);
         layoutPayCard.setBackgroundResource(index == 1 ? R.drawable.bg_payment_item_selected : R.drawable.bg_payment_item_unselected);
         layoutPayMomo.setBackgroundResource(index == 2 ? R.drawable.bg_payment_item_selected : R.drawable.bg_payment_item_unselected);
@@ -206,8 +217,11 @@ public class PaymentActivity extends AppCompatActivity {
         return sb + " đ";
     }
 
+    // BƯỚC 4a: Thanh toán QR VietQR
+    // Hiển thị Dialog chứa mã QR động được lấy từ API VietQR, cho phép người dùng copy thông tin TK
     private void showVietQrDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // Nạp layout dialog_vietqr.xml vào view
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_vietqr, null);
         builder.setView(dialogView);
 
@@ -225,27 +239,29 @@ public class PaymentActivity extends AppCompatActivity {
         View btnCopyInfo = dialogView.findViewById(R.id.btn_copy_info);
         Button btnQrConfirm = dialogView.findViewById(R.id.btn_qr_confirm);
 
-        // Đổ thông tin chuyển khoản mẫu lên Dialog
+        // Hiển thị các thông tin chuyển khoản tương ứng
         String formattedPrice = formatVnd(totalPrice);
         tvQrAmount.setText(formattedPrice);
         tvQrInfo.setText("Thanh toan tour " + orderId);
 
-        // Tạo đường dẫn VietQR Quick Link
+        // Tạo URL động của API VietQR Quick Link (sử dụng VietQR API để sinh QR Code có sẵn Số tiền, Tên TK, Số TK, Nội dung chuyển khoản)
         String qrUrl = "https://img.vietqr.io/image/mbbank-113366668888-compact2.png?amount=" + totalPrice 
                 + "&addInfo=Thanh%20toan%20tour%20" + orderId + "&accountName=LAM%20DAI";
 
-        // Tải ảnh mã QR động bằng Glide
+        // Sử dụng thư viện Glide để tải ảnh QR code từ URL trên mạng về và gán vào ImageView
         Glide.with(this)
                 .load(qrUrl)
                 .listener(new com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable>() {
                     @Override
                     public boolean onLoadFailed(@Nullable com.bumptech.glide.load.engine.GlideException e, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, boolean isFirstResource) {
+                        // Ẩn ProgressBar nếu tải ảnh thất bại
                         if (pbQrLoading != null) pbQrLoading.setVisibility(View.GONE);
                         return false;
                     }
 
                     @Override
                     public boolean onResourceReady(android.graphics.drawable.Drawable resource, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, com.bumptech.glide.load.DataSource dataSource, boolean isFirstResource) {
+                        // Ẩn ProgressBar khi ảnh đã tải thành công và hiển thị lên ImageView
                         if (pbQrLoading != null) pbQrLoading.setVisibility(View.GONE);
                         return false;
                     }
@@ -300,6 +316,7 @@ public class PaymentActivity extends AppCompatActivity {
         }
     }
 
+    // BƯỚC 4b: Thanh toán ví điện tử, thẻ ATM/Tín dụng (Giả lập xử lý cổng thanh toán trực tuyến)
     private void showProcessingPaymentDialog(String methodName) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LinearLayout layout = new LinearLayout(this);
@@ -320,11 +337,13 @@ public class PaymentActivity extends AppCompatActivity {
         layout.addView(progressBar);
         layout.addView(textView);
         builder.setView(layout);
+        // Thiết lập không cho phép người dùng tự tắt dialog (phải chờ hoàn tất)
         builder.setCancelable(false);
 
         final AlertDialog dialog = builder.create();
         dialog.show();
 
+        // BƯỚC 4.2b: Chờ 2000ms (2 giây) giả lập kết nối và phản hồi từ cổng thanh toán thành công, tự động chuyển đến BƯỚC 5
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             if (dialog.isShowing()) {
                 dialog.dismiss();
@@ -333,15 +352,20 @@ public class PaymentActivity extends AppCompatActivity {
         }, 2000);
     }
 
+    // BƯỚC 5: Xử lý sau khi thanh toán thành công (Bao gồm gọi API Django, lưu chuyến đi local và chuyển màn hình)
     private void onPaymentSuccess() {
-        // Gọi API tạo Booking mới trên Django Backend
+        // BƯỚC 5.1: Khởi tạo ApiService từ RetrofitClient để chuẩn bị thực hiện REST API call đến Django Server
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        
+        // BƯỚC 5.2: Lấy thông tin ID người dùng hiện tại đang lưu trong bộ nhớ SharedPreferences ("UserSession")
         android.content.SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
-        int currentUserId = prefs.getInt("current_user_id", -1); // lấy ID user đăng nhập thực tế
-        int depId = departureId > 0 ? departureId : 1; // mặc định departure 1 nếu chưa được gán chính xác
+        int currentUserId = prefs.getInt("current_user_id", -1); // mặc định -1 nếu là khách vãng lai
+        
+        int depId = departureId > 0 ? departureId : 1; // mặc định chuyến đi ID 1 nếu intent không truyền đúng
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault());
         String currentDate = sdf.format(new java.util.Date());
 
+        // Lấy lại các thông tin booking được lưu trong Intent từ BookingInfoActivity
         String voucherCode = getIntent().getStringExtra("voucher_code");
         if (voucherCode == null) {
             voucherCode = "";
@@ -352,12 +376,13 @@ public class PaymentActivity extends AppCompatActivity {
         String customerEmail = getIntent().getStringExtra("email");
         boolean isInvoiceRequested = getIntent().getBooleanExtra("is_invoice_requested", false);
 
+        // BƯỚC 5.3: Tạo đối tượng DTO BookingRequest (Data Transfer Object) chứa thông tin booking để gửi lên API
         com.example.myapplication.data.model.BookingRequest request = new com.example.myapplication.data.model.BookingRequest(
                 currentUserId,
                 depId,
                 currentDate,
                 departureTime != null && !departureTime.isEmpty() ? departureTime : "08:00",
-                "CONFIRMED", // đã xác nhận/đã thanh toán
+                "CONFIRMED", // Trạng thái đặt tour: Đã thanh toán (CONFIRMED)
                 totalPrice,
                 tourId,
                 voucherCode,
@@ -367,12 +392,16 @@ public class PaymentActivity extends AppCompatActivity {
                 isInvoiceRequested
         );
 
+        // BƯỚC 5.4: Sử dụng Retrofit gửi POST Request lên endpoint '/api/bookings/' của Django Backend
+        // Gọi bất đồng bộ (Asynchronous) thông qua enqueue()
         apiService.createBooking(request).enqueue(new retrofit2.Callback<com.example.myapplication.data.model.BookingResponse>() {
             @Override
             public void onResponse(retrofit2.Call<com.example.myapplication.data.model.BookingResponse> call, retrofit2.Response<com.example.myapplication.data.model.BookingResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
+                    // Thành công: Server lưu vào CSDL và sinh khóa chính auto-increment (id) trả về
                     android.util.Log.d("DJANGO_API", "Tạo booking thành công trên server! ID = " + response.body().id);
                 } else {
+                    // Thất bại từ phía server (ví dụ: HTTP 400 Bad Request, Validation error)
                     android.util.Log.e("DJANGO_API", "Không thể tạo booking trên server! Code = " + response.code());
                     Toast.makeText(PaymentActivity.this, "Lỗi phản hồi từ Django! Mã lỗi: " + response.code(), Toast.LENGTH_LONG).show();
                 }
@@ -380,11 +409,13 @@ public class PaymentActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(retrofit2.Call<com.example.myapplication.data.model.BookingResponse> call, Throwable t) {
+                // Thất bại do mất kết nối mạng hoặc server Django không chạy
                 android.util.Log.e("DJANGO_API", "Lỗi kết nối khi tạo booking: " + t.getMessage(), t);
                 Toast.makeText(PaymentActivity.this, "Không thể kết nối với máy chủ Django!", Toast.LENGTH_LONG).show();
             }
         });
 
+        // Định dạng lại ngày khởi hành để hiển thị trên Card danh sách local
         String formattedDepDate = currentDate;
         if (departureDate != null && !departureDate.isEmpty()) {
             try {
@@ -406,6 +437,7 @@ public class PaymentActivity extends AppCompatActivity {
             }
         }
 
+        // BƯỚC 5.5: Tạo chuyến đi local bằng đối tượng BookedTripAdapter.TripItem
         BookedTripAdapter.TripItem newTrip = new BookedTripAdapter.TripItem(
                 orderId,
                 tourTitle,
@@ -417,28 +449,29 @@ public class PaymentActivity extends AppCompatActivity {
                 adultCount + " người lớn" + (childCount > 0 ? ", " + childCount + " trẻ em" : ""),
                 formatVnd(totalPrice),
                 formattedDepDate,
-                false,
+                false, // isHistory = false (Chuyến đi sắp tới)
                 "tour"
         );
         newTrip.tourId = tourId;
         newTrip.userId = currentUserId;
 
-
-        // Lưu vào danh sách tĩnh của MyTripsFragment
+        // BƯỚC 5.6: Thêm chuyến đi mới vào đầu danh sách tĩnh MyTripsFragment.additionalTrips
+        // Danh sách tĩnh này chia sẻ dữ liệu tức thời trong ứng dụng Android (sẽ bị mất khi tắt app, chuyến đi lưu trữ thực tế trên Django DB)
         MyTripsFragment.additionalTrips.add(0, newTrip);
 
         Toast.makeText(this, "Thanh toán thành công!", Toast.LENGTH_LONG).show();
 
-        // Hóa đơn điện tử sẽ được Django server tự động gửi qua SMTP
+        // BƯỚC 5.7: Nếu người dùng yêu cầu hóa đơn, hiển thị Toast (phần gửi email thực tế do server Django xử lý thông qua SMTP)
         if (isInvoiceRequested) {
             Toast.makeText(this, "Hóa đơn điện tử đang được gửi đến email " + email + "!", Toast.LENGTH_LONG).show();
         }
 
-        // Chuyển sang MainActivity với tab Chuyến đi (MyTrips)
+        // BƯỚC 5.8: Khởi động MainActivity và tự động điều hướng sang tab "Chuyến đi" (MyTripsFragment)
+        // Dùng flag CLEAR_TOP | NEW_TASK để dọn dẹp các Activity trung gian (BookingInfoActivity, PaymentActivity)
         Intent mainIntent = new Intent(this, MainActivity.class);
         mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        mainIntent.putExtra("navigate_to", "MyTrips");
+        mainIntent.putExtra("navigate_to", "MyTrips"); // Gửi tín hiệu điều hướng tab
         startActivity(mainIntent);
-        finish();
+        finish(); // Đóng PaymentActivity
     }
 }
