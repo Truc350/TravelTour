@@ -507,24 +507,12 @@
         android:background="#FFFFFF"
         android:elevation="8dp"
         android:padding="12dp">
-        <Button
-            android:id="@+id/btn_contact"
-            android:layout_width="0dp"
-            android:layout_height="50dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/bg_btn_outline_blue"
-            android:text="Liên hệ tư vấn"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textAllCaps="false" />
 
         <!-- Nút Đặt tour ngay -->
         <Button
             android:id="@+id/btn_book"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_weight="1"
             android:background="@drawable/bg_button_orange"
             android:text="Đặt tour ngay"
             android:textColor="#FFFFFF"

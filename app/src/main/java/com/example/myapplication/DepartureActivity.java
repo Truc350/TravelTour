@@ -219,20 +219,6 @@ public class DepartureActivity extends AppCompatActivity {
             });
         }
 
-        // Nút Liên hệ tư vấn – mở Zalo ChillTour
-        findViewById(R.id.btn_contact).setOnClickListener(v -> {
-            try {
-                android.net.Uri uri = android.net.Uri.parse("https://zalo.me/0858342303");
-                Intent zaloIntent = new Intent(Intent.ACTION_VIEW, uri);
-                zaloIntent.setPackage("com.zing.zalo");
-                startActivity(zaloIntent);
-            } catch (android.content.ActivityNotFoundException e) {
-                // Zalo chưa cài – mở trình duyệt
-                android.net.Uri uri = android.net.Uri.parse("https://zalo.me/0858342303");
-                startActivity(new Intent(Intent.ACTION_VIEW, uri));
-            }
-        });
-
         // Nút Đặt tour ngay
         findViewById(R.id.btn_book).setOnClickListener(v -> {
             if (selectedDateStr.isEmpty()) {
