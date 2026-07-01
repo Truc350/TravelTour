@@ -35,10 +35,12 @@ public interface ApiService {
     @GET("api/tour-departures/")
     Call<List<TourDeparture>> getTourDepartures(@Query("tour_id") int tourId);
 
-    // Bookings CRUD
+    // BƯỚC 5.1b: Lấy danh sách booking từ server Django
     @GET("api/bookings/")
     Call<List<BookingResponse>> getBookings();
 
+    // BƯỚC 5.3a: Gửi yêu cầu tạo booking mới lên server Django qua phương thức POST '/api/bookings/'
+    // Nhận DTO BookingRequest từ body request và trả về DTO BookingResponse chứa ID booking thật
     @POST("api/bookings/")
     Call<BookingResponse> createBooking(@Body BookingRequest bookingRequest);
 

@@ -3,7 +3,9 @@ package com.example.myapplication.data.model;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Model wrapper để hứng dữ liệu Booking lồng ghép từ Django API.
+ * BƯỚC 5.4a: DTO (Data Transfer Object) / Model Response đại diện cho dữ liệu phản hồi từ Django API.
+ * Sau khi Django lưu thành công Booking vào database, nó sẽ trả về thông tin booking vừa tạo,
+ * quan trọng nhất là trường 'id' (mã đơn hàng thực tế tăng tự động trong cơ sở dữ liệu) và chi tiết chuyến đi.
  */
 public class BookingResponse {
     @SerializedName("id")

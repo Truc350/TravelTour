@@ -3,7 +3,18 @@ package com.example.myapplication.data.model;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Model request dùng để gửi dữ liệu tạo Booking mới lên Django API.
+ * BƯỚC 5.3: DTO (Data Transfer Object) / Model Request đại diện cho dữ liệu gửi lên Django API.
+ * Lớp này gom tất cả thông tin booking thu thập được từ BookingInfoActivity và PaymentActivity
+ * để gửi đi trong request body của POST request '/api/bookings/'.
+ * Các thuộc tính bao gồm:
+ * - user: ID người dùng (UserSession).
+ * - departure: ID chuyến khởi hành.
+ * - bookingDate / departureHour: Ngày đặt, giờ khởi hành.
+ * - status: Trạng thái thanh toán (mặc định "CONFIRMED").
+ * - totalPrice: Tổng tiền sau khi đã trừ voucher.
+ * - tourId / voucherCode: Mã tour, mã giảm giá.
+ * - customerName / customerPhone / customerEmail: Thông tin khách hàng.
+ * - isInvoiceRequested: Cờ yêu cầu xuất hóa đơn điện tử (gửi email SMTP do Django backend thực hiện).
  */
 public class BookingRequest {
     @SerializedName("user")

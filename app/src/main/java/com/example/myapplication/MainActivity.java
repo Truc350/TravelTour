@@ -58,9 +58,12 @@ public class MainActivity extends AppCompatActivity {
         // Lấy tham chiếu đến thanh điều hướng dưới cùng
         BottomNavigationView bottomNavigation = findViewById(R.id.bottomNavigation);
 
+        // BƯỚC 5.8a: Nhận tín hiệu điều hướng tab từ PaymentActivity.java sau khi thanh toán thành công
         String navigateTo = getIntent().getStringExtra("navigate_to");
         if ("MyTrips".equals(navigateTo)) {
+            // Tự động chuyển tab được chọn trên BottomNavigationView sang tab "Chuyến đi"
             bottomNavigation.setSelectedItemId(R.id.nav_trip);
+            // Thay thế fragment hiện tại trong contentFrame thành MyTripsFragment.java để load danh sách chuyến đi
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.contentFrame, new MyTripsFragment())
                     .commit();

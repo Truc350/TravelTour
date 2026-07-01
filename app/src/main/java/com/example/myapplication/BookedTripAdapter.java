@@ -15,7 +15,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 /**
- * Adapter hiển thị danh sách các chuyến đi (vé tàu hoặc tour) đã đặt và lịch sử chuyến đi.
+ * BƯỚC 5.5a: Adapter hiển thị danh sách các chuyến đi (vé tàu hoặc tour) đã đặt và lịch sử chuyến đi.
+ * Vai trò trong luồng: Render các đối tượng TripItem thành giao diện dạng card để hiển thị trong RecyclerView của MyTripsFragment.
  */
 public class BookedTripAdapter extends RecyclerView.Adapter<BookedTripAdapter.TripViewHolder> {
 
@@ -27,6 +28,10 @@ public class BookedTripAdapter extends RecyclerView.Adapter<BookedTripAdapter.Tr
         void onTripClick(TripItem item);
     }
 
+    /**
+     * Lớp dữ liệu (Data Class) cục bộ đại diện cho một vé/chuyến đi hiển thị trên UI.
+     * Khi thanh toán thành công, một TripItem mới được khởi tạo và thêm vào MyTripsFragment.additionalTrips.
+     */
     public static class TripItem {
         public String id;
         public String trainName;

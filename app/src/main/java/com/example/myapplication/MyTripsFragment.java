@@ -47,8 +47,14 @@ public class MyTripsFragment extends Fragment {
     private TextView tvEmptyTitle, tvEmptySubtitle;
 
     // Data lists
+    // BƯỚC 5.6a: Danh sách tĩnh lưu trữ các chuyến đi mới thanh toán thành công trong phiên chạy hiện tại.
+    // Lớp PaymentActivity.onPaymentSuccess() sẽ thêm trực tiếp TripItem mới vào đây.
     public static List<BookedTripAdapter.TripItem> additionalTrips = new ArrayList<>();
+    
+    // Danh sách lưu trữ toàn bộ các chuyến đi (gộp từ API server Django và additionalTrips local)
     private List<BookedTripAdapter.TripItem> allTrips = new ArrayList<>();
+    
+    // Danh sách chuyến đi đang được hiển thị lên RecyclerView (sau khi đã lọc theo Tab Upcoming/History và theo Ngày)
     private List<BookedTripAdapter.TripItem> displayedTrips = new ArrayList<>();
     private BookedTripAdapter adapter;
 
@@ -147,9 +153,12 @@ public class MyTripsFragment extends Fragment {
         loadBookingsFromServer();
     }
 
+    // BƯỚC 5.8c: Tải toàn bộ danh sách đơn đặt tour (booking) từ server Django
+    // Gộp dữ liệu từ API và các chuyến đi local mới thanh toán xong để hiển thị.
     private void loadBookingsFromServer() {
         if (getContext() == null) return;
 
+        // Lấy thông tin user đăng nhập
         SharedPreferences prefs = getContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
         int currentUserId = prefs.getInt("current_user_id", -1); // default to -1 if guest
 
@@ -166,7 +175,9 @@ public class MyTripsFragment extends Fragment {
             return;
         }
 
+        // Tạo ApiService từ RetrofitClient
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        // Gọi API GET '/api/bookings/' bất đồng bộ để lấy danh sách bookings
         apiService.getBookings().enqueue(new Callback<List<BookingResponse>>() {
             @Override
             public void onResponse(Call<List<BookingResponse>> call, Response<List<BookingResponse>> response) {
@@ -174,7 +185,8 @@ public class MyTripsFragment extends Fragment {
                     List<BookingResponse> bookings = response.body();
                     allTrips.clear();
 
-                    // Thêm additionalTrips local trước (lọc theo user đăng nhập)
+                    // 1. Thêm additionalTrips (danh sách chuyến đi local vừa thanh toán thành công) trước
+                    // Lọc theo currentUserId để tránh hiển thị nhầm chuyến đi của user khác
                     for (BookedTripAdapter.TripItem localItem : additionalTrips) {
                         if (localItem.userId == currentUserId) {
                             allTrips.add(localItem);
