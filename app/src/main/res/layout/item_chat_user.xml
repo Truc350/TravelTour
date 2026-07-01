@@ -14,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_chip_selected"
-        android:textColor="#FFFFFF"
+        android:textColor="#185FA5"
         android:textSize="14sp"
         android:lineSpacingMultiplier="1.4"
         android:paddingStart="14dp"
